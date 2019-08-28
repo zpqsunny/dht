@@ -1,22 +1,20 @@
 package me.zpq.dht;
 
 
-import java.util.Arrays;
-
 public class MetaInfoRequest {
 
     private String ip;
 
-    private int p;
+    private int port;
 
-    private byte[] infoHash;
+    private String infoHash;
 
     public MetaInfoRequest() {
     }
 
-    public MetaInfoRequest(String ip, int p, byte[] infoHash) {
+    public MetaInfoRequest(String ip, int port, String infoHash) {
         this.ip = ip;
-        this.p = p;
+        this.port = port;
         this.infoHash = infoHash;
     }
 
@@ -28,28 +26,24 @@ public class MetaInfoRequest {
         this.ip = ip;
     }
 
-    public int getP() {
-        return p;
+    public int getPort() {
+        return port;
     }
 
-    public void setP(int p) {
-        this.p = p;
+    public void setPort(int port) {
+        this.port = port;
     }
 
-    public byte[] getInfoHash() {
+    public String getInfoHash() {
         return infoHash;
     }
 
-    public void setInfoHash(byte[] infoHash) {
+    public void setInfoHash(String infoHash) {
         this.infoHash = infoHash;
     }
 
     @Override
     public String toString() {
-        return "MetaInfoRequest{" +
-                "ip='" + ip + '\'' +
-                ", p=" + p +
-                ", infoHash=" + Arrays.toString(infoHash) +
-                '}';
+        return "{\"ip\":\"" + ip + "\",\"port\":" + port + ",\"infoHash\":\"" + infoHash + "\"}";
     }
 }

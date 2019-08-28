@@ -81,4 +81,20 @@ public class Helper {
         data[1] = (byte) ((i >> 8) & 0xFF);
         return data;
     }
+
+    public static String bytesToHexString(byte[] src){
+        StringBuilder stringBuilder = new StringBuilder();
+        if (src == null || src.length <= 0) {
+            return null;
+        }
+        for (byte b : src) {
+            int v = b & 0xFF;
+            String hv = Integer.toHexString(v);
+            if (hv.length() < 2) {
+                stringBuilder.append(0);
+            }
+            stringBuilder.append(hv);
+        }
+        return stringBuilder.toString();
+    }
 }

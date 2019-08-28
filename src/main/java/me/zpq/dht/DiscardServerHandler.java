@@ -169,13 +169,12 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
         MetaInfoRequest metaInfoRequest;
         if (a.get("implied_port") != null && a.get("implied_port").getInt() != 0) {
 
-            metaInfoRequest = new MetaInfoRequest(address, port, a.get("info_hash").getBytes());
+            metaInfoRequest = new MetaInfoRequest(address, port, Helper.bytesToHexString(a.get("info_hash").getBytes()));
         } else {
 
-            metaInfoRequest = new MetaInfoRequest(address, a.get("port").getInt(), a.get("info_hash").getBytes());
+            metaInfoRequest = new MetaInfoRequest(address, a.get("port").getInt(), Helper.bytesToHexString(a.get("info_hash").getBytes()));
         }
-        System.out.println(metaInfoRequest);
-
+        jedis.lpush("meta_info", metaInfoRequest.toString());
         channelHandlerContext.writeAndFlush(new DatagramPacket(
                 Unpooled.copiedBuffer(
                         dhtProtocol.announcePeerResponse(transactionId, nodeId)),

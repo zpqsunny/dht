@@ -21,18 +21,15 @@ public class AutoFindNode extends TimerTask {
 
     private Integer minNodes;
 
-    private Integer maxNodes;
-
     private List<BootstrapAddress> list = new ArrayList<>();
 
     private DHTProtocol dhtProtocol = new DHTProtocol();
 
-    public AutoFindNode(Channel channel, byte[] nodeId, Map<byte[], NodeTable> tableMap, Integer minNodes, Integer maxNodes) {
+    public AutoFindNode(Channel channel, byte[] nodeId, Map<byte[], NodeTable> tableMap, Integer minNodes) {
         this.channel = channel;
         this.nodeId = nodeId;
         this.tableMap = tableMap;
         this.minNodes = minNodes;
-        this.maxNodes = maxNodes;
         list.add(new BootstrapAddress("router.bittorrent.com", 6881));
         list.add(new BootstrapAddress("router.utorrent.com", 6881));
         list.add(new BootstrapAddress("dht.transmissionbt.com", 6881));

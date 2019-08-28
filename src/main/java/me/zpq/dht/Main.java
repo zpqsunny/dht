@@ -55,14 +55,14 @@ public class Main {
         bootstrap.group(new NioEventLoopGroup())
                 .channel(NioDatagramChannel.class)
                 .option(ChannelOption.SO_BROADCAST, true)
-                .handler(new DiscardServerHandler(table, nodeId, peerId));
+                .handler(new DiscardServerHandler(table, nodeId, peerId, maxNodes));
 //        final Channel channel = bootstrap.bind("202.81.242.169", 6882).sync().channel();
         final Channel channel = bootstrap.bind(host, port).sync().channel();
 
         LOGGER.info("server ok");
         LOGGER.info("start autoFindNode");
         Timer autoFindNode = new Timer();
-        autoFindNode.schedule(new AutoFindNode(channel, nodeId, table, minNodes, maxNodes), 2000, 2000);
+        autoFindNode.schedule(new AutoFindNode(channel, nodeId, table, minNodes), 2000, 2000);
         LOGGER.info("start ok autoFindNode");
     }
 

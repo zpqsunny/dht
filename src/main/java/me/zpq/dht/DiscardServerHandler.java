@@ -33,12 +33,14 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
     private Map<byte[], NodeTable> nodeTable;
 
-    public DiscardServerHandler(Map<byte[], NodeTable> nodeTable, byte[] nodeId, String peerId) {
+    private Integer maxNodes;
+
+    public DiscardServerHandler(Map<byte[], NodeTable> nodeTable, byte[] nodeId, String peerId, Integer maxNodes) {
 
         this.nodeId = nodeId;
         this.peerId = peerId;
         this.nodeTable = nodeTable;
-
+        this.maxNodes = maxNodes;
     }
 
     @Override
@@ -183,7 +185,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
         List<NodeTable> nodeTableList = Helper.nodesDecode(nodes);
 
-        if (nodeTable.size() > 500) {
+        if (nodeTable.size() > maxNodes) {
 
             return;
         }

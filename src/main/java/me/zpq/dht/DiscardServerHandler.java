@@ -10,6 +10,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.Log4JLoggerFactory;
+import redis.clients.jedis.Jedis;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -35,12 +36,15 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
     private Integer maxNodes;
 
-    public DiscardServerHandler(Map<byte[], NodeTable> nodeTable, byte[] nodeId, String peerId, Integer maxNodes) {
+    private Jedis jedis;
+
+    public DiscardServerHandler(Map<byte[], NodeTable> nodeTable, byte[] nodeId, String peerId, Integer maxNodes, Jedis jedis) {
 
         this.nodeId = nodeId;
         this.peerId = peerId;
         this.nodeTable = nodeTable;
         this.maxNodes = maxNodes;
+        this.jedis = jedis;
     }
 
     @Override
@@ -161,7 +165,16 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
         int port = datagramPacket.sender().getPort();
         LOGGER.info("implied_port: {} , info_hash: {} , host: {} , p: {} ,  port: {}",
-                a.get("implied_port").getInt(), a.get("info_hash").getString(), address, port, a.get("port"));
+                a.get("implied_port").getInt(), a.get("info_hash").getString(), address, port, a.get("port").getInt());
+        MetaInfoRequest metaInfoRequest;
+        if (a.get("implied_port") != null && a.get("implied_port").getInt() != 0) {
+
+            metaInfoRequest = new MetaInfoRequest(address, port, a.get("info_hash").getBytes());
+        } else {
+
+            metaInfoRequest = new MetaInfoRequest(address, a.get("port").getInt(), a.get("info_hash").getBytes());
+        }
+        System.out.println(metaInfoRequest);
 
         channelHandlerContext.writeAndFlush(new DatagramPacket(
                 Unpooled.copiedBuffer(

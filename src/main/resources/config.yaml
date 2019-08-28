@@ -4,3 +4,4 @@ serverIp: 0.0.0.0
 serverPort: 6881
 minNodes: 200
 maxNodes: 300
+timeout: 60000

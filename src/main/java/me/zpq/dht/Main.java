@@ -10,6 +10,7 @@ import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.Log4JLoggerFactory;
 import org.yaml.snakeyaml.Yaml;
+import redis.clients.jedis.Jedis;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,6 +48,8 @@ public class Main {
         String transactionID = (String) configMap.get("transactionID");
         Integer minNodes = (Integer) configMap.get("minNodes");
         Integer maxNodes = (Integer) configMap.get("maxNodes");
+        Integer timeout = (Integer) configMap.get("timeout");
+        Jedis jedis = new Jedis("localhost");
 
         Bootstrap bootstrap = new Bootstrap();
         byte[] nodeId = Helper.nodeId();
@@ -55,7 +58,7 @@ public class Main {
         bootstrap.group(new NioEventLoopGroup())
                 .channel(NioDatagramChannel.class)
                 .option(ChannelOption.SO_BROADCAST, true)
-                .handler(new DiscardServerHandler(table, nodeId, peerId, maxNodes));
+                .handler(new DiscardServerHandler(table, nodeId, peerId, maxNodes, jedis));
 //        final Channel channel = bootstrap.bind("202.81.242.169", 6882).sync().channel();
         final Channel channel = bootstrap.bind(host, port).sync().channel();
 
@@ -64,6 +67,11 @@ public class Main {
         Timer autoFindNode = new Timer();
         autoFindNode.schedule(new AutoFindNode(channel, nodeId, table, minNodes), 2000, 2000);
         LOGGER.info("start ok autoFindNode");
+
+        LOGGER.info("start RemoveNode");
+        Timer autoRemoveNode = new Timer();
+        autoRemoveNode.schedule(new RemoveNode(table, timeout), 30000, 60000);
+        LOGGER.info("start ok RemoveNode");
     }
 
 }

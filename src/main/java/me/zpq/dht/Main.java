@@ -33,8 +33,8 @@ public class Main {
         Bootstrap bootstrap = new Bootstrap();
         byte[] nodeId = Helper.nodeId();
         String peerId = "-WW0001-123456789012";
-        Map<String, NodeTable> table = new Hashtable<>();
-        table.put("12345678901234567890", new NodeTable(nodeId, "10.1.1.1", 1, 1L));
+        Map<byte[], NodeTable> table = new Hashtable<>();
+        table.put(nodeId, new NodeTable(nodeId, "10.1.1.1", 1, 1L));
         bootstrap.group(new NioEventLoopGroup())
                 .channel(NioDatagramChannel.class)
                 .option(ChannelOption.SO_BROADCAST, true)

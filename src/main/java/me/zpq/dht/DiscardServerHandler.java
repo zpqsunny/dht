@@ -31,9 +31,9 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
     private String peerId;
 
-    private Map<String, NodeTable> nodeTable;
+    private Map<byte[], NodeTable> nodeTable;
 
-    public DiscardServerHandler(Map<String, NodeTable> nodeTable, byte[] nodeId, String peerId) {
+    public DiscardServerHandler(Map<byte[], NodeTable> nodeTable, byte[] nodeId, String peerId) {
 
         this.nodeId = nodeId;
         this.peerId = peerId;
@@ -145,11 +145,10 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
     private void queryGetPeers(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, String transactionId, Map<String, BEncodedValue> a) throws IOException {
 
         String token = String.valueOf(a.get("info_hash")).substring(0, 2);
-        ArrayList nodes = new ArrayList<>(nodeTable.values());
-
+        List<NodeTable> nodes = new ArrayList<>(nodeTable.values());
         channelHandlerContext.writeAndFlush(new DatagramPacket(
                 Unpooled.copiedBuffer(
-                        dhtProtocol.getPeersResponseNodes(transactionId, nodeId, token, "")),
+                        dhtProtocol.getPeersResponseNodes(transactionId, nodeId, token, Helper.nodesEncode(nodes))),
                 datagramPacket.sender()));
 
     }
@@ -180,7 +179,19 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
         LOGGER.info("has nodes");
 
-//        byte[] nodes = Helper.nodesDecode(r.get("nodes").getBytes());
+        byte[] nodes = r.get("nodes").getBytes();
+
+        List<NodeTable> nodeTableList = Helper.nodesDecode(nodes);
+
+        if (nodeTable.size() > 500) {
+
+            return;
+        }
+        nodeTableList.forEach(nodeTable -> {
+
+            this.nodeTable.put(nodeTable.getNid(), new NodeTable(nodeTable.getNid(), nodeTable.getIp(),
+                    nodeTable.getPort(), System.currentTimeMillis()));
+        });
 
     }
 

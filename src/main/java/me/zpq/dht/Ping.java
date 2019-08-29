@@ -21,13 +21,16 @@ public class Ping extends TimerTask {
 
     private String transactionId;
 
+    private byte[] nodeId;
+
     private DHTProtocol dhtProtocol = new DHTProtocol();
 
-    public Ping(Channel channel, String transactionId, Map<byte[], NodeTable> table) {
+    public Ping(Channel channel, String transactionId, byte[] nodeId, Map<byte[], NodeTable> table) {
 
         this.channel = channel;
         this.table = table;
         this.transactionId = transactionId;
+        this.nodeId = nodeId;
     }
 
     @Override
@@ -36,7 +39,7 @@ public class Ping extends TimerTask {
         table.values().forEach(nodeTable -> {
 
             try {
-                channel.writeAndFlush(new DatagramPacket(Unpooled.copiedBuffer(dhtProtocol.pingQuery(transactionId, nodeTable.getNid())),
+                channel.writeAndFlush(new DatagramPacket(Unpooled.copiedBuffer(dhtProtocol.pingQuery(transactionId, nodeId)),
                         new InetSocketAddress(nodeTable.getIp(), nodeTable.getPort())));
             } catch (IOException e) {
                 e.printStackTrace();

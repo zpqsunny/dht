@@ -62,7 +62,7 @@ public class Main {
         LOGGER.info("start ok autoFindNode");
         LOGGER.info("start Ping");
         Timer autoPing = new Timer();
-        autoPing.schedule(new Ping(channel, transactionId, table), 5000, 20000);
+        autoPing.schedule(new Ping(channel, transactionId, nodeId, table), 5000, 20000);
         LOGGER.info("start ok Ping");
         Timer autoRemoveNode = new Timer();
         autoRemoveNode.schedule(new RemoveNode(table, timeout), 30000, 60000);

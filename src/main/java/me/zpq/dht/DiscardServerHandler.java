@@ -176,7 +176,8 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
             metaInfoRequest = new MetaInfoRequest(address, a.get("port").getInt(), a.get("info_hash").getBytes());
         }
-        System.out.println(metaInfoRequest);
+
+        jedis.lpush("meta_info", metaInfoRequest.toString());
 
         channelHandlerContext.writeAndFlush(new DatagramPacket(
                 Unpooled.copiedBuffer(

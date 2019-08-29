@@ -167,7 +167,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
         int port = datagramPacket.sender().getPort();
         LOGGER.info("implied_port: {} , info_hash: {} , host: {} , p: {} ,  port: {}",
-                a.get("implied_port").getInt(), a.get("info_hash").getString(), address, port, a.get("port").getInt());
+                a.get("implied_port").getInt(), Helper.bytesToHex(a.get("info_hash").getBytes()), address, port, a.get("port").getInt());
         MetaInfoRequest metaInfoRequest;
         if (a.get("implied_port") != null && a.get("implied_port").getInt() != 0) {
 

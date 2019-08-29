@@ -1,24 +1,19 @@
 package me.zpq.dht;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.nio.NioDatagramChannel;
-import io.netty.util.internal.logging.InternalLogger;
-import io.netty.util.internal.logging.Log4JLoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 import redis.clients.jedis.Jedis;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetSocketAddress;
 import java.net.URL;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
@@ -28,7 +23,7 @@ import java.util.*;
  */
 public class Main {
 
-    private static InternalLogger LOGGER = Log4JLoggerFactory.getInstance(Main.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) throws InterruptedException, IOException {
 
@@ -45,33 +40,35 @@ public class Main {
         String host = (String) configMap.get("serverIp");
         Integer port = (Integer) configMap.get("serverPort");
         String peerId = (String) configMap.get("peerId");
-        String transactionID = (String) configMap.get("transactionID");
+        String transactionId = (String) configMap.get("transactionID");
         Integer minNodes = (Integer) configMap.get("minNodes");
         Integer maxNodes = (Integer) configMap.get("maxNodes");
         Integer timeout = (Integer) configMap.get("timeout");
-        Jedis jedis = new Jedis("localhost");
+        Jedis jedis = new Jedis("localhost", 6379);
 
         Bootstrap bootstrap = new Bootstrap();
         byte[] nodeId = Helper.nodeId();
-        Map<byte[], NodeTable> table = new Hashtable<>();
-        table.put(nodeId, new NodeTable(nodeId, host, port, System.currentTimeMillis()));
+        Map<String, NodeTable> table = new Hashtable<>();
+        table.put(new String(nodeId), new NodeTable(Helper.bytesToHex(nodeId), host, port, System.currentTimeMillis()));
         bootstrap.group(new NioEventLoopGroup())
                 .channel(NioDatagramChannel.class)
                 .option(ChannelOption.SO_BROADCAST, true)
-                .handler(new DiscardServerHandler(table, nodeId, peerId, maxNodes, jedis));
-//        final Channel channel = bootstrap.bind("202.81.242.169", 6882).sync().channel();
+                .handler(new DiscardServerHandler(table, nodeId, maxNodes, jedis));
         final Channel channel = bootstrap.bind(host, port).sync().channel();
 
-        LOGGER.info("server ok");
         LOGGER.info("start autoFindNode");
         Timer autoFindNode = new Timer();
-        autoFindNode.schedule(new AutoFindNode(channel, nodeId, table, minNodes), 2000, 2000);
+        autoFindNode.schedule(new FindNode(channel, transactionId, nodeId, table, minNodes), 2000, 2000);
         LOGGER.info("start ok autoFindNode");
-
-        LOGGER.info("start RemoveNode");
+        LOGGER.info("start Ping");
+        Timer autoPing = new Timer();
+        autoPing.schedule(new Ping(channel, transactionId, nodeId, table), 5000, 20000);
+        LOGGER.info("start ok Ping");
         Timer autoRemoveNode = new Timer();
         autoRemoveNode.schedule(new RemoveNode(table, timeout), 30000, 60000);
         LOGGER.info("start ok RemoveNode");
+        LOGGER.info("server ok");
+
     }
 
 }

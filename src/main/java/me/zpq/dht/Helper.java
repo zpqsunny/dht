@@ -22,7 +22,7 @@ public class Helper {
         nodes.forEach(nodeTable -> {
 
             try {
-                byteBuffer.put(nodeTable.getNid())
+                byteBuffer.put(hexToByte(nodeTable.getNid()))
                         .put(ipToByte(nodeTable.getIp()))
                         .put(intToBytes2(nodeTable.getPort()));
             } catch (UnknownHostException e) {
@@ -46,7 +46,7 @@ public class Helper {
             index += 4;
             byte[] port = Arrays.copyOfRange(nodes, index, index + 2);
             index += 2;
-            nodeTableList.add(new NodeTable(nodeId, bytesToIp(ip), bytesToInt2(port), null));
+            nodeTableList.add(new NodeTable(bytesToHex(nodeId), bytesToIp(ip), bytesToInt2(port), null));
         }
         return nodeTableList;
     }
@@ -82,19 +82,26 @@ public class Helper {
         return data;
     }
 
-    public static String bytesToHexString(byte[] src){
-        StringBuilder stringBuilder = new StringBuilder();
-        if (src == null || src.length <= 0) {
-            return null;
+    public static String bytesToHex(byte[] hashInBytes) {
+
+        StringBuilder sb = new StringBuilder();
+        for (byte b : hashInBytes) {
+            sb.append(String.format("%02x", b));
         }
-        for (byte b : src) {
-            int v = b & 0xFF;
-            String hv = Integer.toHexString(v);
-            if (hv.length() < 2) {
-                stringBuilder.append(0);
-            }
-            stringBuilder.append(hv);
+        return sb.toString();
+    }
+
+
+    public static byte[] hexToByte(String hex) {
+        int m = 0, n = 0;
+        int byteLen = hex.length() / 2;
+        byte[] ret = new byte[byteLen];
+        for (int i = 0; i < byteLen; i++) {
+            m = i * 2 + 1;
+            n = m + 1;
+            int intVal = Integer.decode("0x" + hex.substring(i * 2, m) + hex.substring(m, n));
+            ret[i] = (byte) intVal;
         }
-        return stringBuilder.toString();
+        return ret;
     }
 }

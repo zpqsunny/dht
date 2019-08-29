@@ -1,14 +1,12 @@
 package me.zpq.dht;
 
-import java.util.Arrays;
-
 /**
  * @author zpq
  * @date 2019-08-26
  */
 public class NodeTable {
 
-    private byte[] nid;
+    private String nid;
 
     private String ip;
 
@@ -19,18 +17,18 @@ public class NodeTable {
     public NodeTable() {
     }
 
-    public NodeTable(byte[] nid, String ip, Integer port, Long time) {
+    public NodeTable(String nid, String ip, Integer port, Long time) {
         this.nid = nid;
         this.ip = ip;
         this.port = port;
         this.time = time;
     }
 
-    public byte[] getNid() {
+    public String getNid() {
         return nid;
     }
 
-    public void setNid(byte[] nid) {
+    public void setNid(String nid) {
         this.nid = nid;
     }
 
@@ -56,15 +54,5 @@ public class NodeTable {
 
     public void setTime(Long time) {
         this.time = time;
-    }
-
-    @Override
-    public String toString() {
-        return "NodeTable{" +
-                "nid=" + Arrays.toString(nid) +
-                ", ip='" + ip + '\'' +
-                ", port=" + port +
-                ", time=" + time +
-                '}';
     }
 }

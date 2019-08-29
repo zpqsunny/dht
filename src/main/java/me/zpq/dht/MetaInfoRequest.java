@@ -7,12 +7,9 @@ public class MetaInfoRequest {
 
     private int port;
 
-    private String infoHash;
+    private byte[] infoHash;
 
-    public MetaInfoRequest() {
-    }
-
-    public MetaInfoRequest(String ip, int port, String infoHash) {
+    public MetaInfoRequest(String ip, int port, byte[] infoHash) {
         this.ip = ip;
         this.port = port;
         this.infoHash = infoHash;
@@ -34,16 +31,17 @@ public class MetaInfoRequest {
         this.port = port;
     }
 
-    public String getInfoHash() {
+    public byte[] getInfoHash() {
         return infoHash;
     }
 
-    public void setInfoHash(String infoHash) {
+    public void setInfoHash(byte[] infoHash) {
         this.infoHash = infoHash;
     }
 
     @Override
     public String toString() {
-        return "{\"ip\":\"" + ip + "\",\"port\":" + port + ",\"infoHash\":\"" + infoHash + "\"}";
+
+        return "{\"ip\":\"" + ip + "\",\"port\":" + port + ",\"infoHash\":\"" + Helper.bytesToHex(infoHash) + "\"}";
     }
 }

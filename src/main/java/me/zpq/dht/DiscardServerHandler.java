@@ -8,13 +8,14 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
-import io.netty.util.internal.logging.InternalLogger;
-import io.netty.util.internal.logging.Log4JLoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -26,44 +27,35 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
     private DHTProtocol dhtProtocol = new DHTProtocol();
 
-    private static final InternalLogger LOGGER = Log4JLoggerFactory.getInstance(DiscardServerHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
     private byte[] nodeId;
 
-    private String peerId;
-
-    private Map<byte[], NodeTable> nodeTable;
+    private Map<String, NodeTable> nodeTable;
 
     private Integer maxNodes;
 
     private Jedis jedis;
 
-    public DiscardServerHandler(Map<byte[], NodeTable> nodeTable, byte[] nodeId, String peerId, Integer maxNodes, Jedis jedis) {
+    public DiscardServerHandler(Map<String, NodeTable> nodeTable, byte[] nodeId, Integer maxNodes, Jedis jedis) {
 
         this.nodeId = nodeId;
-        this.peerId = peerId;
         this.nodeTable = nodeTable;
         this.maxNodes = maxNodes;
         this.jedis = jedis;
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket) throws Exception {
+    protected void channelRead0(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket) {
 
         try {
 
             ByteBuf content = datagramPacket.copy().content();
             byte[] req = new byte[content.readableBytes()];
             content.readBytes(req);
+            content.release();
 
             BEncodedValue data = BDecoder.decode(new ByteArrayInputStream(req));
-
-            String address = datagramPacket.sender().getAddress().getHostAddress();
-
-            int port = datagramPacket.sender().getPort();
-
-            LOGGER.info("from {} port {}", address, port);
-
             String transactionId = data.getMap().get("t").getString();
 
             switch (data.getMap().get("y").getString()) {
@@ -75,7 +67,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
                         case "ping":
                             LOGGER.info(" q : ping");
-                            this.queryPing(channelHandlerContext, datagramPacket, transactionId);
+                            this.queryPing(channelHandlerContext, datagramPacket, transactionId, a);
                             break;
                         case "find_node":
                             LOGGER.info(" q : find_node");
@@ -104,6 +96,11 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
                 case "r":
 
                     Map<String, BEncodedValue> r = data.getMap().get("r").getMap();
+                    if (r.get("a") != null) {
+
+                        this.responseHasId(r, datagramPacket);
+                    }
+
                     if (r.get("nodes") != null) {
 
                         this.responseHasNodes(r);
@@ -120,6 +117,14 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
                     this.responseError(data);
 
                     break;
+                case "c":
+                    List<String> ips = new ArrayList<>();
+                    nodeTable.values().forEach(nodeTable -> {
+                        ips.add(nodeTable.getIp());
+                    });
+                    channelHandlerContext.writeAndFlush(new DatagramPacket(
+                            Unpooled.copiedBuffer(Arrays.toString(ips.toArray()).getBytes()), datagramPacket.sender()));
+                    break;
                 default:
                     break;
             }
@@ -132,11 +137,18 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
     }
 
-    private void queryPing(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, String transactionId) throws IOException {
+    private void queryPing(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, String transactionId, Map<String, BEncodedValue> a) throws IOException {
 
         channelHandlerContext.writeAndFlush(new DatagramPacket(
                 Unpooled.copiedBuffer(dhtProtocol.pingResponse(transactionId, nodeId)),
                 datagramPacket.sender()));
+        String id = a.get("id").getString();
+        if (nodeTable.containsKey(id)) {
+
+            NodeTable nodeTable = this.nodeTable.get(id);
+            nodeTable.setTime(System.currentTimeMillis());
+            this.nodeTable.put(id, nodeTable);
+        }
     }
 
     private void queryFindNode(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, String transactionId) throws IOException {
@@ -165,16 +177,18 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
         int port = datagramPacket.sender().getPort();
         LOGGER.info("implied_port: {} , info_hash: {} , host: {} , p: {} ,  port: {}",
-                a.get("implied_port").getInt(), a.get("info_hash").getString(), address, port, a.get("port").getInt());
+                a.get("implied_port").getInt(), Helper.bytesToHex(a.get("info_hash").getBytes()), address, port, a.get("port").getInt());
         MetaInfoRequest metaInfoRequest;
         if (a.get("implied_port") != null && a.get("implied_port").getInt() != 0) {
 
-            metaInfoRequest = new MetaInfoRequest(address, port, Helper.bytesToHexString(a.get("info_hash").getBytes()));
+            metaInfoRequest = new MetaInfoRequest(address, port, a.get("info_hash").getBytes());
         } else {
 
-            metaInfoRequest = new MetaInfoRequest(address, a.get("port").getInt(), Helper.bytesToHexString(a.get("info_hash").getBytes()));
+            metaInfoRequest = new MetaInfoRequest(address, a.get("port").getInt(), a.get("info_hash").getBytes());
         }
+
         jedis.lpush("meta_info", metaInfoRequest.toString());
+
         channelHandlerContext.writeAndFlush(new DatagramPacket(
                 Unpooled.copiedBuffer(
                         dhtProtocol.announcePeerResponse(transactionId, nodeId)),
@@ -189,6 +203,20 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
                 datagramPacket.sender()));
     }
 
+    private void responseHasId(Map<String, BEncodedValue> r, DatagramPacket datagramPacket) throws InvalidBEncodingException {
+
+        String id = r.get("id").getString();
+
+        if (this.nodeTable.containsKey(id)) {
+
+            String address = datagramPacket.sender().getAddress().getHostAddress();
+
+            int port = datagramPacket.sender().getPort();
+
+            this.nodeTable.put(id, new NodeTable(Helper.bytesToHex(r.get("id").getBytes()), address, port, System.currentTimeMillis()));
+        }
+    }
+
     private void responseHasNodes(Map<String, BEncodedValue> r) throws InvalidBEncodingException {
 
         LOGGER.info("has nodes");
@@ -197,7 +225,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
         List<NodeTable> nodeTableList = Helper.nodesDecode(nodes);
 
-        if (nodeTable.size() > maxNodes) {
+        if (nodeTable.size() >= maxNodes) {
 
             return;
         }

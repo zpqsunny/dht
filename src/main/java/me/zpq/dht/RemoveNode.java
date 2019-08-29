@@ -6,11 +6,11 @@ import java.util.TimerTask;
 
 public class RemoveNode extends TimerTask {
 
-    private Map<byte[], NodeTable> table;
+    private Map<String, NodeTable> table;
 
     private long timeout;
 
-    public RemoveNode(Map<byte[], NodeTable> table, long timeout) {
+    public RemoveNode(Map<String, NodeTable> table, long timeout) {
 
         this.table = table;
         this.timeout = timeout;
@@ -19,10 +19,10 @@ public class RemoveNode extends TimerTask {
     @Override
     public void run() {
 
-        Iterator<Map.Entry<byte[], NodeTable>> iterator = table.entrySet().iterator();
+        Iterator<Map.Entry<String, NodeTable>> iterator = table.entrySet().iterator();
         while (iterator.hasNext()) {
 
-            Map.Entry<byte[], NodeTable> next = iterator.next();
+            Map.Entry<String, NodeTable> next = iterator.next();
             long diff = System.currentTimeMillis() - next.getValue().getTime();
             if (diff > timeout) {
 

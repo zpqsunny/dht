@@ -11,13 +11,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimerTask;
 
-public class AutoFindNode extends TimerTask {
+public class FindNode extends TimerTask {
 
     private Channel channel;
 
+    private String transactionId;
+
     private byte[] nodeId;
 
-    private Map<byte[], NodeTable> tableMap;
+    private Map<String, NodeTable> tableMap;
 
     private Integer minNodes;
 
@@ -25,8 +27,9 @@ public class AutoFindNode extends TimerTask {
 
     private DHTProtocol dhtProtocol = new DHTProtocol();
 
-    public AutoFindNode(Channel channel, byte[] nodeId, Map<byte[], NodeTable> tableMap, Integer minNodes) {
+    public FindNode(Channel channel, String transactionId, byte[] nodeId, Map<String, NodeTable> tableMap, Integer minNodes) {
         this.channel = channel;
+        this.transactionId = transactionId;
         this.nodeId = nodeId;
         this.tableMap = tableMap;
         this.minNodes = minNodes;
@@ -45,10 +48,10 @@ public class AutoFindNode extends TimerTask {
 
         try {
 
-            final byte[] pingQuery = dhtProtocol.findNodeQuery("zpq", nodeId, Helper.nodeId());
+            final byte[] findNodeQuery = dhtProtocol.findNodeQuery(transactionId, nodeId, Helper.nodeId());
             list.forEach(bootstrapAddress -> {
 
-                channel.writeAndFlush(new DatagramPacket(Unpooled.copiedBuffer(pingQuery),
+                channel.writeAndFlush(new DatagramPacket(Unpooled.copiedBuffer(findNodeQuery),
                         new InetSocketAddress(bootstrapAddress.getHost(), bootstrapAddress.getPort())));
             });
         } catch (IOException e) {

@@ -22,7 +22,7 @@ public class Helper {
         nodes.forEach(nodeTable -> {
 
             try {
-                byteBuffer.put(nodeTable.getNid().getBytes())
+                byteBuffer.put(hexToByte(nodeTable.getNid()))
                         .put(ipToByte(nodeTable.getIp()))
                         .put(intToBytes2(nodeTable.getPort()));
             } catch (UnknownHostException e) {
@@ -46,7 +46,7 @@ public class Helper {
             index += 4;
             byte[] port = Arrays.copyOfRange(nodes, index, index + 2);
             index += 2;
-            nodeTableList.add(new NodeTable(new String(nodeId), bytesToIp(ip), bytesToInt2(port), null));
+            nodeTableList.add(new NodeTable(bytesToHex(nodeId), bytesToIp(ip), bytesToInt2(port), null));
         }
         return nodeTableList;
     }
@@ -89,5 +89,19 @@ public class Helper {
             sb.append(String.format("%02x", b));
         }
         return sb.toString();
+    }
+
+
+    public static byte[] hexToByte(String hex) {
+        int m = 0, n = 0;
+        int byteLen = hex.length() / 2;
+        byte[] ret = new byte[byteLen];
+        for (int i = 0; i < byteLen; i++) {
+            m = i * 2 + 1;
+            n = m + 1;
+            int intVal = Integer.decode("0x" + hex.substring(i * 2, m) + hex.substring(m, n));
+            ret[i] = (byte) intVal;
+        }
+        return ret;
     }
 }

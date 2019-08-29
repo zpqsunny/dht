@@ -46,22 +46,16 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket) throws Exception {
+    protected void channelRead0(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket) {
 
         try {
 
             ByteBuf content = datagramPacket.copy().content();
             byte[] req = new byte[content.readableBytes()];
             content.readBytes(req);
+            content.release();
 
             BEncodedValue data = BDecoder.decode(new ByteArrayInputStream(req));
-
-            String address = datagramPacket.sender().getAddress().getHostAddress();
-
-            int port = datagramPacket.sender().getPort();
-
-            LOGGER.info("from {} port {}", address, port);
-
             String transactionId = data.getMap().get("t").getString();
 
             switch (data.getMap().get("y").getString()) {
@@ -219,7 +213,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
             int port = datagramPacket.sender().getPort();
 
-            this.nodeTable.put(id, new NodeTable(id, address, port, System.currentTimeMillis()));
+            this.nodeTable.put(id, new NodeTable(Helper.bytesToHex(r.get("id").getBytes()), address, port, System.currentTimeMillis()));
         }
     }
 

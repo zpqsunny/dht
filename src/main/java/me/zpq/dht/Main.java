@@ -49,7 +49,7 @@ public class Main {
         Bootstrap bootstrap = new Bootstrap();
         byte[] nodeId = Helper.nodeId();
         Map<String, NodeTable> table = new Hashtable<>();
-        table.put(new String(nodeId), new NodeTable(new String(nodeId), host, port, System.currentTimeMillis()));
+        table.put(new String(nodeId), new NodeTable(Helper.bytesToHex(nodeId), host, port, System.currentTimeMillis()));
         bootstrap.group(new NioEventLoopGroup())
                 .channel(NioDatagramChannel.class)
                 .option(ChannelOption.SO_BROADCAST, true)

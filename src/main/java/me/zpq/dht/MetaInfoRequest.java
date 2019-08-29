@@ -42,6 +42,6 @@ public class MetaInfoRequest {
     @Override
     public String toString() {
 
-        return "{\"ip\":\"" + ip + " \",\"port\":" + port + ",\"info_hash\":\"" + Helper.bytesToHex(infoHash) + " \"}";
+        return "{\"ip\":\"" + ip + "\",\"port\":" + port + ",\"info_hash\":\"" + Helper.bytesToHex(infoHash) + "\"}";
     }
 }

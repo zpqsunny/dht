@@ -8,8 +8,8 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
-import io.netty.util.internal.logging.InternalLogger;
-import io.netty.util.internal.logging.Log4JLoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 
 import java.io.ByteArrayInputStream;
@@ -26,11 +26,9 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
     private DHTProtocol dhtProtocol = new DHTProtocol();
 
-    private static final InternalLogger LOGGER = Log4JLoggerFactory.getInstance(DiscardServerHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 
     private byte[] nodeId;
-
-    private String peerId;
 
     private Map<byte[], NodeTable> nodeTable;
 
@@ -38,10 +36,9 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
     private Jedis jedis;
 
-    public DiscardServerHandler(Map<byte[], NodeTable> nodeTable, byte[] nodeId, String peerId, Integer maxNodes, Jedis jedis) {
+    public DiscardServerHandler(Map<byte[], NodeTable> nodeTable, byte[] nodeId, Integer maxNodes, Jedis jedis) {
 
         this.nodeId = nodeId;
-        this.peerId = peerId;
         this.nodeTable = nodeTable;
         this.maxNodes = maxNodes;
         this.jedis = jedis;
@@ -104,6 +101,11 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
                 case "r":
 
                     Map<String, BEncodedValue> r = data.getMap().get("r").getMap();
+                    if (r.get("a") != null) {
+
+                        this.responseHasId(r, datagramPacket);
+                    }
+
                     if (r.get("nodes") != null) {
 
                         this.responseHasNodes(r);
@@ -188,6 +190,20 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
                 Unpooled.copiedBuffer(
                         dhtProtocol.error(transactionId, 204, "Method Unknown")),
                 datagramPacket.sender()));
+    }
+
+    private void responseHasId(Map<String, BEncodedValue> r, DatagramPacket datagramPacket) throws InvalidBEncodingException {
+
+        byte[] id = r.get("id").getBytes();
+
+        if (this.nodeTable.containsKey(id)) {
+
+            String address = datagramPacket.sender().getAddress().getHostAddress();
+
+            int port = datagramPacket.sender().getPort();
+
+            this.nodeTable.put(id, new NodeTable(id, address, port, System.currentTimeMillis()));
+        }
     }
 
     private void responseHasNodes(Map<String, BEncodedValue> r) throws InvalidBEncodingException {

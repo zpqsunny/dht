@@ -129,7 +129,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
         } catch (Exception e) {
 
-            e.printStackTrace();
+            LOGGER.error(e.getMessage());
         }
 
     }
@@ -174,13 +174,19 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
         String address = datagramPacket.sender().getAddress().getHostAddress();
 
         int port = datagramPacket.sender().getPort();
-        LOGGER.info("implied_port: {} , info_hash: {} , host: {} , p: {} ,  port: {}",
-                a.get("implied_port").getInt(), Helper.bytesToHex(a.get("info_hash").getBytes()), address, port, a.get("port").getInt());
+
         MetaInfoRequest metaInfoRequest;
         if (a.get("implied_port") != null && a.get("implied_port").getInt() != 0) {
 
+            LOGGER.info("implied_port: {} , info_hash: {} , host: {} , p: {} ,  port: {}",
+                    a.get("implied_port").getInt(), Helper.bytesToHex(a.get("info_hash").getBytes()), address, port, a.get("port").getInt());
+
             metaInfoRequest = new MetaInfoRequest(address, port, a.get("info_hash").getBytes());
+
         } else {
+
+            LOGGER.info("implied_port: {} , info_hash: {} , host: {} , p: {} ,  port: {}",
+                    null, Helper.bytesToHex(a.get("info_hash").getBytes()), address, port, a.get("port").getInt());
 
             metaInfoRequest = new MetaInfoRequest(address, a.get("port").getInt(), a.get("info_hash").getBytes());
         }

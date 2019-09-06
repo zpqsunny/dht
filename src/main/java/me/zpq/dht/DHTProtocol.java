@@ -107,7 +107,7 @@ public class DHTProtocol {
         return this.response(transactionId, data);
     }
 
-    public byte[] getPeersResponseNodes(String transactionId, byte[] nodeId, String token, byte[] nodes) throws IOException {
+    public byte[] getPeersResponseNodes(String transactionId, byte[] nodeId, byte[] token, byte[] nodes) throws IOException {
 
         Map<String, BEncodedValue> data = new HashMap<>(6);
         data.put("id", new BEncodedValue(nodeId));

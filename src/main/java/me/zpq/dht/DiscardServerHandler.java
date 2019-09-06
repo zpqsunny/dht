@@ -66,15 +66,12 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
                     switch (data.getMap().get("q").getString()) {
 
                         case "ping":
-                            LOGGER.info(" q : ping");
                             this.queryPing(channelHandlerContext, datagramPacket, transactionId, a);
                             break;
                         case "find_node":
-                            LOGGER.info(" q : find_node");
                             this.queryFindNode(channelHandlerContext, datagramPacket, transactionId);
                             break;
                         case "get_peers":
-                            LOGGER.info(" q : get_peers");
                             this.queryGetPeers(channelHandlerContext, datagramPacket, transactionId, a);
                             break;
                         case "announce_peer":
@@ -162,7 +159,8 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
     private void queryGetPeers(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, String transactionId, Map<String, BEncodedValue> a) throws IOException {
 
-        String token = String.valueOf(a.get("info_hash")).substring(0, 2);
+        byte[] infoHash = a.get("info_hash").getBytes();
+        byte[] token = new byte[]{infoHash[0], infoHash[1]};
         List<NodeTable> nodes = new ArrayList<>(nodeTable.values());
         channelHandlerContext.writeAndFlush(new DatagramPacket(
                 Unpooled.copiedBuffer(
@@ -218,8 +216,6 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
     }
 
     private void responseHasNodes(Map<String, BEncodedValue> r) throws InvalidBEncodingException {
-
-        LOGGER.info("has nodes");
 
         byte[] nodes = r.get("nodes").getBytes();
 

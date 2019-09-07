@@ -14,7 +14,6 @@ import java.util.Random;
  */
 public class Helper {
 
-
     public static byte[] nodesEncode(List<NodeTable> nodes) {
 
         ByteBuffer byteBuffer = ByteBuffer.allocate(nodes.size() * 26);
@@ -93,7 +92,8 @@ public class Helper {
 
 
     public static byte[] hexToByte(String hex) {
-        int m = 0, n = 0;
+
+        int m, n;
         int byteLen = hex.length() / 2;
         byte[] ret = new byte[byteLen];
         for (int i = 0; i < byteLen; i++) {

@@ -25,25 +25,25 @@ public class MongoMetaInfoImpl implements MetaInfo {
     }
 
     @Override
-    public void todoSomething(byte[] infoHash, byte[] metaInfo) throws IOException {
+    public void todoSomething(byte[] sha1, byte[] info) throws IOException {
 
         MongoDatabase database = mongoClient.getDatabase("dht");
-        MongoCollection<Document> document = database.getCollection("meta_info");
+        MongoCollection<Document> document = database.getCollection("test");
         Document has = new Document();
-        has.put("info_hash", new BsonBinary(infoHash));
+        has.put("info_hash", new BsonBinary(sha1));
         FindIterable<Document> documents = document.find(has);
         Document first = documents.first();
         if (first == null) {
 
-            BEncodedValue decode = BDecoder.decode(new ByteArrayInputStream(metaInfo));
-            Document info = new Document();
-            info.put("info_hash", new BsonBinary(infoHash));
-            info.put("name", decode.getMap().get("name").getString());
-            info.put("piece length", decode.getMap().get("piece length").getInt());
+            BEncodedValue decode = BDecoder.decode(new ByteArrayInputStream(info));
+            Document metaInfo = new Document();
+            metaInfo.put("info_hash", new BsonBinary(sha1));
+            metaInfo.put("name", decode.getMap().get("name").getString());
+            metaInfo.put("piece length", decode.getMap().get("piece length").getInt());
             if (decode.getMap().get("length") != null) {
 
                 //single-file mode
-                info.put("length", decode.getMap().get("length").getInt());
+                metaInfo.put("length", decode.getMap().get("length").getInt());
             } else {
 
                 //multi-file mode
@@ -63,11 +63,10 @@ public class MongoMetaInfoImpl implements MetaInfo {
                     bsonArray.add(f);
                 }
 
-                info.put("files", bsonArray);
+                metaInfo.put("files", bsonArray);
             }
-            info.put("pieces", new BsonBinary(decode.getMap().get("pieces").getBytes()));
-            document.insertOne(info);
+            metaInfo.put("pieces", new BsonBinary(decode.getMap().get("pieces").getBytes()));
+            document.insertOne(metaInfo);
         }
-
     }
 }

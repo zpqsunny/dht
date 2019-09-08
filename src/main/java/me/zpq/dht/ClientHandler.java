@@ -24,11 +24,17 @@ public class ClientHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ClientHandler.class);
 
+    private String host;
+
+    private int port;
+
     private String peerId;
 
     private byte[] infoHash;
 
-    public ClientHandler(String peerId, byte[] infoHash) {
+    public ClientHandler(String host, int port, String peerId, byte[] infoHash) {
+        this.host = host;
+        this.port = port;
         this.peerId = peerId;
         this.infoHash = infoHash;
     }
@@ -36,10 +42,6 @@ public class ClientHandler {
     public void request() throws IOException {
 
         Socket socket = new Socket();
-//        String host = "192.168.1.200";
-//        int port = 8080;
-        String host = "60.227.108.240";
-        int port = 6881;
         socket.connect(new InetSocketAddress(host, port), 30000);
         OutputStream outputStream = socket.getOutputStream();
         InputStream inputStream = socket.getInputStream();
@@ -79,15 +81,15 @@ public class ClientHandler {
             metaInfo.put(Arrays.copyOfRange(result, response.length + 2, result.length));
         }
         byte[] info = metaInfo.array();
-        byte[] infoHash = DigestUtils.sha1(info);
-        if (infoHash.length != this.infoHash.length) {
+        byte[] sha1 = DigestUtils.sha1(info);
+        if (sha1.length != infoHash.length) {
 
             LOGGER.error("length fail");
             return;
         }
         for (int i = 0; i < infoHash.length; i++) {
 
-            if (this.infoHash[i] != infoHash[i]) {
+            if (infoHash[i] != sha1[i]) {
 
                 LOGGER.error("info hash not eq");
                 return;

@@ -15,15 +15,12 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 public class ClientHandler {
-
-    private ByteBuf buf;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ClientHandler.class);
 
@@ -49,8 +46,8 @@ public class ClientHandler {
         this.handshake(outputStream);
         if (!this.validatorHandshake(inputStream)) {
 
-            System.out.println("protocol != BitTorrent");
-            System.exit(99);
+            LOGGER.error("protocol != BitTorrent");
+            return;
         }
 
         this.extHandShake(outputStream);
@@ -58,15 +55,13 @@ public class ClientHandler {
 
         if (bEncodedValue == null) {
 
-            System.out.println("validatorExtHandShake false");
-            System.exit(123);
+            LOGGER.error("validatorExtHandShake false");
+            return;
         }
         int utMetadata = bEncodedValue.getMap().get("m").getMap().get("ut_metadata").getInt();
         int metaDataSize = bEncodedValue.getMap().get("metadata_size").getInt();
         // metaDataSize / 16384
         int block = metaDataSize % 16384 > 0 ? metaDataSize / 16384 + 1 : metaDataSize / 16384;
-        System.out.println(metaDataSize);
-        System.out.println(block);
         for (int i = 0; i < block; i++) {
 
             this.metadataRequest(outputStream, utMetadata, i);
@@ -83,22 +78,25 @@ public class ClientHandler {
             byte[] result = this.resolveLengthMessage(inputStream, byte2int(length));
             metaInfo.put(Arrays.copyOfRange(result, response.length + 2, result.length));
         }
-        byte[] infoHash = DigestUtils.sha1(metaInfo.array());
+        byte[] info = metaInfo.array();
+        byte[] infoHash = DigestUtils.sha1(info);
         if (infoHash.length != this.infoHash.length) {
 
-            System.out.println("length fail");
+            LOGGER.error("length fail");
+            return;
         }
         for (int i = 0; i < infoHash.length; i++) {
 
             if (this.infoHash[i] != infoHash[i]) {
 
-                System.out.println("info hash not eq");
-                System.exit(123456);
+                LOGGER.error("info hash not eq");
+                return;
             }
         }
-//        BEncodedValue decode = BDecoder.decode(new ByteArrayInputStream(metaInfo.array()));
-        System.out.println("success");
-//        System.out.println(decode.getMap().get("name").getString());
+        LOGGER.info("success");
+        socket.close();
+        MongoMetaInfoImpl mongoMetaInfo = new MongoMetaInfoImpl("");
+        mongoMetaInfo.todoSomething(this.infoHash, info);
 
     }
 

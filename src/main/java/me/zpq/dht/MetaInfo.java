@@ -2,5 +2,5 @@ package me.zpq.dht;
 
 public interface MetaInfo {
 
-    void todoSomething(byte[] infoHash, byte[] metaInfo);
+    void todoSomething(byte[] infoHash, byte[] metaInfo) throws Exception;
 }

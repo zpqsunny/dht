@@ -58,9 +58,9 @@ public class MongoMetaInfoImpl implements MetaInfo {
                     f.put("length", new BsonInt64(file.getMap().get("length").getInt()));
                     BsonArray path = new BsonArray();
                     List<BEncodedValue> paths = file.getMap().get("path").getList();
-                    for (BEncodedValue path1 : paths) {
+                    for (BEncodedValue p : paths) {
 
-                        path.add(new BsonString(path1.getString()));
+                        path.add(new BsonString(p.getString()));
                     }
                     f.put("path", path);
                     bsonArray.add(f);

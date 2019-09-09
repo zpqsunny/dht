@@ -37,7 +37,7 @@ public class MongoMetaInfoImpl implements MetaInfo {
 
             BEncodedValue decode = BDecoder.decode(new ByteArrayInputStream(info));
             Document metaInfo = new Document();
-            metaInfo.put("info_hash", new BsonBinary(sha1));
+            metaInfo.put("sha1", new BsonBinary(sha1));
             metaInfo.put("name", decode.getMap().get("name").getString());
             metaInfo.put("piece length", decode.getMap().get("piece length").getInt());
             if (decode.getMap().get("length") != null) {

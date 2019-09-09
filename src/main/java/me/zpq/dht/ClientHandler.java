@@ -3,11 +3,6 @@ package me.zpq.dht;
 import be.adaxisoft.bencode.BDecoder;
 import be.adaxisoft.bencode.BEncodedValue;
 import be.adaxisoft.bencode.BEncoder;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.util.CharsetUtil;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +18,8 @@ import java.util.Map;
 public class ClientHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ClientHandler.class);
+
+    private static final String PROTOCOL = "BitTorrent protocol";
 
     private String host;
 
@@ -104,11 +101,10 @@ public class ClientHandler {
 
     private void handshake(OutputStream outputStream) throws IOException {
 
-        String protocol = "BitTorrent protocol";
         byte[] extension = new byte[]{0, 0, 0, 0, 0, 16, 0, 1};
         ByteBuffer handshake = ByteBuffer.allocate(68);
-        handshake.put((byte) protocol.length())
-                .put(protocol.getBytes())
+        handshake.put((byte) PROTOCOL.length())
+                .put(PROTOCOL.getBytes())
                 .put(extension)
                 .put(infoHash)
                 .put(peerId.getBytes());
@@ -119,7 +115,7 @@ public class ClientHandler {
     private boolean validatorHandshake(InputStream inputStream) throws IOException {
 
         byte[] bitTorrent = this.resolveMessage(inputStream);
-        if (!"BitTorrent protocol".equals(new String(bitTorrent))) {
+        if (!PROTOCOL.equals(new String(bitTorrent))) {
 
             return false;
         }

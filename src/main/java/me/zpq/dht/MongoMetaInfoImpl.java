@@ -7,6 +7,8 @@ import org.bson.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Iterator;
 import java.util.List;
 
@@ -28,7 +30,7 @@ public class MongoMetaInfoImpl implements MetaInfo {
     public void todoSomething(byte[] sha1, byte[] info) throws IOException {
 
         MongoDatabase database = mongoClient.getDatabase("dht");
-        MongoCollection<Document> document = database.getCollection("test");
+        MongoCollection<Document> document = database.getCollection("meta_info");
         Document has = new Document();
         has.put("info_hash", new BsonBinary(sha1));
         FindIterable<Document> documents = document.find(has);
@@ -40,6 +42,7 @@ public class MongoMetaInfoImpl implements MetaInfo {
             metaInfo.put("sha1", new BsonBinary(sha1));
             metaInfo.put("name", decode.getMap().get("name").getString());
             metaInfo.put("piece length", decode.getMap().get("piece length").getInt());
+            metaInfo.put("created datetime", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
             if (decode.getMap().get("length") != null) {
 
                 //single-file mode

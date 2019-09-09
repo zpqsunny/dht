@@ -71,10 +71,7 @@ public class Main {
         LOGGER.info("start ok RemoveNode");
         LOGGER.info("server ok");
 
-        // todo peer to peer
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-        FutureTask<Void> voidFutureTask = new FutureTask<>(() -> {
-
+        Callable<Void> callable = () -> {
             String metaInfo = jedis.rpop("meta_info");
             if (metaInfo != null) {
 
@@ -83,35 +80,47 @@ public class Main {
                 int p = jsonObject.getInt("port");
                 byte[] infoHash = Helper.hexToByte(jsonObject.getString("infoHash"));
                 PeerClient peerClient = new PeerClient(ip, p, peerId, infoHash);
-                peerClient.request();
+                try {
+
+                    peerClient.request();
+
+                } catch (TryAgainException e) {
+
+                    MetaInfoRequest metaInfoRequest = new MetaInfoRequest(ip, p, infoHash);
+                    jedis.lpush("meta_info", metaInfoRequest.toString());
+                }
 
             }
             return null;
-        });
+        };
         while (true) {
 
+            ExecutorService executorService = Executors.newSingleThreadExecutor();
+            FutureTask<Void> voidFutureTask = new FutureTask<>(callable);
             executorService.execute(voidFutureTask);
+
             try {
 
-                voidFutureTask.get(10, TimeUnit.MINUTES);
+                voidFutureTask.get(1, TimeUnit.MINUTES);
+
             } catch (InterruptedException e) {
 
-                LOGGER.error("InterruptedException");
+                LOGGER.error("InterruptedException " + e.getMessage());
                 voidFutureTask.cancel(true);
 
             } catch (ExecutionException e) {
 
-                LOGGER.error("ExecutionException");
+                LOGGER.error("ExecutionException " + e.getMessage());
                 voidFutureTask.cancel(true);
 
             } catch (TimeoutException e) {
 
-                LOGGER.error("TimeoutException");
+                LOGGER.error("TimeoutException " + e.getMessage());
                 voidFutureTask.cancel(true);
             } finally {
+                executorService.shutdown();
                 Thread.sleep(2000);
             }
         }
     }
-
 }

@@ -5,6 +5,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
@@ -16,6 +17,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * @author zpq
@@ -69,6 +71,47 @@ public class Main {
         LOGGER.info("start ok RemoveNode");
         LOGGER.info("server ok");
 
+        // todo peer to peer
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        FutureTask<Void> voidFutureTask = new FutureTask<>(() -> {
+
+            String metaInfo = jedis.rpop("meta_info");
+            if (metaInfo != null) {
+
+                JSONObject jsonObject = new JSONObject(metaInfo);
+                String ip = jsonObject.getString("ip");
+                int p = jsonObject.getInt("port");
+                byte[] infoHash = Helper.hexToByte(jsonObject.getString("infoHash"));
+                PeerClient peerClient = new PeerClient(ip, p, peerId, infoHash);
+                peerClient.request();
+
+            }
+            return null;
+        });
+        while (true) {
+
+            executorService.execute(voidFutureTask);
+            try {
+
+                voidFutureTask.get(10, TimeUnit.MINUTES);
+            } catch (InterruptedException e) {
+
+                LOGGER.error("InterruptedException");
+                voidFutureTask.cancel(true);
+
+            } catch (ExecutionException e) {
+
+                LOGGER.error("ExecutionException");
+                voidFutureTask.cancel(true);
+
+            } catch (TimeoutException e) {
+
+                LOGGER.error("TimeoutException");
+                voidFutureTask.cancel(true);
+            } finally {
+                Thread.sleep(2000);
+            }
+        }
     }
 
 }

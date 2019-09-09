@@ -15,9 +15,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ClientHandler {
+public class PeerClient {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ClientHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PeerClient.class);
 
     private static final String PROTOCOL = "BitTorrent protocol";
 
@@ -29,14 +29,14 @@ public class ClientHandler {
 
     private byte[] infoHash;
 
-    public ClientHandler(String host, int port, String peerId, byte[] infoHash) {
+    public PeerClient(String host, int port, String peerId, byte[] infoHash) {
         this.host = host;
         this.port = port;
         this.peerId = peerId;
         this.infoHash = infoHash;
     }
 
-    public void request() throws IOException {
+    public void request() throws IOException, TryAgainException {
 
         Socket socket = new Socket();
         LOGGER.info("start connect server host: {} port: {}", host, port);
@@ -72,7 +72,6 @@ public class ClientHandler {
 
             this.metadataRequest(outputStream, utMetadata, i);
             LOGGER.info("request block index: {} ok", i);
-
         }
         LOGGER.info("request block finish");
         ByteBuffer metaInfo = ByteBuffer.allocate(metaDataSize);
@@ -95,15 +94,13 @@ public class ClientHandler {
         byte[] sha1 = DigestUtils.sha1(info);
         if (sha1.length != infoHash.length) {
 
-            LOGGER.error("length fail");
-            return;
+            throw new TryAgainException("length fail");
         }
         for (int i = 0; i < infoHash.length; i++) {
 
             if (infoHash[i] != sha1[i]) {
 
-                LOGGER.error("info hash not eq");
-                return;
+                throw new TryAgainException("info hash not eq");
             }
         }
         LOGGER.info("success");

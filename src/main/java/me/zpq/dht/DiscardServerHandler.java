@@ -18,6 +18,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
 
 /**
  * @author zpq
@@ -160,11 +164,11 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
     private void queryGetPeers(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, String transactionId, Map<String, BEncodedValue> a) throws IOException {
 
         byte[] infoHash = a.get("info_hash").getBytes();
-        byte[] token = new byte[]{infoHash[0], infoHash[1]};
-        List<NodeTable> nodes = new ArrayList<>(nodeTable.values());
+        byte[] token = Arrays.copyOfRange(infoHash, 0, 5);
+//        List<NodeTable> nodes = new ArrayList<>(nodeTable.values());
         channelHandlerContext.writeAndFlush(new DatagramPacket(
                 Unpooled.copiedBuffer(
-                        dhtProtocol.getPeersResponseNodes(transactionId, nodeId, token, Helper.nodesEncode(nodes))),
+                        dhtProtocol.getPeersResponseNodes(transactionId, nodeId, token, new byte[0])),
                 datagramPacket.sender()));
 
     }

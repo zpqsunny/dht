@@ -39,16 +39,20 @@ public class ClientHandler {
     public void request() throws IOException {
 
         Socket socket = new Socket();
-        socket.connect(new InetSocketAddress(host, port), 30000);
+        LOGGER.info("start connect server host: %s port: %s", host, port);
+        socket.connect(new InetSocketAddress(host, port), 60000);
+        LOGGER.info("connect success");
         OutputStream outputStream = socket.getOutputStream();
         InputStream inputStream = socket.getInputStream();
+        LOGGER.info("try to handshake");
         this.handshake(outputStream);
         if (!this.validatorHandshake(inputStream)) {
 
             LOGGER.error("protocol != BitTorrent");
             return;
         }
-
+        LOGGER.info("handshake success");
+        LOGGER.info("try to extHandShake");
         this.extHandShake(outputStream);
         BEncodedValue bEncodedValue = this.validatorExtHandShake(inputStream);
 
@@ -57,15 +61,22 @@ public class ClientHandler {
             LOGGER.error("validatorExtHandShake false");
             return;
         }
+        LOGGER.info("extHandShake success");
         int utMetadata = bEncodedValue.getMap().get("m").getMap().get("ut_metadata").getInt();
         int metaDataSize = bEncodedValue.getMap().get("metadata_size").getInt();
         // metaDataSize / 16384
         int block = metaDataSize % 16384 > 0 ? metaDataSize / 16384 + 1 : metaDataSize / 16384;
+        LOGGER.info("metaDataSize: %s block: %s", metaDataSize, block);
+        LOGGER.info("start request block");
         for (int i = 0; i < block; i++) {
 
             this.metadataRequest(outputStream, utMetadata, i);
+            LOGGER.info("request block index: %s ok", i);
+
         }
+        LOGGER.info("request block finish");
         ByteBuffer metaInfo = ByteBuffer.allocate(metaDataSize);
+        LOGGER.info("start resolve block");
         for (int i = 0; i < block; i++) {
 
             Map<String, BEncodedValue> m = new HashMap<>(6);
@@ -76,7 +87,10 @@ public class ClientHandler {
             byte[] length = this.resolveLengthMessage(inputStream, 4);
             byte[] result = this.resolveLengthMessage(inputStream, byte2int(length));
             metaInfo.put(Arrays.copyOfRange(result, response.length + 2, result.length));
+            LOGGER.info("resolve block index: %s ok", i);
         }
+        LOGGER.info("resolve block all finish");
+        LOGGER.info("validator sha1");
         byte[] info = metaInfo.array();
         byte[] sha1 = DigestUtils.sha1(info);
         if (sha1.length != infoHash.length) {
@@ -101,7 +115,7 @@ public class ClientHandler {
 
     private void handshake(OutputStream outputStream) throws IOException {
 
-        byte[] extension = new byte[]{0, 0, 0, 0, 0, 16, 0, 1};
+        byte[] extension = new byte[]{0, 0, 0, 0, 0, 16, 0, 0};
         ByteBuffer handshake = ByteBuffer.allocate(68);
         handshake.put((byte) PROTOCOL.length())
                 .put(PROTOCOL.getBytes())

@@ -39,7 +39,7 @@ public class ClientHandler {
     public void request() throws IOException {
 
         Socket socket = new Socket();
-        LOGGER.info("start connect server host: %s port: %s", host, port);
+        LOGGER.info("start connect server host: {} port: {}", host, port);
         socket.connect(new InetSocketAddress(host, port), 60000);
         LOGGER.info("connect success");
         OutputStream outputStream = socket.getOutputStream();
@@ -66,12 +66,12 @@ public class ClientHandler {
         int metaDataSize = bEncodedValue.getMap().get("metadata_size").getInt();
         // metaDataSize / 16384
         int block = metaDataSize % 16384 > 0 ? metaDataSize / 16384 + 1 : metaDataSize / 16384;
-        LOGGER.info("metaDataSize: %s block: %s", metaDataSize, block);
+        LOGGER.info("metaDataSize: {} block: {}", metaDataSize, block);
         LOGGER.info("start request block");
         for (int i = 0; i < block; i++) {
 
             this.metadataRequest(outputStream, utMetadata, i);
-            LOGGER.info("request block index: %s ok", i);
+            LOGGER.info("request block index: {} ok", i);
 
         }
         LOGGER.info("request block finish");
@@ -87,7 +87,7 @@ public class ClientHandler {
             byte[] length = this.resolveLengthMessage(inputStream, 4);
             byte[] result = this.resolveLengthMessage(inputStream, byte2int(length));
             metaInfo.put(Arrays.copyOfRange(result, response.length + 2, result.length));
-            LOGGER.info("resolve block index: %s ok", i);
+            LOGGER.info("resolve block index: {} ok", i);
         }
         LOGGER.info("resolve block all finish");
         LOGGER.info("validator sha1");

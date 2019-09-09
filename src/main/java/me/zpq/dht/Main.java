@@ -36,7 +36,7 @@ public class Main {
             LOGGER.error("error config");
             return;
         }
-        InputStream config = Files.newInputStream(Paths.get(url.getFile().replaceFirst("^/", "")));
+        InputStream config = Files.newInputStream(Paths.get(url.getFile()));
         Yaml yaml = new Yaml();
         Map configMap = yaml.load(config);
         String host = (String) configMap.get("serverIp");

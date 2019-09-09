@@ -36,7 +36,7 @@ public class Main {
             LOGGER.error("error config");
             return;
         }
-        InputStream config = Files.newInputStream(Paths.get(url.getFile()));
+        InputStream config = Files.newInputStream(Paths.get(url.getFile().replaceFirst("^/", "")));
         Yaml yaml = new Yaml();
         Map configMap = yaml.load(config);
         String host = (String) configMap.get("serverIp");
@@ -72,9 +72,7 @@ public class Main {
         LOGGER.info("server ok");
 
         // todo peer to peer
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-        FutureTask<Void> voidFutureTask = new FutureTask<>(() -> {
-
+        Callable<Void> callable = () -> {
             String metaInfo = jedis.rpop("meta_info");
             if (metaInfo != null) {
 
@@ -87,13 +85,15 @@ public class Main {
 
             }
             return null;
-        });
+        };
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
         while (true) {
 
+            FutureTask<Void> voidFutureTask = new FutureTask<>(callable);
             executorService.execute(voidFutureTask);
             try {
 
-                voidFutureTask.get(10, TimeUnit.MINUTES);
+                voidFutureTask.get(5, TimeUnit.MINUTES);
             } catch (InterruptedException e) {
 
                 LOGGER.error("InterruptedException");

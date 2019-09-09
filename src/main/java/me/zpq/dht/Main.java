@@ -101,7 +101,7 @@ public class Main {
 
             try {
 
-                voidFutureTask.get(1, TimeUnit.MINUTES);
+                voidFutureTask.get(5, TimeUnit.MINUTES);
 
             } catch (InterruptedException e) {
 

@@ -5,6 +5,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
+import io.netty.util.concurrent.DefaultThreadFactory;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,56 +71,39 @@ public class Main {
         autoRemoveNode.schedule(new RemoveNode(table, timeout), 30000, 60000);
         LOGGER.info("start ok RemoveNode");
         LOGGER.info("server ok");
+        ThreadFactory namedThreadFactory = Executors.defaultThreadFactory();
+        ExecutorService singleThreadPool = new ThreadPoolExecutor(5, 10,
+                0L, TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<>(), namedThreadFactory, new ThreadPoolExecutor.AbortPolicy());
+        MongoMetaInfoImpl mongoMetaInfo = new MongoMetaInfoImpl("");
+        while (true) {
 
-        Callable<Void> callable = () -> {
             String metaInfo = jedis.rpop("meta_info");
+
             if (metaInfo != null) {
 
                 JSONObject jsonObject = new JSONObject(metaInfo);
                 String ip = jsonObject.getString("ip");
                 int p = jsonObject.getInt("port");
                 byte[] infoHash = Helper.hexToByte(jsonObject.getString("infoHash"));
-                PeerClient peerClient = new PeerClient(ip, p, peerId, infoHash);
-                try {
+                singleThreadPool.execute(() -> {
 
-                    peerClient.request();
+                    PeerClient peerClient = new PeerClient(ip, p, peerId, infoHash, mongoMetaInfo);
+                    try {
 
-                } catch (TryAgainException e) {
+                        peerClient.request();
 
-                    MetaInfoRequest metaInfoRequest = new MetaInfoRequest(ip, p, infoHash);
-                    jedis.lpush("meta_info", metaInfoRequest.toString());
-                }
+                    } catch (Exception e) {
 
-            }
-            return null;
-        };
-        while (true) {
+                        if (e instanceof TryToAgainException) {
 
-            ExecutorService executorService = Executors.newSingleThreadExecutor();
-            FutureTask<Void> voidFutureTask = new FutureTask<>(callable);
-            executorService.execute(voidFutureTask);
-
-            try {
-
-                voidFutureTask.get(5, TimeUnit.MINUTES);
-
-            } catch (InterruptedException e) {
-
-                LOGGER.error("InterruptedException " + e.getMessage());
-                voidFutureTask.cancel(true);
-
-            } catch (ExecutionException e) {
-
-                LOGGER.error("ExecutionException " + e.getMessage());
-                voidFutureTask.cancel(true);
-
-            } catch (TimeoutException e) {
-
-                LOGGER.error("TimeoutException " + e.getMessage());
-                voidFutureTask.cancel(true);
-            } finally {
-                executorService.shutdown();
-                Thread.sleep(2000);
+                            LOGGER.warn("try to again");
+                            MetaInfoRequest metaInfoRequest = new MetaInfoRequest(ip, p, infoHash);
+                            jedis.lpush("meta_info", metaInfoRequest.toString());
+                        }
+                        e.printStackTrace();
+                    }
+                });
             }
         }
     }

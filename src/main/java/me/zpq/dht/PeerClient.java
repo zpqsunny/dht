@@ -29,18 +29,22 @@ public class PeerClient {
 
     private byte[] infoHash;
 
-    public PeerClient(String host, int port, String peerId, byte[] infoHash) {
+    private MetaInfo metaInfoTodo;
+
+    public PeerClient(String host, int port, String peerId, byte[] infoHash, MetaInfo metaInfoTodo) {
         this.host = host;
         this.port = port;
         this.peerId = peerId;
         this.infoHash = infoHash;
+        this.metaInfoTodo = metaInfoTodo;
     }
 
-    public void request() throws IOException, TryAgainException {
+    public void request() throws Exception {
 
         Socket socket = new Socket();
         LOGGER.info("start connect server host: {} port: {}", host, port);
-        socket.connect(new InetSocketAddress(host, port), 60000);
+        socket.connect(new InetSocketAddress(host, port), 30000);
+        socket.setSoTimeout(60000);
         LOGGER.info("connect success");
         OutputStream outputStream = socket.getOutputStream();
         InputStream inputStream = socket.getInputStream();
@@ -94,19 +98,18 @@ public class PeerClient {
         byte[] sha1 = DigestUtils.sha1(info);
         if (sha1.length != infoHash.length) {
 
-            throw new TryAgainException("length fail");
+            throw new TryToAgainException("length fail");
         }
         for (int i = 0; i < infoHash.length; i++) {
 
             if (infoHash[i] != sha1[i]) {
 
-                throw new TryAgainException("info hash not eq");
+                throw new TryToAgainException("info hash not eq");
             }
         }
         LOGGER.info("success");
         socket.close();
-        MongoMetaInfoImpl mongoMetaInfo = new MongoMetaInfoImpl("");
-        mongoMetaInfo.todoSomething(this.infoHash, info);
+        metaInfoTodo.todoSomething(this.infoHash, info);
 
     }
 
@@ -165,29 +168,29 @@ public class PeerClient {
         int messageType = (int) data[1];
         if (messageId != 20) {
 
-            System.out.println("messageId fail");
+            LOGGER.error("messageId fail");
             return null;
         }
         if (messageType != 0) {
 
-            System.out.println("messageType fail");
+            LOGGER.error("messageType fail");
             return null;
         }
         byte[] bDecode = Arrays.copyOfRange(data, 2, length);
         BEncodedValue decode = BDecoder.decode(new ByteArrayInputStream(bDecode));
         if (decode.getMap().get("metadata_size") == null) {
 
-            System.out.println("metadata_size == null");
+            LOGGER.error("metadata_size == null");
             return null;
         }
         if (decode.getMap().get("m") == null) {
 
-            System.out.println("m == null");
+            LOGGER.error("m == null");
             return null;
         }
         if (decode.getMap().get("m").getMap().get("ut_metadata") == null) {
 
-            System.out.println("m.ut_metadata == null");
+            LOGGER.error("m.ut_metadata == null");
             return null;
         }
         while (inputStream.available() > 0) {

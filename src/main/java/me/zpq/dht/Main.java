@@ -1,13 +1,12 @@
 package me.zpq.dht;
 
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +31,7 @@ public class Main {
 
     public static void main(String[] args) throws InterruptedException, IOException {
 
+        ((LoggerContext) LoggerFactory.getILoggerFactory()).getLogger("org.mongodb.driver").setLevel(Level.ERROR);
         ClassLoader classLoader = Main.class.getClassLoader();
         URL url = classLoader.getResource("config.yaml");
         if (url == null) {

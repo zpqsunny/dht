@@ -73,10 +73,10 @@ public class Main {
         autoRemoveNode.schedule(new RemoveNode(table, timeout), 30000, 60000);
         LOGGER.info("start ok RemoveNode");
         LOGGER.info("server ok");
-        ThreadFactory namedThreadFactory = Executors.defaultThreadFactory();
-        ExecutorService singleThreadPool = new ThreadPoolExecutor(5, 10,
+        ThreadFactory threadFactory = Executors.defaultThreadFactory();
+        ExecutorService singleThreadPool = new ThreadPoolExecutor(10, 10,
                 0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(), namedThreadFactory, new ThreadPoolExecutor.AbortPolicy());
+                new LinkedBlockingQueue<>(), threadFactory);
         MongoMetaInfoImpl mongoMetaInfo = new MongoMetaInfoImpl("mongodb://localhost");
         while (true) {
 
@@ -94,24 +94,26 @@ public class Main {
                     PeerClient peerClient = new PeerClient(ip, p, peerId, infoHash, mongoMetaInfo);
                     try {
 
+                        LOGGER.info("todo request peerClient ......");
                         peerClient.request();
 
                     } catch (Exception e) {
+
+                        LOGGER.info("request peerClient has Exception");
 
                         if (e instanceof TryToAgainException) {
 
                             LOGGER.warn("try to again");
                             MetaInfoRequest metaInfoRequest = new MetaInfoRequest(ip, p, infoHash);
                             jedis.lpush("meta_info", metaInfoRequest.toString());
+                        } else {
+
+                            LOGGER.error(e.getMessage());
                         }
-                        e.printStackTrace();
                     }
                 });
-            } else {
-
-                LOGGER.info("redis is null");
             }
-            Thread.sleep(2000);
+            Thread.sleep(5000);
         }
     }
 }

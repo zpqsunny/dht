@@ -1,11 +1,13 @@
 package me.zpq.dht;
 
+import ch.qos.logback.classic.LoggerContext;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
-import io.netty.util.concurrent.DefaultThreadFactory;
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,13 +77,14 @@ public class Main {
         ExecutorService singleThreadPool = new ThreadPoolExecutor(5, 10,
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(), namedThreadFactory, new ThreadPoolExecutor.AbortPolicy());
-        MongoMetaInfoImpl mongoMetaInfo = new MongoMetaInfoImpl("");
+        MongoMetaInfoImpl mongoMetaInfo = new MongoMetaInfoImpl("mongodb://localhost");
         while (true) {
 
             String metaInfo = jedis.rpop("meta_info");
 
             if (metaInfo != null) {
 
+                LOGGER.info("redis has");
                 JSONObject jsonObject = new JSONObject(metaInfo);
                 String ip = jsonObject.getString("ip");
                 int p = jsonObject.getInt("port");
@@ -104,7 +107,11 @@ public class Main {
                         e.printStackTrace();
                     }
                 });
+            } else {
+
+                LOGGER.info("redis is null");
             }
+            Thread.sleep(2000);
         }
     }
 }

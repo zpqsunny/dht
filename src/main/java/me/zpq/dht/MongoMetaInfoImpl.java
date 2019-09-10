@@ -9,7 +9,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Iterator;
 import java.util.List;
 
 public class MongoMetaInfoImpl implements MetaInfo {
@@ -17,13 +16,8 @@ public class MongoMetaInfoImpl implements MetaInfo {
     private MongoClient mongoClient;
 
     public MongoMetaInfoImpl(String connectionString) {
-        // mongodb+srv://<username>:<password>@<cluster-address>/test?w=majority
-//        ConnectionString connString = new ConnectionString(connectionString);
-//        MongoClientSettings settings = MongoClientSettings.builder()
-//                .applyConnectionString(connString)
-//                .retryWrites(true)
-//                .build();
-        mongoClient = MongoClients.create();
+
+        mongoClient = MongoClients.create(connectionString);
     }
 
     @Override
@@ -32,7 +26,7 @@ public class MongoMetaInfoImpl implements MetaInfo {
         MongoDatabase database = mongoClient.getDatabase("dht");
         MongoCollection<Document> document = database.getCollection("meta_info");
         Document has = new Document();
-        has.put("info_hash", new BsonBinary(sha1));
+        has.put("sha1", new BsonBinary(sha1));
         FindIterable<Document> documents = document.find(has);
         Document first = documents.first();
         if (first == null) {
@@ -46,7 +40,7 @@ public class MongoMetaInfoImpl implements MetaInfo {
             if (decode.getMap().get("length") != null) {
 
                 //single-file mode
-                metaInfo.put("length", decode.getMap().get("length").getInt());
+                metaInfo.put("length", new BsonInt64(decode.getMap().get("length").getLong()));
             } else {
 
                 //multi-file mode
@@ -55,7 +49,7 @@ public class MongoMetaInfoImpl implements MetaInfo {
                 for (BEncodedValue file : files) {
 
                     BsonDocument f = new BsonDocument();
-                    f.put("length", new BsonInt64(file.getMap().get("length").getInt()));
+                    f.put("length", new BsonInt64(file.getMap().get("length").getLong()));
                     BsonArray path = new BsonArray();
                     List<BEncodedValue> paths = file.getMap().get("path").getList();
                     for (BEncodedValue p : paths) {

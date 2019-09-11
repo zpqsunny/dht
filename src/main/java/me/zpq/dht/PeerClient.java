@@ -193,7 +193,6 @@ public class PeerClient {
         if (messageType != 0) {
 
             LOGGER.error("want to get messageType 0 but messageType: {}", messageType);
-
             return null;
         }
         byte[] bDecode = Arrays.copyOfRange(data, 2, length);

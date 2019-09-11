@@ -19,13 +19,13 @@ public class Ping extends TimerTask {
 
     private Map<String, NodeTable> table;
 
-    private String transactionId;
+    private byte[] transactionId;
 
     private byte[] nodeId;
 
     private DHTProtocol dhtProtocol = new DHTProtocol();
 
-    public Ping(Channel channel, String transactionId, byte[] nodeId, Map<String, NodeTable> table) {
+    public Ping(Channel channel, byte[] transactionId, byte[] nodeId, Map<String, NodeTable> table) {
 
         this.channel = channel;
         this.table = table;

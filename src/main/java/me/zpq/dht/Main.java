@@ -45,7 +45,7 @@ public class Main {
         String host = (String) configMap.get("serverIp");
         Integer port = (Integer) configMap.get("serverPort");
         String peerId = (String) configMap.get("peerId");
-        String transactionId = (String) configMap.get("transactionID");
+        byte[] transactionId = ((String) configMap.get("transactionID")).getBytes();
         Integer minNodes = (Integer) configMap.get("minNodes");
         Integer maxNodes = (Integer) configMap.get("maxNodes");
         Integer timeout = (Integer) configMap.get("timeout");

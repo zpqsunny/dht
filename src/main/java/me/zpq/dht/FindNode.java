@@ -15,7 +15,7 @@ public class FindNode extends TimerTask {
 
     private Channel channel;
 
-    private String transactionId;
+    private byte[] transactionId;
 
     private byte[] nodeId;
 
@@ -27,7 +27,7 @@ public class FindNode extends TimerTask {
 
     private DHTProtocol dhtProtocol = new DHTProtocol();
 
-    public FindNode(Channel channel, String transactionId, byte[] nodeId, Map<String, NodeTable> tableMap, Integer minNodes) {
+    public FindNode(Channel channel, byte[] transactionId, byte[] nodeId, Map<String, NodeTable> tableMap, Integer minNodes) {
         this.channel = channel;
         this.transactionId = transactionId;
         this.nodeId = nodeId;

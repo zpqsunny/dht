@@ -50,7 +50,6 @@ public class Helper {
         return nodeTableList;
     }
 
-
     private static byte[] ipToByte(String ip) throws UnknownHostException {
 
         return InetAddress.getByName(ip).getAddress();
@@ -89,7 +88,6 @@ public class Helper {
         }
         return sb.toString();
     }
-
 
     public static byte[] hexToByte(String hex) {
 

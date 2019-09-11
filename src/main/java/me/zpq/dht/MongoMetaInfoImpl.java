@@ -7,8 +7,6 @@ import org.bson.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class MongoMetaInfoImpl implements MetaInfo {
@@ -36,7 +34,7 @@ public class MongoMetaInfoImpl implements MetaInfo {
             metaInfo.put("sha1", new BsonBinary(sha1));
             metaInfo.put("name", decode.getMap().get("name").getString());
             metaInfo.put("piece length", decode.getMap().get("piece length").getInt());
-            metaInfo.put("created datetime", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            metaInfo.put("created datetime", new BsonDateTime(System.currentTimeMillis()));
             if (decode.getMap().get("length") != null) {
 
                 //single-file mode

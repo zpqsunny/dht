@@ -52,7 +52,7 @@ public class PeerClient {
             this.handshake(outputStream);
             if (!this.validatorHandshake(inputStream)) {
 
-                LOGGER.error("protocol != BitTorrent");
+                LOGGER.error("validatorHandShake false");
                 return;
             }
             LOGGER.info("handshake success");
@@ -147,18 +147,21 @@ public class PeerClient {
         byte[] bitTorrent = this.resolveMessage(inputStream);
         if (!PROTOCOL.equals(new String(bitTorrent))) {
 
+            LOGGER.error("protocol != BitTorrent");
             return false;
         }
         byte[] last = this.resolveLengthMessage(inputStream, 48);
         byte[] infoHash = Arrays.copyOfRange(last, 8, 28);
         if (infoHash.length != this.infoHash.length) {
 
+            LOGGER.error("info hash length is diff");
             return false;
         }
         for (int i = 0; i < 20; i++) {
 
             if (infoHash[i] != this.infoHash[i]) {
 
+                LOGGER.error("info hash byte is diff");
                 return false;
             }
         }

@@ -53,6 +53,7 @@ public class PeerClient {
         if (!this.validatorHandshake(inputStream)) {
 
             LOGGER.error("protocol != BitTorrent");
+            socket.close();
             return;
         }
         LOGGER.info("handshake success");
@@ -63,6 +64,7 @@ public class PeerClient {
         if (bEncodedValue == null) {
 
             LOGGER.error("validatorExtHandShake false");
+            socket.close();
             return;
         }
         LOGGER.info("extHandShake success");
@@ -98,12 +100,14 @@ public class PeerClient {
         byte[] sha1 = DigestUtils.sha1(info);
         if (sha1.length != infoHash.length) {
 
+            socket.close();
             throw new TryToAgainException("length fail");
         }
         for (int i = 0; i < infoHash.length; i++) {
 
             if (infoHash[i] != sha1[i]) {
 
+                socket.close();
                 throw new TryToAgainException("info hash not eq");
             }
         }

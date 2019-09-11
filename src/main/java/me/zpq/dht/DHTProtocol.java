@@ -25,7 +25,7 @@ public class DHTProtocol {
         return byteArrayOutputStream.toByteArray();
     }
 
-    private byte[] query(String transactionId, String q, Map<String, BEncodedValue> a) throws IOException {
+    private byte[] query(byte[] transactionId, String q, Map<String, BEncodedValue> a) throws IOException {
 
         Map<String, BEncodedValue> document = new HashMap<>(6);
         document.put("t", new BEncodedValue(transactionId));
@@ -36,7 +36,7 @@ public class DHTProtocol {
         return this.result(document);
     }
 
-    private byte[] response(String transactionId, Map<String, BEncodedValue> r) throws IOException {
+    private byte[] response(byte[] transactionId, Map<String, BEncodedValue> r) throws IOException {
 
         Map<String, BEncodedValue> document = new HashMap<>(6);
         document.put("t", new BEncodedValue(transactionId));
@@ -47,7 +47,7 @@ public class DHTProtocol {
 
     }
 
-    public byte[] error(String transactionId, Integer code, String description) throws IOException {
+    public byte[] error(byte[] transactionId, Integer code, String description) throws IOException {
 
         Map<String, BEncodedValue> document = new HashMap<>(6);
         document.put("t", new BEncodedValue(transactionId));
@@ -60,21 +60,21 @@ public class DHTProtocol {
         return this.result(document);
     }
 
-    public byte[] pingQuery(String transactionId, byte[] nodeId) throws IOException {
+    public byte[] pingQuery(byte[] transactionId, byte[] nodeId) throws IOException {
 
         Map<String, BEncodedValue> data = new HashMap<>(6);
         data.put("id", new BEncodedValue(nodeId));
         return this.query(transactionId, "ping", data);
     }
 
-    public byte[] pingResponse(String transactionId, byte[] nodeId) throws IOException {
+    public byte[] pingResponse(byte[] transactionId, byte[] nodeId) throws IOException {
 
         Map<String, BEncodedValue> data = new HashMap<>(6);
         data.put("id", new BEncodedValue(nodeId));
         return this.response(transactionId, data);
     }
 
-    public byte[] findNodeQuery(String transactionId, byte[] nodeId, byte[] target) throws IOException {
+    public byte[] findNodeQuery(byte[] transactionId, byte[] nodeId, byte[] target) throws IOException {
 
         Map<String, BEncodedValue> data = new HashMap<>(6);
         data.put("id", new BEncodedValue(nodeId));
@@ -82,7 +82,7 @@ public class DHTProtocol {
         return this.query(transactionId, "find_node", data);
     }
 
-    public byte[] findNodeResponse(String transactionId, byte[] nodeId, byte[] nodes) throws IOException {
+    public byte[] findNodeResponse(byte[] transactionId, byte[] nodeId, byte[] nodes) throws IOException {
 
         Map<String, BEncodedValue> data = new HashMap<>(6);
         data.put("id", new BEncodedValue(nodeId));
@@ -90,7 +90,7 @@ public class DHTProtocol {
         return this.response(transactionId, data);
     }
 
-    public byte[] getPeersQuery(String transactionId, byte[] nodeId, byte[] infoHash) throws IOException {
+    public byte[] getPeersQuery(byte[] transactionId, byte[] nodeId, byte[] infoHash) throws IOException {
 
         Map<String, BEncodedValue> data = new HashMap<>(6);
         data.put("id", new BEncodedValue(nodeId));
@@ -98,7 +98,7 @@ public class DHTProtocol {
         return this.query(transactionId, "get_peers", data);
     }
 
-    public byte[] getPeersResponseValues(String transactionId, byte[] nodeId, String token, String peers) throws IOException {
+    public byte[] getPeersResponseValues(byte[] transactionId, byte[] nodeId, String token, String peers) throws IOException {
 
         Map<String, BEncodedValue> data = new HashMap<>(6);
         data.put("id", new BEncodedValue(nodeId));
@@ -107,7 +107,7 @@ public class DHTProtocol {
         return this.response(transactionId, data);
     }
 
-    public byte[] getPeersResponseNodes(String transactionId, byte[] nodeId, byte[] token, byte[] nodes) throws IOException {
+    public byte[] getPeersResponseNodes(byte[] transactionId, byte[] nodeId, byte[] token, byte[] nodes) throws IOException {
 
         Map<String, BEncodedValue> data = new HashMap<>(6);
         data.put("id", new BEncodedValue(nodeId));
@@ -116,7 +116,7 @@ public class DHTProtocol {
         return this.response(transactionId, data);
     }
 
-    public byte[] announcePeerQuery(String transactionId, byte[] nodeId, byte[] infoHash, Integer port, String token) throws IOException {
+    public byte[] announcePeerQuery(byte[] transactionId, byte[] nodeId, byte[] infoHash, Integer port, String token) throws IOException {
 
         Map<String, BEncodedValue> data = new HashMap<>(6);
         data.put("id", new BEncodedValue(nodeId));
@@ -127,7 +127,7 @@ public class DHTProtocol {
         return this.query(transactionId, "announce_peer", data);
     }
 
-    public byte[] announcePeerResponse(String transactionId, byte[] nodeId) throws IOException {
+    public byte[] announcePeerResponse(byte[] transactionId, byte[] nodeId) throws IOException {
 
         Map<String, BEncodedValue> data = new HashMap<>(6);
         data.put("id", new BEncodedValue(nodeId));

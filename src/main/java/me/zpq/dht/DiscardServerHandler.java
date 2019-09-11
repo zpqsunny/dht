@@ -14,6 +14,7 @@ import redis.clients.jedis.Jedis;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -60,7 +61,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
             content.release();
 
             BEncodedValue data = BDecoder.decode(new ByteArrayInputStream(req));
-            String transactionId = data.getMap().get("t").getString();
+            byte[] transactionId = data.getMap().get("t").getBytes();
 
             switch (data.getMap().get("y").getString()) {
 
@@ -133,12 +134,14 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
         } catch (Exception e) {
 
-            LOGGER.error(e.getMessage());
+            InetSocketAddress sender = datagramPacket.sender();
+
+            LOGGER.error("sender ip: {} port: {} error: {}", sender.getAddress().getHostAddress(), sender.getPort(), e.getMessage());
         }
 
     }
 
-    private void queryPing(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, String transactionId, Map<String, BEncodedValue> a) throws IOException {
+    private void queryPing(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, byte[] transactionId, Map<String, BEncodedValue> a) throws IOException {
 
         channelHandlerContext.writeAndFlush(new DatagramPacket(
                 Unpooled.copiedBuffer(dhtProtocol.pingResponse(transactionId, nodeId)),
@@ -152,7 +155,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
         }
     }
 
-    private void queryFindNode(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, String transactionId) throws IOException {
+    private void queryFindNode(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, byte[] transactionId) throws IOException {
 
         List<NodeTable> table = new ArrayList<>(nodeTable.values());
         channelHandlerContext.writeAndFlush(new DatagramPacket(
@@ -161,7 +164,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
                 datagramPacket.sender()));
     }
 
-    private void queryGetPeers(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, String transactionId, Map<String, BEncodedValue> a) throws IOException {
+    private void queryGetPeers(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, byte[] transactionId, Map<String, BEncodedValue> a) throws IOException {
 
         byte[] infoHash = a.get("info_hash").getBytes();
         byte[] token = Arrays.copyOfRange(infoHash, 0, 5);
@@ -173,7 +176,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
     }
 
-    private void queryAnnouncePeer(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, String transactionId, Map<String, BEncodedValue> a) throws IOException {
+    private void queryAnnouncePeer(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, byte[] transactionId, Map<String, BEncodedValue> a) throws IOException {
 
         String address = datagramPacket.sender().getAddress().getHostAddress();
 
@@ -203,7 +206,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
                 datagramPacket.sender()));
     }
 
-    private void queryMethodUnknown(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, String transactionId) throws IOException {
+    private void queryMethodUnknown(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, byte[] transactionId) throws IOException {
 
         channelHandlerContext.writeAndFlush(new DatagramPacket(
                 Unpooled.copiedBuffer(

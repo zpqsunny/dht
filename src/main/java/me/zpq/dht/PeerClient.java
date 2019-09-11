@@ -114,17 +114,17 @@ public class PeerClient {
 
             throw e;
 
-        }catch (TimeoutException e) {
+        } catch (TimeoutException e) {
 
-            LOGGER.error("TimeoutException {}",e.getMessage());
+            LOGGER.error("TimeoutException {}", e.getMessage());
 
         } catch (IOException e) {
 
-            LOGGER.error("IOException {}",e.getMessage());
+            LOGGER.error("IOException {}", e.getMessage());
 
         } catch (Exception e) {
 
-            LOGGER.error("Exception {}",e.getMessage());
+            LOGGER.error("Exception {}", e.getMessage());
         }
 
     }
@@ -187,12 +187,13 @@ public class PeerClient {
         int messageType = (int) data[1];
         if (messageId != 20) {
 
-            LOGGER.error("messageId fail");
+            LOGGER.error("want to get messageId 20 but messageId: {}", messageId);
             return null;
         }
         if (messageType != 0) {
 
-            LOGGER.error("messageType fail");
+            LOGGER.error("want to get messageType 0 but messageType: {}", messageType);
+
             return null;
         }
         byte[] bDecode = Arrays.copyOfRange(data, 2, length);

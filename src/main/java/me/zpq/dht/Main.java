@@ -97,19 +97,12 @@ public class Main {
                         LOGGER.info("todo request peerClient ......");
                         peerClient.request();
 
-                    } catch (Exception e) {
+                    } catch (TryToAgainException e) {
 
-                        LOGGER.info("request peerClient has Exception");
+                        LOGGER.warn("try to again");
+                        MetaInfoRequest metaInfoRequest = new MetaInfoRequest(ip, p, infoHash);
+                        jedis.lpush("meta_info", metaInfoRequest.toString());
 
-                        if (e instanceof TryToAgainException) {
-
-                            LOGGER.warn("try to again");
-                            MetaInfoRequest metaInfoRequest = new MetaInfoRequest(ip, p, infoHash);
-                            jedis.lpush("meta_info", metaInfoRequest.toString());
-                        } else {
-
-                            LOGGER.error(e.getMessage());
-                        }
                     }
                 });
             }

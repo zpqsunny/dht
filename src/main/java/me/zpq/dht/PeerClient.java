@@ -14,6 +14,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.*;
 
 public class PeerClient {
 
@@ -39,81 +40,92 @@ public class PeerClient {
         this.metaInfoTodo = metaInfoTodo;
     }
 
-    public void request() throws Exception {
+    public void request() throws TryToAgainException {
 
-        Socket socket = new Socket();
-        LOGGER.info("start connect server host: {} port: {}", host, port);
-        socket.connect(new InetSocketAddress(host, port), 30000);
-        socket.setSoTimeout(60000);
-        LOGGER.info("connect success");
-        OutputStream outputStream = socket.getOutputStream();
-        InputStream inputStream = socket.getInputStream();
-        LOGGER.info("try to handshake");
-        this.handshake(outputStream);
-        if (!this.validatorHandshake(inputStream)) {
+        try (Socket socket = new Socket()) {
+            LOGGER.info("start connect server host: {} port: {}", host, port);
+            socket.connect(new InetSocketAddress(host, port), 30000);
+            LOGGER.info("connect success");
+            OutputStream outputStream = socket.getOutputStream();
+            InputStream inputStream = socket.getInputStream();
+            LOGGER.info("try to handshake");
+            this.handshake(outputStream);
+            if (!this.validatorHandshake(inputStream)) {
 
-            LOGGER.error("protocol != BitTorrent");
-            socket.close();
-            return;
-        }
-        LOGGER.info("handshake success");
-        LOGGER.info("try to extHandShake");
-        this.extHandShake(outputStream);
-        BEncodedValue bEncodedValue = this.validatorExtHandShake(inputStream);
-
-        if (bEncodedValue == null) {
-
-            LOGGER.error("validatorExtHandShake false");
-            socket.close();
-            return;
-        }
-        LOGGER.info("extHandShake success");
-        int utMetadata = bEncodedValue.getMap().get("m").getMap().get("ut_metadata").getInt();
-        int metaDataSize = bEncodedValue.getMap().get("metadata_size").getInt();
-        // metaDataSize / 16384
-        int block = metaDataSize % 16384 > 0 ? metaDataSize / 16384 + 1 : metaDataSize / 16384;
-        LOGGER.info("metaDataSize: {} block: {}", metaDataSize, block);
-        LOGGER.info("start request block");
-        for (int i = 0; i < block; i++) {
-
-            this.metadataRequest(outputStream, utMetadata, i);
-            LOGGER.info("request block index: {} ok", i);
-        }
-        LOGGER.info("request block finish");
-        ByteBuffer metaInfo = ByteBuffer.allocate(metaDataSize);
-        LOGGER.info("start resolve block");
-        for (int i = 0; i < block; i++) {
-
-            Map<String, BEncodedValue> m = new HashMap<>(6);
-            m.put("msg_type", new BEncodedValue(1));
-            m.put("piece", new BEncodedValue(i));
-            m.put("total_size", new BEncodedValue(metaDataSize));
-            byte[] response = BEncoder.encode(m).array();
-            byte[] length = this.resolveLengthMessage(inputStream, 4);
-            byte[] result = this.resolveLengthMessage(inputStream, byte2int(length));
-            metaInfo.put(Arrays.copyOfRange(result, response.length + 2, result.length));
-            LOGGER.info("resolve block index: {} ok", i);
-        }
-        LOGGER.info("resolve block all finish");
-        LOGGER.info("validator sha1");
-        byte[] info = metaInfo.array();
-        byte[] sha1 = DigestUtils.sha1(info);
-        if (sha1.length != infoHash.length) {
-
-            socket.close();
-            throw new TryToAgainException("length fail");
-        }
-        for (int i = 0; i < infoHash.length; i++) {
-
-            if (infoHash[i] != sha1[i]) {
-
-                socket.close();
-                throw new TryToAgainException("info hash not eq");
+                LOGGER.error("protocol != BitTorrent");
+                return;
             }
+            LOGGER.info("handshake success");
+            LOGGER.info("try to extHandShake");
+            this.extHandShake(outputStream);
+            BEncodedValue bEncodedValue = this.validatorExtHandShake(inputStream);
+
+            if (bEncodedValue == null) {
+
+                LOGGER.error("validatorExtHandShake false");
+                return;
+            }
+            LOGGER.info("extHandShake success");
+            int utMetadata = bEncodedValue.getMap().get("m").getMap().get("ut_metadata").getInt();
+            int metaDataSize = bEncodedValue.getMap().get("metadata_size").getInt();
+            // metaDataSize / 16384
+            int block = metaDataSize % 16384 > 0 ? metaDataSize / 16384 + 1 : metaDataSize / 16384;
+            LOGGER.info("metaDataSize: {} block: {}", metaDataSize, block);
+            LOGGER.info("start request block");
+            for (int i = 0; i < block; i++) {
+
+                this.metadataRequest(outputStream, utMetadata, i);
+                LOGGER.info("request block index: {} ok", i);
+            }
+            LOGGER.info("request block finish");
+            ByteBuffer metaInfo = ByteBuffer.allocate(metaDataSize);
+            LOGGER.info("start resolve block");
+            for (int i = 0; i < block; i++) {
+
+                Map<String, BEncodedValue> m = new HashMap<>(6);
+                m.put("msg_type", new BEncodedValue(1));
+                m.put("piece", new BEncodedValue(i));
+                m.put("total_size", new BEncodedValue(metaDataSize));
+                byte[] response = BEncoder.encode(m).array();
+                byte[] length = this.resolveLengthMessage(inputStream, 4);
+                byte[] result = this.resolveLengthMessage(inputStream, byte2int(length));
+                metaInfo.put(Arrays.copyOfRange(result, response.length + 2, result.length));
+                LOGGER.info("resolve block index: {} ok", i);
+            }
+            LOGGER.info("resolve block all finish");
+            LOGGER.info("validator sha1");
+            byte[] info = metaInfo.array();
+            byte[] sha1 = DigestUtils.sha1(info);
+            if (sha1.length != infoHash.length) {
+
+                throw new TryToAgainException("length fail");
+            }
+            for (int i = 0; i < infoHash.length; i++) {
+
+                if (infoHash[i] != sha1[i]) {
+
+                    throw new TryToAgainException("info hash not eq");
+                }
+            }
+            LOGGER.info("success");
+            metaInfoTodo.todoSomething(this.infoHash, info);
+
+        } catch (TryToAgainException e) {
+
+            throw e;
+
+        }catch (TimeoutException e) {
+
+            LOGGER.error("TimeoutException {}",e.getMessage());
+
+        } catch (IOException e) {
+
+            LOGGER.error("IOException {}",e.getMessage());
+
+        } catch (Exception e) {
+
+            LOGGER.error("Exception {}",e.getMessage());
         }
-        LOGGER.info("success");
-        socket.close();
-        metaInfoTodo.todoSomething(this.infoHash, info);
 
     }
 
@@ -130,7 +142,7 @@ public class PeerClient {
         outputStream.flush();
     }
 
-    private boolean validatorHandshake(InputStream inputStream) throws IOException {
+    private boolean validatorHandshake(InputStream inputStream) throws IOException, TimeoutException {
 
         byte[] bitTorrent = this.resolveMessage(inputStream);
         if (!PROTOCOL.equals(new String(bitTorrent))) {
@@ -163,7 +175,7 @@ public class PeerClient {
         outputStream.flush();
     }
 
-    private BEncodedValue validatorExtHandShake(InputStream inputStream) throws IOException {
+    private BEncodedValue validatorExtHandShake(InputStream inputStream) throws IOException, TimeoutException {
 
         byte[] prefix = this.resolveLengthMessage(inputStream, 4);
         int length = byte2int(prefix);
@@ -225,36 +237,43 @@ public class PeerClient {
         return value;
     }
 
-    private byte[] resolveMessage(InputStream inputStream) throws IOException {
+    private byte[] resolveMessage(InputStream inputStream) throws IOException, TimeoutException {
 
-        int length;
-        while (true) {
+        long start = System.currentTimeMillis();
+        long end = start + 60000;
+        while (end > System.currentTimeMillis()) {
 
-            int read = inputStream.read();
-            if (read != -1) {
+            if (inputStream.available() > 0) {
 
-                length = read;
-                break;
+                int length = inputStream.read();
+                return this.resolveLengthMessage(inputStream, length);
+
             }
         }
-
-        return this.resolveLengthMessage(inputStream, length);
+        throw new TimeoutException("resolveMessage TimeoutException 1");
     }
 
-    private byte[] resolveLengthMessage(InputStream inputStream, int length) throws IOException {
+    private byte[] resolveLengthMessage(InputStream inputStream, int length) throws IOException, TimeoutException {
 
         byte[] result = new byte[length];
         int index = 0;
-        while (index < result.length) {
+        long start = System.currentTimeMillis();
+        long end = start + 60000;
+        while (end > System.currentTimeMillis()) {
 
-            int r = inputStream.read();
-            if (r != -1) {
+            if (index < result.length) {
 
-                result[index] = (byte) r;
-                index++;
+                int r = inputStream.read();
+                if (r != -1) {
+
+                    result[index] = (byte) r;
+                    index++;
+                }
+                continue;
             }
+            return result;
         }
-        return result;
+        throw new TimeoutException("resolveLengthMessage TimeoutException 2");
     }
 
     private byte[] packMessage(int messageId, int messageType, byte[] data) {

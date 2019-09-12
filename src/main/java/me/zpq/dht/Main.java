@@ -39,8 +39,7 @@ public class Main {
             LOGGER.error("error config");
             return;
         }
-//        InputStream config = Files.newInputStream(Paths.get(url.getFile()));
-        InputStream config = Files.newInputStream(Paths.get(url.getFile().replaceFirst("^/","")));
+        InputStream config = Files.newInputStream(Paths.get(url.getFile()));
         Yaml yaml = new Yaml();
         Map configMap = yaml.load(config);
         String host = (String) configMap.get("serverIp");
@@ -65,17 +64,17 @@ public class Main {
         final Channel channel = bootstrap.bind(host, port).sync().channel();
 
         ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(5);
-//        LOGGER.info("start autoFindNode");
-//        scheduledExecutorService.scheduleWithFixedDelay(new FindNode(channel, transactionId, nodeId, table, minNodes), 2, 2, TimeUnit.SECONDS);
-//        LOGGER.info("start ok autoFindNode");
-//
-//        LOGGER.info("start Ping");
-//        scheduledExecutorService.scheduleWithFixedDelay(new Ping(channel, transactionId, nodeId, table), 5, 20, TimeUnit.SECONDS);
-//        LOGGER.info("start ok Ping");
-//
-//        LOGGER.info("start RemoveNode");
-//        scheduledExecutorService.scheduleWithFixedDelay(new RemoveNode(table, timeout), 30, 60, TimeUnit.SECONDS);
-//        LOGGER.info("start ok RemoveNode");
+        LOGGER.info("start autoFindNode");
+        scheduledExecutorService.scheduleWithFixedDelay(new FindNode(channel, transactionId, nodeId, table, minNodes), 2, 2, TimeUnit.SECONDS);
+        LOGGER.info("start ok autoFindNode");
+
+        LOGGER.info("start Ping");
+        scheduledExecutorService.scheduleWithFixedDelay(new Ping(channel, transactionId, nodeId, table), 5, 20, TimeUnit.SECONDS);
+        LOGGER.info("start ok Ping");
+
+        LOGGER.info("start RemoveNode");
+        scheduledExecutorService.scheduleWithFixedDelay(new RemoveNode(table, timeout), 30, 60, TimeUnit.SECONDS);
+        LOGGER.info("start ok RemoveNode");
 
         LOGGER.info("start peerRequestTask");
         ThreadFactory threadFactory = Executors.defaultThreadFactory();

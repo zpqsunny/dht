@@ -49,6 +49,8 @@ public class Main {
         Integer minNodes = (Integer) configMap.get("minNodes");
         Integer maxNodes = (Integer) configMap.get("maxNodes");
         Integer timeout = (Integer) configMap.get("timeout");
+        Integer corePoolSize = (Integer) configMap.get("corePoolSize");
+        Integer maximumPoolSize = (Integer) configMap.get("maximumPoolSize");
         Jedis jedis = new Jedis("localhost", 6379);
 
         Bootstrap bootstrap = new Bootstrap();
@@ -77,7 +79,7 @@ public class Main {
 
         LOGGER.info("start peerRequestTask");
         ThreadFactory threadFactory = Executors.defaultThreadFactory();
-        ThreadPoolExecutor singleThreadPool = new ThreadPoolExecutor(10, 10,
+        ThreadPoolExecutor singleThreadPool = new ThreadPoolExecutor(corePoolSize, maximumPoolSize,
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(), threadFactory);
         MongoMetaInfoImpl mongoMetaInfo = new MongoMetaInfoImpl("mongodb://localhost");

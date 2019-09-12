@@ -5,3 +5,5 @@ serverPort: 6881
 minNodes: 200
 maxNodes: 300
 timeout: 60000
+corePoolSize: 5
+maximumPoolSize: 10

@@ -1,4 +1,4 @@
-package me.zpq.dht;
+package me.zpq.dht.protocol;
 
 import be.adaxisoft.bencode.BEncodedValue;
 import be.adaxisoft.bencode.BEncoder;
@@ -14,7 +14,7 @@ import java.util.Map;
  * @author zpq
  * @date 2019-08-26
  */
-public class DHTProtocol {
+public class DhtProtocol {
 
     private String v = "UT";
 

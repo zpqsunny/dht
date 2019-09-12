@@ -1,4 +1,6 @@
-package me.zpq.dht;
+package me.zpq.dht.scheduled;
+
+import me.zpq.dht.model.NodeTable;
 
 import java.util.Iterator;
 import java.util.Map;

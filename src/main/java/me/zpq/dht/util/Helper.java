@@ -1,4 +1,6 @@
-package me.zpq.dht;
+package me.zpq.dht.util;
+
+import me.zpq.dht.model.NodeTable;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

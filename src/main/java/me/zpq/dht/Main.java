@@ -7,6 +7,16 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
+import me.zpq.dht.client.PeerClient;
+import me.zpq.dht.impl.MongoMetaInfoImpl;
+import me.zpq.dht.exception.TryAgainException;
+import me.zpq.dht.model.MetaInfoRequest;
+import me.zpq.dht.model.NodeTable;
+import me.zpq.dht.scheduled.FindNode;
+import me.zpq.dht.scheduled.Ping;
+import me.zpq.dht.scheduled.RemoveNode;
+import me.zpq.dht.server.DiscardServerHandler;
+import me.zpq.dht.util.Helper;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,7 +116,7 @@ public class Main {
                         LOGGER.info("todo request peerClient ......");
                         peerClient.request();
 
-                    } catch (TryToAgainException e) {
+                    } catch (TryAgainException e) {
 
                         LOGGER.warn("try to again");
                         MetaInfoRequest metaInfoRequest = new MetaInfoRequest(ip, p, infoHash);

@@ -1,4 +1,4 @@
-package me.zpq.dht;
+package me.zpq.dht.model;
 
 /**
  * @author zpq

@@ -1,5 +1,7 @@
-package me.zpq.dht;
+package me.zpq.dht.model;
 
+
+import me.zpq.dht.util.Helper;
 
 public class MetaInfoRequest {
 

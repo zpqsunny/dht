@@ -1,4 +1,4 @@
-package me.zpq.dht;
+package me.zpq.dht.server;
 
 import be.adaxisoft.bencode.BDecoder;
 import be.adaxisoft.bencode.BEncodedValue;
@@ -8,6 +8,11 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
+import me.zpq.dht.protocol.DhtProtocol;
+import me.zpq.dht.Main;
+import me.zpq.dht.model.MetaInfoRequest;
+import me.zpq.dht.model.NodeTable;
+import me.zpq.dht.util.Helper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
@@ -19,10 +24,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
 
 /**
  * @author zpq
@@ -30,7 +31,7 @@ import java.util.concurrent.FutureTask;
  */
 public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
-    private DHTProtocol dhtProtocol = new DHTProtocol();
+    private DhtProtocol dhtProtocol = new DhtProtocol();
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
 

@@ -1,8 +1,10 @@
-package me.zpq.dht;
+package me.zpq.dht.client;
 
 import be.adaxisoft.bencode.BDecoder;
 import be.adaxisoft.bencode.BEncodedValue;
 import be.adaxisoft.bencode.BEncoder;
+import me.zpq.dht.MetaInfo;
+import me.zpq.dht.exception.TryAgainException;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +42,7 @@ public class PeerClient {
         this.metaInfoTodo = metaInfoTodo;
     }
 
-    public void request() throws TryToAgainException {
+    public void request() throws TryAgainException {
 
         try (Socket socket = new Socket()) {
             LOGGER.info("start connect server host: {} port: {}", host, port);
@@ -98,19 +100,19 @@ public class PeerClient {
             byte[] sha1 = DigestUtils.sha1(info);
             if (sha1.length != infoHash.length) {
 
-                throw new TryToAgainException("length fail");
+                throw new TryAgainException("length fail");
             }
             for (int i = 0; i < infoHash.length; i++) {
 
                 if (infoHash[i] != sha1[i]) {
 
-                    throw new TryToAgainException("info hash not eq");
+                    throw new TryAgainException("info hash not eq");
                 }
             }
             LOGGER.info("success");
             metaInfoTodo.todoSomething(this.infoHash, info);
 
-        } catch (TryToAgainException e) {
+        } catch (TryAgainException e) {
 
             throw e;
 

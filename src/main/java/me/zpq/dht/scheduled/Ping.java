@@ -1,8 +1,10 @@
-package me.zpq.dht;
+package me.zpq.dht.scheduled;
 
 import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.socket.DatagramPacket;
+import me.zpq.dht.protocol.DhtProtocol;
+import me.zpq.dht.model.NodeTable;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -22,7 +24,7 @@ public class Ping implements Runnable {
 
     private byte[] nodeId;
 
-    private DHTProtocol dhtProtocol = new DHTProtocol();
+    private DhtProtocol dhtProtocol = new DhtProtocol();
 
     public Ping(Channel channel, byte[] transactionId, byte[] nodeId, Map<String, NodeTable> table) {
 

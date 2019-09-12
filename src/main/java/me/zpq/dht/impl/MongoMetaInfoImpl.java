@@ -1,8 +1,9 @@
-package me.zpq.dht;
+package me.zpq.dht.impl;
 
 import be.adaxisoft.bencode.BDecoder;
 import be.adaxisoft.bencode.BEncodedValue;
 import com.mongodb.client.*;
+import me.zpq.dht.MetaInfo;
 import org.bson.*;
 
 import java.io.ByteArrayInputStream;

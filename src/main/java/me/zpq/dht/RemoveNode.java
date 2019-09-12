@@ -2,9 +2,8 @@ package me.zpq.dht;
 
 import java.util.Iterator;
 import java.util.Map;
-import java.util.TimerTask;
 
-public class RemoveNode extends TimerTask {
+public class RemoveNode implements Runnable {
 
     private Map<String, NodeTable> table;
 

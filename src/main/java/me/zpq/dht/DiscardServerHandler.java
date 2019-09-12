@@ -83,14 +83,8 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
                             LOGGER.info(" q : announce_peer");
                             this.queryAnnouncePeer(channelHandlerContext, datagramPacket, transactionId, a);
                             break;
-                        case "sample_infohashes":
-                            LOGGER.info(" q : sample_infohashes");
-                            break;
-                        case "vote":
-                            LOGGER.info(" q : vote");
-                            break;
                         default:
-                            this.queryMethodUnknown(channelHandlerContext, datagramPacket, transactionId);
+//                            this.queryMethodUnknown(channelHandlerContext, datagramPacket, transactionId);
                             break;
                     }
 

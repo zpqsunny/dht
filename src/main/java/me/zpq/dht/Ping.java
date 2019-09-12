@@ -7,13 +7,12 @@ import io.netty.channel.socket.DatagramPacket;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Map;
-import java.util.TimerTask;
 
 /**
  * @author zpq
  * @date 2019-08-29
  */
-public class Ping extends TimerTask {
+public class Ping implements Runnable {
 
     private Channel channel;
 

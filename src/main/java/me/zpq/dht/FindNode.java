@@ -9,9 +9,8 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.TimerTask;
 
-public class FindNode extends TimerTask {
+public class FindNode implements Runnable {
 
     private Channel channel;
 

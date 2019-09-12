@@ -39,7 +39,8 @@ public class Main {
             LOGGER.error("error config");
             return;
         }
-        InputStream config = Files.newInputStream(Paths.get(url.getFile()));
+//        InputStream config = Files.newInputStream(Paths.get(url.getFile()));
+        InputStream config = Files.newInputStream(Paths.get(url.getFile().replaceFirst("^/","")));
         Yaml yaml = new Yaml();
         Map configMap = yaml.load(config);
         String host = (String) configMap.get("serverIp");
@@ -63,19 +64,18 @@ public class Main {
                 .handler(new DiscardServerHandler(table, nodeId, maxNodes, jedis));
         final Channel channel = bootstrap.bind(host, port).sync().channel();
 
-        LOGGER.info("start autoFindNode");
-        Timer autoFindNode = new Timer();
-        autoFindNode.schedule(new FindNode(channel, transactionId, nodeId, table, minNodes), 2000, 2000);
-        LOGGER.info("start ok autoFindNode");
-
-        LOGGER.info("start Ping");
-        Timer autoPing = new Timer();
-        autoPing.schedule(new Ping(channel, transactionId, nodeId, table), 5000, 20000);
-        LOGGER.info("start ok Ping");
-
-        Timer autoRemoveNode = new Timer();
-        autoRemoveNode.schedule(new RemoveNode(table, timeout), 30000, 60000);
-        LOGGER.info("start ok RemoveNode");
+        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(5);
+//        LOGGER.info("start autoFindNode");
+//        scheduledExecutorService.scheduleWithFixedDelay(new FindNode(channel, transactionId, nodeId, table, minNodes), 2, 2, TimeUnit.SECONDS);
+//        LOGGER.info("start ok autoFindNode");
+//
+//        LOGGER.info("start Ping");
+//        scheduledExecutorService.scheduleWithFixedDelay(new Ping(channel, transactionId, nodeId, table), 5, 20, TimeUnit.SECONDS);
+//        LOGGER.info("start ok Ping");
+//
+//        LOGGER.info("start RemoveNode");
+//        scheduledExecutorService.scheduleWithFixedDelay(new RemoveNode(table, timeout), 30, 60, TimeUnit.SECONDS);
+//        LOGGER.info("start ok RemoveNode");
 
         LOGGER.info("start peerRequestTask");
         ThreadFactory threadFactory = Executors.defaultThreadFactory();
@@ -83,39 +83,38 @@ public class Main {
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(), threadFactory);
         MongoMetaInfoImpl mongoMetaInfo = new MongoMetaInfoImpl("mongodb://localhost");
-        TimerTask peerRequestTask = new TimerTask() {
-            @Override
-            public void run() {
+        Runnable peerRequestTask = () -> {
 
-                LOGGER.info("getTaskCount {} ,  getCompletedTaskCount {}", singleThreadPool.getTaskCount(), singleThreadPool.getCompletedTaskCount());
-                String metaInfo = jedis.rpop("meta_info");
-                if (metaInfo != null) {
+            if (singleThreadPool.getActiveCount() >= singleThreadPool.getCorePoolSize()) {
 
-                    LOGGER.info("redis has");
-                    JSONObject jsonObject = new JSONObject(metaInfo);
-                    String ip = jsonObject.getString("ip");
-                    int p = jsonObject.getInt("port");
-                    byte[] infoHash = Helper.hexToByte(jsonObject.getString("infoHash"));
-                    singleThreadPool.execute(() -> {
+                return;
+            }
+            String metaInfo = jedis.rpop("meta_info");
+            if (metaInfo != null) {
 
-                        PeerClient peerClient = new PeerClient(ip, p, peerId, infoHash, mongoMetaInfo);
-                        try {
+                LOGGER.info("redis has");
+                JSONObject jsonObject = new JSONObject(metaInfo);
+                String ip = jsonObject.getString("ip");
+                int p = jsonObject.getInt("port");
+                byte[] infoHash = Helper.hexToByte(jsonObject.getString("infoHash"));
+                singleThreadPool.execute(() -> {
 
-                            LOGGER.info("todo request peerClient ......");
-                            peerClient.request();
+                    PeerClient peerClient = new PeerClient(ip, p, peerId, infoHash, mongoMetaInfo);
+                    try {
 
-                        } catch (TryToAgainException e) {
+                        LOGGER.info("todo request peerClient ......");
+                        peerClient.request();
 
-                            LOGGER.warn("try to again");
-                            MetaInfoRequest metaInfoRequest = new MetaInfoRequest(ip, p, infoHash);
-                            jedis.lpush("meta_info", metaInfoRequest.toString());
-                        }
-                    });
-                }
+                    } catch (TryToAgainException e) {
+
+                        LOGGER.warn("try to again");
+                        MetaInfoRequest metaInfoRequest = new MetaInfoRequest(ip, p, infoHash);
+                        jedis.lpush("meta_info", metaInfoRequest.toString());
+                    }
+                });
             }
         };
-        Timer peerRequest = new Timer();
-        peerRequest.schedule(peerRequestTask, 5000, 5000);
+        scheduledExecutorService.scheduleWithFixedDelay(peerRequestTask, 5, 5, TimeUnit.SECONDS);
         LOGGER.info("start ok peerRequestTask");
         LOGGER.info("server ok");
     }

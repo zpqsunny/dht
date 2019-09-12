@@ -65,48 +65,59 @@ public class Main {
         Timer autoFindNode = new Timer();
         autoFindNode.schedule(new FindNode(channel, transactionId, nodeId, table, minNodes), 2000, 2000);
         LOGGER.info("start ok autoFindNode");
+
         LOGGER.info("start Ping");
         Timer autoPing = new Timer();
         autoPing.schedule(new Ping(channel, transactionId, nodeId, table), 5000, 20000);
         LOGGER.info("start ok Ping");
+
         Timer autoRemoveNode = new Timer();
         autoRemoveNode.schedule(new RemoveNode(table, timeout), 30000, 60000);
         LOGGER.info("start ok RemoveNode");
-        LOGGER.info("server ok");
+
+        LOGGER.info("start peerRequestTask");
         ThreadFactory threadFactory = Executors.defaultThreadFactory();
-        ExecutorService singleThreadPool = new ThreadPoolExecutor(10, 10,
+        ThreadPoolExecutor singleThreadPool = new ThreadPoolExecutor(10, 10,
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(), threadFactory);
         MongoMetaInfoImpl mongoMetaInfo = new MongoMetaInfoImpl("mongodb://localhost");
-        while (true) {
+        TimerTask peerRequestTask = new TimerTask() {
+            @Override
+            public void run() {
 
-            String metaInfo = jedis.rpop("meta_info");
+                if (singleThreadPool.getActiveCount() >= singleThreadPool.getMaximumPoolSize()) {
 
-            if (metaInfo != null) {
+                    return;
+                }
+                String metaInfo = jedis.rpop("meta_info");
+                if (metaInfo != null) {
 
-                LOGGER.info("redis has");
-                JSONObject jsonObject = new JSONObject(metaInfo);
-                String ip = jsonObject.getString("ip");
-                int p = jsonObject.getInt("port");
-                byte[] infoHash = Helper.hexToByte(jsonObject.getString("infoHash"));
-                singleThreadPool.execute(() -> {
+                    LOGGER.info("redis has");
+                    JSONObject jsonObject = new JSONObject(metaInfo);
+                    String ip = jsonObject.getString("ip");
+                    int p = jsonObject.getInt("port");
+                    byte[] infoHash = Helper.hexToByte(jsonObject.getString("infoHash"));
+                    singleThreadPool.execute(() -> {
 
-                    PeerClient peerClient = new PeerClient(ip, p, peerId, infoHash, mongoMetaInfo);
-                    try {
+                        PeerClient peerClient = new PeerClient(ip, p, peerId, infoHash, mongoMetaInfo);
+                        try {
 
-                        LOGGER.info("todo request peerClient ......");
-                        peerClient.request();
+                            LOGGER.info("todo request peerClient ......");
+                            peerClient.request();
 
-                    } catch (TryToAgainException e) {
+                        } catch (TryToAgainException e) {
 
-                        LOGGER.warn("try to again");
-                        MetaInfoRequest metaInfoRequest = new MetaInfoRequest(ip, p, infoHash);
-                        jedis.lpush("meta_info", metaInfoRequest.toString());
-
-                    }
-                });
+                            LOGGER.warn("try to again");
+                            MetaInfoRequest metaInfoRequest = new MetaInfoRequest(ip, p, infoHash);
+                            jedis.lpush("meta_info", metaInfoRequest.toString());
+                        }
+                    });
+                }
             }
-            Thread.sleep(5000);
-        }
+        };
+        Timer peerRequest = new Timer();
+        peerRequest.schedule(peerRequestTask,1000,1000);
+        LOGGER.info("start ok peerRequestTask");
+        LOGGER.info("server ok");
     }
 }

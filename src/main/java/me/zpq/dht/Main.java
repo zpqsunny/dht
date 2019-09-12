@@ -87,10 +87,7 @@ public class Main {
             @Override
             public void run() {
 
-                if (singleThreadPool.getActiveCount() >= singleThreadPool.getMaximumPoolSize()) {
-
-                    return;
-                }
+                LOGGER.info("getTaskCount {} ,  getCompletedTaskCount {}", singleThreadPool.getTaskCount(), singleThreadPool.getCompletedTaskCount());
                 String metaInfo = jedis.rpop("meta_info");
                 if (metaInfo != null) {
 
@@ -118,7 +115,7 @@ public class Main {
             }
         };
         Timer peerRequest = new Timer();
-        peerRequest.schedule(peerRequestTask,1000,1000);
+        peerRequest.schedule(peerRequestTask, 5000, 5000);
         LOGGER.info("start ok peerRequestTask");
         LOGGER.info("server ok");
     }

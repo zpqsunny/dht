@@ -33,7 +33,13 @@ public class MongoMetaInfoImpl implements MetaInfo {
             BEncodedValue decode = BDecoder.decode(new ByteArrayInputStream(info));
             Document metaInfo = new Document();
             metaInfo.put("sha1", new BsonBinary(sha1));
-            metaInfo.put("name", decode.getMap().get("name").getString());
+            String name = decode.getMap().get("name").getString();
+            if (decode.getMap().get("name.utf-8") != null) {
+
+                System.out.println("记录下存在 utf-8 的扩展 name");
+                name = decode.getMap().get("name.utf-8").getString();
+            }
+            metaInfo.put("name", name);
             metaInfo.put("piece length", decode.getMap().get("piece length").getInt());
             metaInfo.put("created datetime", new BsonDateTime(System.currentTimeMillis()));
             if (decode.getMap().get("length") != null) {
@@ -51,6 +57,11 @@ public class MongoMetaInfoImpl implements MetaInfo {
                     f.put("length", new BsonInt64(file.getMap().get("length").getLong()));
                     BsonArray path = new BsonArray();
                     List<BEncodedValue> paths = file.getMap().get("path").getList();
+                    if (file.getMap().get("path.utf-8") != null) {
+
+                        System.out.println("记录下存在 utf-8 的扩展 path");
+                        paths = file.getMap().get("path.utf-8").getList();
+                    }
                     for (BEncodedValue p : paths) {
 
                         path.add(new BsonString(p.getString()));

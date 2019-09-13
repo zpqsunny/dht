@@ -98,34 +98,41 @@ public class Main {
 
                 return;
             }
-            Long length = jedis.llen("meta_info");
-            LOGGER.info("redis length {}", length);
-            String metaInfo = jedis.rpop("meta_info");
-            if (metaInfo != null) {
 
-                LOGGER.info("redis has");
-                JSONObject jsonObject = new JSONObject(metaInfo);
-                String ip = jsonObject.getString("ip");
-                int p = jsonObject.getInt("port");
-                byte[] infoHash = Helper.hexToByte(jsonObject.getString("infoHash"));
-                singleThreadPool.execute(() -> {
+            try {
 
-                    PeerClient peerClient = new PeerClient(ip, p, peerId, infoHash, mongoMetaInfo);
-                    try {
+                Long length = jedis.llen("meta_info");
+                LOGGER.info("redis length {}", length);
+                String metaInfo = jedis.rpop("meta_info");
+                if (metaInfo != null) {
 
-                        LOGGER.info("todo request peerClient ......");
-                        peerClient.request();
+                    LOGGER.info("redis has");
+                    JSONObject jsonObject = new JSONObject(metaInfo);
+                    String ip = jsonObject.getString("ip");
+                    int p = jsonObject.getInt("port");
+                    byte[] infoHash = Helper.hexToByte(jsonObject.getString("infoHash"));
+                    singleThreadPool.execute(() -> {
 
-                    } catch (TryAgainException e) {
+                        PeerClient peerClient = new PeerClient(ip, p, peerId, infoHash, mongoMetaInfo);
+                        try {
 
-                        LOGGER.warn("try to again");
-                        MetaInfoRequest metaInfoRequest = new MetaInfoRequest(ip, p, infoHash);
-                        jedis.lpush("meta_info", metaInfoRequest.toString());
-                    }
-                });
+                            LOGGER.info("todo request peerClient ......");
+                            peerClient.request();
+
+                        } catch (TryAgainException e) {
+
+                            LOGGER.warn("try to again");
+                            MetaInfoRequest metaInfoRequest = new MetaInfoRequest(ip, p, infoHash);
+                            jedis.lpush("meta_info", metaInfoRequest.toString());
+                        }
+                    });
+                }
+            } catch (Throwable throwable) {
+
+                LOGGER.error("peerRequestTask  may be redis " + throwable.getMessage());
             }
         };
-        scheduledExecutorService.scheduleWithFixedDelay(peerRequestTask, 5, 5, TimeUnit.SECONDS);
+        scheduledExecutorService.scheduleWithFixedDelay(peerRequestTask, 2, 2, TimeUnit.SECONDS);
         LOGGER.info("start ok peerRequestTask");
         LOGGER.info("server ok");
     }

@@ -15,7 +15,7 @@ import me.zpq.dht.model.NodeTable;
 import me.zpq.dht.util.Helper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -41,14 +41,14 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
     private Integer maxNodes;
 
-    private Jedis jedis;
+    private JedisPool jedisPool;
 
-    public DiscardServerHandler(Map<String, NodeTable> nodeTable, byte[] nodeId, Integer maxNodes, Jedis jedis) {
+    public DiscardServerHandler(Map<String, NodeTable> nodeTable, byte[] nodeId, Integer maxNodes, JedisPool jedisPool) {
 
         this.nodeId = nodeId;
         this.nodeTable = nodeTable;
         this.maxNodes = maxNodes;
-        this.jedis = jedis;
+        this.jedisPool = jedisPool;
     }
 
     @Override
@@ -178,6 +178,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
         int port = datagramPacket.sender().getPort();
 
         MetaInfoRequest metaInfoRequest;
+
         if (a.get("implied_port") != null && a.get("implied_port").getInt() != 0) {
 
             LOGGER.info("implied_port: {} , info_hash: {} , host: {} , p: {} ,  port: {}",
@@ -193,7 +194,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
             metaInfoRequest = new MetaInfoRequest(address, a.get("port").getInt(), a.get("info_hash").getBytes());
         }
 
-        jedis.lpush("meta_info", metaInfoRequest.toString());
+        jedisPool.getResource().lpush("meta_info", metaInfoRequest.toString());
 
         channelHandlerContext.writeAndFlush(new DatagramPacket(
                 Unpooled.copiedBuffer(

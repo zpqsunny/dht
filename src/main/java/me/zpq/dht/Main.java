@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,26 +44,27 @@ public class Main {
 
         ((LoggerContext) LoggerFactory.getILoggerFactory()).getLogger("org.mongodb.driver").setLevel(Level.ERROR);
         ClassLoader classLoader = Main.class.getClassLoader();
-        URL url = classLoader.getResource("config.yaml");
+        URL url = classLoader.getResource("config.properties");
         if (url == null) {
 
             LOGGER.error("error config");
             return;
         }
-        InputStream config = Files.newInputStream(Paths.get(url.getFile()));
-        Yaml yaml = new Yaml();
-        Map configMap = yaml.load(config);
-        String host = (String) configMap.get("serverIp");
-        Integer port = (Integer) configMap.get("serverPort");
-        String peerId = (String) configMap.get("peerId");
-        byte[] transactionId = ((String) configMap.get("transactionID")).getBytes();
-        Integer minNodes = (Integer) configMap.get("minNodes");
-        Integer maxNodes = (Integer) configMap.get("maxNodes");
-        Integer timeout = (Integer) configMap.get("timeout");
-        Integer corePoolSize = (Integer) configMap.get("corePoolSize");
-        Integer maximumPoolSize = (Integer) configMap.get("maximumPoolSize");
-        Jedis jedis = new Jedis("localhost", 6379);
-
+        InputStream inputStream = Files.newInputStream(Paths.get(url.getFile()));
+        Properties properties = new Properties();
+        properties.load(inputStream);
+        String host = properties.getProperty("serverIp");
+        Integer port = Integer.valueOf(properties.getProperty("serverPort"));
+        String peerId = properties.getProperty("peerId");
+        byte[] transactionId = properties.getProperty("transactionID").getBytes();
+        Integer minNodes = Integer.valueOf(properties.getProperty("minNodes"));
+        Integer maxNodes = Integer.valueOf(properties.getProperty("maxNodes"));
+        Integer timeout = Integer.valueOf(properties.getProperty("timeout"));
+        Integer corePoolSize = Integer.valueOf(properties.getProperty("corePoolSize"));
+        Integer maximumPoolSize = Integer.valueOf(properties.getProperty("maximumPoolSize"));
+        String redisHost = properties.getProperty("redis.host");
+        Integer redisPort = Integer.valueOf(properties.getProperty("redis.port"));
+        JedisPool jedisPool = new JedisPool(redisHost, redisPort);
         Bootstrap bootstrap = new Bootstrap();
         byte[] nodeId = Helper.nodeId();
         Map<String, NodeTable> table = new Hashtable<>();
@@ -70,7 +72,7 @@ public class Main {
         bootstrap.group(new NioEventLoopGroup())
                 .channel(NioDatagramChannel.class)
                 .option(ChannelOption.SO_BROADCAST, true)
-                .handler(new DiscardServerHandler(table, nodeId, maxNodes, jedis));
+                .handler(new DiscardServerHandler(table, nodeId, maxNodes, jedisPool));
         final Channel channel = bootstrap.bind(host, port).sync().channel();
 
         ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(5);
@@ -101,9 +103,9 @@ public class Main {
 
             try {
 
-                Long length = jedis.llen("meta_info");
+                Long length = jedisPool.getResource().llen("meta_info");
                 LOGGER.info("redis length {}", length);
-                String metaInfo = jedis.rpop("meta_info");
+                String metaInfo = jedisPool.getResource().rpop("meta_info");
                 if (metaInfo != null) {
 
                     LOGGER.info("redis has");
@@ -123,13 +125,13 @@ public class Main {
 
                             LOGGER.warn("try to again");
                             MetaInfoRequest metaInfoRequest = new MetaInfoRequest(ip, p, infoHash);
-                            jedis.lpush("meta_info", metaInfoRequest.toString());
+                            jedisPool.getResource().lpush("meta_info", metaInfoRequest.toString());
                         }
                     });
                 }
             } catch (Throwable throwable) {
 
-                LOGGER.error("peerRequestTask  may be redis " + throwable.getMessage());
+                LOGGER.error("peerRequestTask throwable:  " + throwable.getMessage());
             }
         };
         scheduledExecutorService.scheduleWithFixedDelay(peerRequestTask, 2, 2, TimeUnit.SECONDS);

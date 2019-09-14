@@ -36,7 +36,7 @@ public class MongoMetaInfoImpl implements MetaInfo {
             String name = decode.getMap().get("name").getString();
             if (decode.getMap().get("name.utf-8") != null) {
 
-                System.out.println("记录下存在 utf-8 的扩展 name");
+                // 存在uft-8扩展
                 name = decode.getMap().get("name.utf-8").getString();
             }
             metaInfo.put("name", name);
@@ -59,7 +59,7 @@ public class MongoMetaInfoImpl implements MetaInfo {
                     List<BEncodedValue> paths = file.getMap().get("path").getList();
                     if (file.getMap().get("path.utf-8") != null) {
 
-                        System.out.println("记录下存在 utf-8 的扩展 path");
+                        // 存在uft-8扩展
                         paths = file.getMap().get("path.utf-8").getList();
                     }
                     for (BEncodedValue p : paths) {

@@ -44,11 +44,11 @@ public class MongoMetaInfoImpl implements MetaInfo {
             metaInfo.put("created datetime", new BsonDateTime(System.currentTimeMillis()));
             if (decode.getMap().get("length") != null) {
 
-                //single-file mode
+                // single-file mode
                 metaInfo.put("length", new BsonInt64(decode.getMap().get("length").getLong()));
             } else {
 
-                //multi-file mode
+                // multi-file mode
                 BsonArray bsonArray = new BsonArray();
                 List<BEncodedValue> files = decode.getMap().get("files").getList();
                 for (BEncodedValue file : files) {

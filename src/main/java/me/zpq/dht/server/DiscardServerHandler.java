@@ -15,6 +15,7 @@ import me.zpq.dht.model.NodeTable;
 import me.zpq.dht.util.Helper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 import java.io.ByteArrayInputStream;
@@ -41,14 +42,14 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
     private Integer maxNodes;
 
-    private JedisPool jedisPool;
+    private Jedis jedis;
 
-    public DiscardServerHandler(Map<String, NodeTable> nodeTable, byte[] nodeId, Integer maxNodes, JedisPool jedisPool) {
+    public DiscardServerHandler(Map<String, NodeTable> nodeTable, byte[] nodeId, Integer maxNodes, Jedis jedis) {
 
         this.nodeId = nodeId;
         this.nodeTable = nodeTable;
         this.maxNodes = maxNodes;
-        this.jedisPool = jedisPool;
+        this.jedis = jedis;
     }
 
     @Override
@@ -101,10 +102,6 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
                     if (r.get("nodes") != null) {
 
                         this.responseHasNodes(r);
-                    }
-                    if (r.get("values") != null) {
-
-                        this.responseHasValues(r);
                     }
 
                     break;
@@ -194,7 +191,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
             metaInfoRequest = new MetaInfoRequest(address, a.get("port").getInt(), a.get("info_hash").getBytes());
         }
 
-        jedisPool.getResource().lpush("meta_info", metaInfoRequest.toString());
+        jedis.lpush("meta_info", metaInfoRequest.toString());
 
         channelHandlerContext.writeAndFlush(new DatagramPacket(
                 Unpooled.copiedBuffer(
@@ -240,12 +237,6 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
                     nodeTable.getPort(), System.currentTimeMillis()));
         });
 
-    }
-
-    private void responseHasValues(Map<String, BEncodedValue> r) throws InvalidBEncodingException {
-
-        LOGGER.info("has values");
-        LOGGER.info("{}", r.get("values").getString());
     }
 
     private void responseError(BEncodedValue data) throws InvalidBEncodingException {

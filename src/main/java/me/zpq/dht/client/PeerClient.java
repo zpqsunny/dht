@@ -252,7 +252,6 @@ public class PeerClient {
 
                 int length = inputStream.read();
                 return this.resolveLengthMessage(inputStream, length);
-
             }
         }
         throw new TimeoutException("resolveMessage TimeoutException 1");

@@ -17,10 +17,10 @@ import me.zpq.dht.scheduled.Ping;
 import me.zpq.dht.scheduled.RemoveNode;
 import me.zpq.dht.server.DiscardServerHandler;
 import me.zpq.dht.util.Helper;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.yaml.snakeyaml.Yaml;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
@@ -64,7 +64,11 @@ public class Main {
         Integer maximumPoolSize = Integer.valueOf(properties.getProperty("maximumPoolSize"));
         String redisHost = properties.getProperty("redis.host");
         Integer redisPort = Integer.valueOf(properties.getProperty("redis.port"));
-        JedisPool jedisPool = new JedisPool(redisHost, redisPort);
+        GenericObjectPoolConfig genericObjectPoolConfig = new GenericObjectPoolConfig();
+        genericObjectPoolConfig.setMaxTotal(40);
+        genericObjectPoolConfig.setMaxIdle(25);
+        genericObjectPoolConfig.setMinIdle(20);
+        JedisPool jedisPool = new JedisPool(genericObjectPoolConfig, redisHost, redisPort);
         Bootstrap bootstrap = new Bootstrap();
         byte[] nodeId = Helper.nodeId();
         Map<String, NodeTable> table = new Hashtable<>();
@@ -72,7 +76,7 @@ public class Main {
         bootstrap.group(new NioEventLoopGroup())
                 .channel(NioDatagramChannel.class)
                 .option(ChannelOption.SO_BROADCAST, true)
-                .handler(new DiscardServerHandler(table, nodeId, maxNodes, jedisPool));
+                .handler(new DiscardServerHandler(table, nodeId, maxNodes, jedisPool.getResource()));
         final Channel channel = bootstrap.bind(host, port).sync().channel();
 
         ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(5);
@@ -101,11 +105,11 @@ public class Main {
                 return;
             }
 
-            try {
+            try (Jedis jedis = jedisPool.getResource()) {
 
-                Long length = jedisPool.getResource().llen("meta_info");
+                Long length = jedis.llen("meta_info");
                 LOGGER.info("redis length {}", length);
-                String metaInfo = jedisPool.getResource().rpop("meta_info");
+                String metaInfo = jedis.rpop("meta_info");
                 if (metaInfo != null) {
 
                     LOGGER.info("redis has");
@@ -125,13 +129,13 @@ public class Main {
 
                             LOGGER.warn("try to again");
                             MetaInfoRequest metaInfoRequest = new MetaInfoRequest(ip, p, infoHash);
-                            jedisPool.getResource().lpush("meta_info", metaInfoRequest.toString());
+                            jedis.lpush("meta_info", metaInfoRequest.toString());
                         }
                     });
                 }
-            } catch (Throwable throwable) {
+            } catch (Exception e) {
 
-                LOGGER.error("peerRequestTask throwable:  " + throwable.getMessage());
+                LOGGER.error("main 136 error: " + e.getMessage());
             }
         };
         scheduledExecutorService.scheduleWithFixedDelay(peerRequestTask, 2, 2, TimeUnit.SECONDS);

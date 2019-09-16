@@ -135,7 +135,7 @@ public class Main {
                 }
             } catch (Exception e) {
 
-                LOGGER.error("main 136 error: " + e.getMessage());
+                LOGGER.error("peerRequestTask error: " + e.getMessage());
             }
         };
         scheduledExecutorService.scheduleWithFixedDelay(peerRequestTask, 2, 2, TimeUnit.SECONDS);

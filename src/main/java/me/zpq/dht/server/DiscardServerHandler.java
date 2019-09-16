@@ -9,14 +9,12 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
 import me.zpq.dht.protocol.DhtProtocol;
-import me.zpq.dht.Main;
 import me.zpq.dht.model.MetaInfoRequest;
 import me.zpq.dht.model.NodeTable;
 import me.zpq.dht.util.Helper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -34,7 +32,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
     private DhtProtocol dhtProtocol = new DhtProtocol();
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DiscardServerHandler.class);
 
     private byte[] nodeId;
 
@@ -110,14 +108,6 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
                     this.responseError(data);
 
-                    break;
-                case "c":
-                    List<String> ips = new ArrayList<>();
-                    nodeTable.values().forEach(nodeTable -> {
-                        ips.add(nodeTable.getIp());
-                    });
-                    channelHandlerContext.writeAndFlush(new DatagramPacket(
-                            Unpooled.copiedBuffer(Arrays.toString(ips.toArray()).getBytes()), datagramPacket.sender()));
                     break;
                 default:
                     break;

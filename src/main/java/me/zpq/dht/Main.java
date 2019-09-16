@@ -112,7 +112,6 @@ public class Main {
                 String metaInfo = jedis.rpop("meta_info");
                 if (metaInfo != null) {
 
-                    LOGGER.info("redis has");
                     JSONObject jsonObject = new JSONObject(metaInfo);
                     String ip = jsonObject.getString("ip");
                     int p = jsonObject.getInt("port");
@@ -127,7 +126,7 @@ public class Main {
 
                         } catch (TryAgainException e) {
 
-                            LOGGER.warn("try to again");
+                            LOGGER.warn("try to again. error:" + e.getMessage());
                             MetaInfoRequest metaInfoRequest = new MetaInfoRequest(ip, p, infoHash);
                             jedis.lpush("meta_info", metaInfoRequest.toString());
                         }

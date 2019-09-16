@@ -8,6 +8,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import me.zpq.dht.client.PeerClient;
+import me.zpq.dht.impl.JsonMetaInfoImpl;
 import me.zpq.dht.impl.MongoMetaInfoImpl;
 import me.zpq.dht.exception.TryAgainException;
 import me.zpq.dht.model.MetaInfoRequest;
@@ -97,7 +98,7 @@ public class Main {
         ThreadPoolExecutor singleThreadPool = new ThreadPoolExecutor(corePoolSize, maximumPoolSize,
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(), threadFactory);
-        MongoMetaInfoImpl mongoMetaInfo = new MongoMetaInfoImpl("mongodb://localhost");
+        MetaInfo mongoMetaInfo = new MongoMetaInfoImpl("mongodb://localhost");
         Runnable peerRequestTask = () -> {
 
             if (singleThreadPool.getActiveCount() >= singleThreadPool.getCorePoolSize()) {

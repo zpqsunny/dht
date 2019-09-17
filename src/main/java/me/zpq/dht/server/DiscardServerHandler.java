@@ -18,7 +18,6 @@ import redis.clients.jedis.Jedis;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -80,7 +79,6 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
                             this.queryGetPeers(channelHandlerContext, datagramPacket, transactionId, a);
                             break;
                         case "announce_peer":
-                            LOGGER.info(" q : announce_peer");
                             this.queryAnnouncePeer(channelHandlerContext, datagramPacket, transactionId, a);
                             break;
                         default:
@@ -116,9 +114,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
         } catch (Exception e) {
 
-            InetSocketAddress sender = datagramPacket.sender();
-
-            LOGGER.error("sender ip: {} port: {} error: {}", sender.getAddress().getHostAddress(), sender.getPort(), e.getMessage());
+            // nothing to do
         }
 
     }

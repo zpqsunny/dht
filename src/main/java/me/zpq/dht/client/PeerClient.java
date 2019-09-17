@@ -16,7 +16,6 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.*;
 
 public class PeerClient {
 
@@ -116,10 +115,6 @@ public class PeerClient {
 
             throw e;
 
-        } catch (TimeoutException e) {
-
-            LOGGER.error("TimeoutException {}", e.getMessage());
-
         } catch (IOException e) {
 
             LOGGER.error("IOException {}", e.getMessage());
@@ -144,7 +139,7 @@ public class PeerClient {
         outputStream.flush();
     }
 
-    private boolean validatorHandshake(InputStream inputStream) throws IOException, TimeoutException {
+    private boolean validatorHandshake(InputStream inputStream) throws IOException {
 
         byte[] bitTorrent = this.resolveMessage(inputStream);
         if (!PROTOCOL.equals(new String(bitTorrent))) {
@@ -180,7 +175,7 @@ public class PeerClient {
         outputStream.flush();
     }
 
-    private BEncodedValue validatorExtHandShake(InputStream inputStream) throws IOException, TimeoutException {
+    private BEncodedValue validatorExtHandShake(InputStream inputStream) throws IOException {
 
         byte[] prefix = this.resolveLengthMessage(inputStream, 4);
         int length = byte2int(prefix);
@@ -242,7 +237,7 @@ public class PeerClient {
         return value;
     }
 
-    private byte[] resolveMessage(InputStream inputStream) throws IOException, TimeoutException {
+    private byte[] resolveMessage(InputStream inputStream) throws IOException {
 
         long start = System.currentTimeMillis();
         long end = start + 60000;
@@ -254,10 +249,10 @@ public class PeerClient {
                 return this.resolveLengthMessage(inputStream, length);
             }
         }
-        throw new TimeoutException("resolveMessage TimeoutException");
+        throw new IOException("resolveLengthMessage read time out");
     }
 
-    private byte[] resolveLengthMessage(InputStream inputStream, int length) throws IOException, TimeoutException {
+    private byte[] resolveLengthMessage(InputStream inputStream, int length) throws IOException {
 
         byte[] result = new byte[length];
         int index = 0;
@@ -277,7 +272,7 @@ public class PeerClient {
             }
             return result;
         }
-        throw new TimeoutException("resolveLengthMessage TimeoutException");
+        throw new IOException("resolveLengthMessage read time out");
     }
 
     private byte[] packMessage(int messageId, int messageType, byte[] data) {

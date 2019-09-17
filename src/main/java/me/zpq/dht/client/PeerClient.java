@@ -254,7 +254,7 @@ public class PeerClient {
                 return this.resolveLengthMessage(inputStream, length);
             }
         }
-        throw new TimeoutException("resolveMessage TimeoutException 1");
+        throw new TimeoutException("resolveMessage TimeoutException");
     }
 
     private byte[] resolveLengthMessage(InputStream inputStream, int length) throws IOException, TimeoutException {
@@ -277,7 +277,7 @@ public class PeerClient {
             }
             return result;
         }
-        throw new TimeoutException("resolveLengthMessage TimeoutException 2");
+        throw new TimeoutException("resolveLengthMessage TimeoutException");
     }
 
     private byte[] packMessage(int messageId, int messageType, byte[] data) {

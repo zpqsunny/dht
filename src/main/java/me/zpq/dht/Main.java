@@ -108,8 +108,6 @@ public class Main {
 
             try (Jedis jedis = jedisPool.getResource()) {
 
-                Long length = jedis.llen("meta_info");
-                LOGGER.info("redis length {}", length);
                 String metaInfo = jedis.rpop("meta_info");
                 if (metaInfo != null) {
 

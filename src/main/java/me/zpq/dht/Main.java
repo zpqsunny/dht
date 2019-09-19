@@ -14,6 +14,7 @@ import me.zpq.dht.exception.TryAgainException;
 import me.zpq.dht.model.MetaInfoRequest;
 import me.zpq.dht.model.NodeTable;
 import me.zpq.dht.scheduled.FindNode;
+import me.zpq.dht.scheduled.Peer;
 import me.zpq.dht.scheduled.Ping;
 import me.zpq.dht.scheduled.RemoveNode;
 import me.zpq.dht.server.DiscardServerHandler;
@@ -95,48 +96,11 @@ public class Main {
 
         LOGGER.info("start peerRequestTask");
         ThreadFactory threadFactory = Executors.defaultThreadFactory();
-        ThreadPoolExecutor singleThreadPool = new ThreadPoolExecutor(corePoolSize, maximumPoolSize,
+        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(corePoolSize, maximumPoolSize,
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(), threadFactory);
         MetaInfo mongoMetaInfo = new MongoMetaInfoImpl("mongodb://localhost");
-        Runnable peerRequestTask = () -> {
-
-            if (singleThreadPool.getActiveCount() >= singleThreadPool.getCorePoolSize()) {
-
-                return;
-            }
-
-            try (Jedis jedis = jedisPool.getResource()) {
-
-                String metaInfo = jedis.rpop("meta_info");
-                if (metaInfo != null) {
-
-                    JSONObject jsonObject = new JSONObject(metaInfo);
-                    String ip = jsonObject.getString("ip");
-                    int p = jsonObject.getInt("port");
-                    byte[] infoHash = Helper.hexToByte(jsonObject.getString("infoHash"));
-                    singleThreadPool.execute(() -> {
-
-                        PeerClient peerClient = new PeerClient(ip, p, peerId, infoHash, mongoMetaInfo);
-                        try {
-
-                            LOGGER.info("todo request peerClient ......");
-                            peerClient.request();
-
-                        } catch (TryAgainException e) {
-
-                            LOGGER.warn("try to again. error:" + e.getMessage());
-                            MetaInfoRequest metaInfoRequest = new MetaInfoRequest(ip, p, infoHash);
-                            jedis.lpush("meta_info", metaInfoRequest.toString());
-                        }
-                    });
-                }
-            } catch (Exception e) {
-
-                LOGGER.error("peerRequestTask error: " + e.getMessage());
-            }
-        };
-        scheduledExecutorService.scheduleWithFixedDelay(peerRequestTask, 2, 2, TimeUnit.SECONDS);
+        scheduledExecutorService.scheduleWithFixedDelay(new Peer(threadPoolExecutor, mongoMetaInfo, jedisPool, peerId), 2, 2, TimeUnit.SECONDS);
         LOGGER.info("start ok peerRequestTask");
         LOGGER.info("server ok");
     }

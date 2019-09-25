@@ -66,6 +66,11 @@ public class Peer implements Runnable {
                     } catch (TryAgainException e) {
 
                         LOGGER.warn("try to again. error:" + e.getMessage());
+                        Long times = jedis.incr(Helper.bytesToHex(infoHash));
+                        if (times > 3) {
+
+                            return;
+                        }
                         MetaInfoRequest metaInfoRequest = new MetaInfoRequest(ip, p, infoHash);
                         jedis.lpush("meta_info", metaInfoRequest.toString());
                     }

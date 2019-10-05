@@ -3,7 +3,7 @@ package me.zpq.dht.scheduled;
 import me.zpq.dht.MetaInfo;
 import me.zpq.dht.client.PeerClient;
 import me.zpq.dht.exception.TryAgainException;
-import me.zpq.dht.util.Helper;
+import me.zpq.dht.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
@@ -54,7 +54,7 @@ public class Peer implements Runnable {
             }
             String[] info = metaInfo.split(":", 3);
             String ip = info[0];
-            byte[] infoHash = Helper.hexToByte(info[1]);
+            byte[] infoHash = Utils.hexToByte(info[1]);
             int port = Integer.valueOf(info[2]);
             LOGGER.info("ip {} port {} infoHash {}", ip, port, info[1]);
             threadPoolExecutor.execute(() -> {
@@ -69,7 +69,7 @@ public class Peer implements Runnable {
 
                     LOGGER.warn("try to again. error:" + e.getMessage());
 
-                    jedis.sadd("meta_info", String.join(":", Arrays.asList(ip, Helper.bytesToHex(infoHash), String.valueOf(port))));
+                    jedis.sadd("meta_info", String.join(":", Arrays.asList(ip, Utils.bytesToHex(infoHash), String.valueOf(port))));
                 }
             });
         } catch (Exception e) {

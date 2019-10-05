@@ -10,7 +10,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
 import me.zpq.dht.protocol.DhtProtocol;
 import me.zpq.dht.model.NodeTable;
-import me.zpq.dht.util.Helper;
+import me.zpq.dht.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
@@ -137,7 +137,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
         List<NodeTable> table = new ArrayList<>(nodeTable.values());
         channelHandlerContext.writeAndFlush(new DatagramPacket(
                 Unpooled.copiedBuffer(
-                        dhtProtocol.findNodeResponse(transactionId, nodeId, Helper.nodesEncode(table))),
+                        dhtProtocol.findNodeResponse(transactionId, nodeId, Utils.nodesEncode(table))),
                 datagramPacket.sender()));
     }
 
@@ -160,7 +160,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
         List<String> metaInfo = new ArrayList<>();
         // ip
         metaInfo.add(address);
-        String infoHash = Helper.bytesToHex(a.get("info_hash").getBytes());
+        String infoHash = Utils.bytesToHex(a.get("info_hash").getBytes());
         // hash
         metaInfo.add(infoHash);
         // port
@@ -199,7 +199,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
             int port = datagramPacket.sender().getPort();
 
-            this.nodeTable.put(id, new NodeTable(Helper.bytesToHex(r.get("id").getBytes()), address, port, System.currentTimeMillis()));
+            this.nodeTable.put(id, new NodeTable(Utils.bytesToHex(r.get("id").getBytes()), address, port, System.currentTimeMillis()));
         }
     }
 
@@ -207,7 +207,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
         byte[] nodes = r.get("nodes").getBytes();
 
-        List<NodeTable> nodeTableList = Helper.nodesDecode(nodes);
+        List<NodeTable> nodeTableList = Utils.nodesDecode(nodes);
 
         if (nodeTable.size() >= maxNodes) {
 

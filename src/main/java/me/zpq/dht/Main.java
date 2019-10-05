@@ -14,7 +14,7 @@ import me.zpq.dht.scheduled.Peer;
 import me.zpq.dht.scheduled.Ping;
 import me.zpq.dht.scheduled.RemoveNode;
 import me.zpq.dht.server.DiscardServerHandler;
-import me.zpq.dht.util.Helper;
+import me.zpq.dht.util.Utils;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,9 +66,9 @@ public class Main {
         genericObjectPoolConfig.setMinIdle(corePoolSize);
         JedisPool jedisPool = new JedisPool(genericObjectPoolConfig, redisHost, redisPort);
         Bootstrap bootstrap = new Bootstrap();
-        byte[] nodeId = Helper.nodeId();
+        byte[] nodeId = Utils.nodeId();
         Map<String, NodeTable> table = new Hashtable<>();
-        table.put(new String(nodeId), new NodeTable(Helper.bytesToHex(nodeId), host, port, System.currentTimeMillis()));
+        table.put(new String(nodeId), new NodeTable(Utils.bytesToHex(nodeId), host, port, System.currentTimeMillis()));
         bootstrap.group(new NioEventLoopGroup())
                 .channel(NioDatagramChannel.class)
                 .option(ChannelOption.SO_BROADCAST, true)

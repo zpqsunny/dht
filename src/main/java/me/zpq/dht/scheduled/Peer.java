@@ -55,6 +55,7 @@ public class Peer implements Runnable {
                 String ip = jsonObject.getString("ip");
                 int p = jsonObject.getInt("port");
                 byte[] infoHash = Helper.hexToByte(jsonObject.getString("infoHash"));
+                LOGGER.info("ip {} port {} infoHash {}", ip, p, jsonObject.getString("infoHash"));
                 threadPoolExecutor.execute(() -> {
 
                     PeerClient peerClient = new PeerClient(ip, p, peerId, infoHash, mongoMetaInfo);

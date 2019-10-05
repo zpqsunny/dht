@@ -3,14 +3,13 @@ package me.zpq.dht.scheduled;
 import me.zpq.dht.MetaInfo;
 import me.zpq.dht.client.PeerClient;
 import me.zpq.dht.exception.TryAgainException;
-import me.zpq.dht.model.MetaInfoRequest;
 import me.zpq.dht.util.Helper;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
+import java.util.Arrays;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -46,32 +45,33 @@ public class Peer implements Runnable {
 
         try (Jedis jedis = jedisPool.getResource()) {
 
-            Long len = jedis.llen("meta_info");
+            Long len = jedis.scard("meta_info");
             LOGGER.info("redis len {}", len);
-            String metaInfo = jedis.rpop("meta_info");
-            if (metaInfo != null) {
+            String metaInfo = jedis.spop("meta_info");
+            if (metaInfo == null) {
 
-                JSONObject jsonObject = new JSONObject(metaInfo);
-                String ip = jsonObject.getString("ip");
-                int p = jsonObject.getInt("port");
-                byte[] infoHash = Helper.hexToByte(jsonObject.getString("infoHash"));
-                LOGGER.info("ip {} port {} infoHash {}", ip, p, jsonObject.getString("infoHash"));
-                threadPoolExecutor.execute(() -> {
-
-                    PeerClient peerClient = new PeerClient(ip, p, peerId, infoHash, mongoMetaInfo);
-                    try {
-
-                        LOGGER.info("todo request peerClient ......");
-                        peerClient.request();
-
-                    } catch (TryAgainException e) {
-
-                        LOGGER.warn("try to again. error:" + e.getMessage());
-                        MetaInfoRequest metaInfoRequest = new MetaInfoRequest(ip, p, infoHash);
-                        jedis.lpush("meta_info", metaInfoRequest.toString());
-                    }
-                });
+                return;
             }
+            String[] info = metaInfo.split(":", 3);
+            String ip = info[0];
+            byte[] infoHash = Helper.hexToByte(info[1]);
+            int port = Integer.valueOf(info[2]);
+            LOGGER.info("ip {} port {} infoHash {}", ip, port, info[1]);
+            threadPoolExecutor.execute(() -> {
+
+                PeerClient peerClient = new PeerClient(ip, port, peerId, infoHash, mongoMetaInfo);
+                try {
+
+                    LOGGER.info("todo request peerClient ......");
+                    peerClient.request();
+
+                } catch (TryAgainException e) {
+
+                    LOGGER.warn("try to again. error:" + e.getMessage());
+
+                    jedis.sadd("meta_info", String.join(":", Arrays.asList(ip, Helper.bytesToHex(infoHash), String.valueOf(port))));
+                }
+            });
         } catch (Exception e) {
 
             LOGGER.error("peer error: " + e.getMessage());

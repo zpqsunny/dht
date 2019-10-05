@@ -9,7 +9,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
 import me.zpq.dht.protocol.DhtProtocol;
-import me.zpq.dht.model.MetaInfoRequest;
 import me.zpq.dht.model.NodeTable;
 import me.zpq.dht.util.Helper;
 import org.slf4j.Logger;
@@ -157,21 +156,24 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
     private void queryAnnouncePeer(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, byte[] transactionId, Map<String, BEncodedValue> a) throws IOException {
 
         String address = datagramPacket.sender().getAddress().getHostAddress();
-
-        int port = datagramPacket.sender().getPort();
-
-        MetaInfoRequest metaInfoRequest;
-
+        // ip:hash:port
+        List<String> metaInfo = new ArrayList<>();
+        // ip
+        metaInfo.add(address);
+        String infoHash = Helper.bytesToHex(a.get("info_hash").getBytes());
+        // hash
+        metaInfo.add(infoHash);
+        // port
         if (a.get("implied_port") != null && a.get("implied_port").getInt() != 0) {
 
-            metaInfoRequest = new MetaInfoRequest(address, port, a.get("info_hash").getBytes());
+            metaInfo.add(String.valueOf(datagramPacket.sender().getPort()));
 
         } else {
 
-            metaInfoRequest = new MetaInfoRequest(address, a.get("port").getInt(), a.get("info_hash").getBytes());
+            metaInfo.add(String.valueOf(a.get("port").getInt()));
         }
 
-        jedis.lpush("meta_info", metaInfoRequest.toString());
+        jedis.sadd("meta_info", String.join(":", metaInfo));
 
         channelHandlerContext.writeAndFlush(new DatagramPacket(
                 Unpooled.copiedBuffer(

@@ -67,9 +67,9 @@ public class Main {
         String redisHost = properties.getProperty("redis.host");
         Integer redisPort = Integer.valueOf(properties.getProperty("redis.port"));
         GenericObjectPoolConfig genericObjectPoolConfig = new GenericObjectPoolConfig();
-        genericObjectPoolConfig.setMaxTotal(40);
-        genericObjectPoolConfig.setMaxIdle(25);
-        genericObjectPoolConfig.setMinIdle(20);
+        genericObjectPoolConfig.setMaxTotal(maximumPoolSize * 2);
+        genericObjectPoolConfig.setMaxIdle(maximumPoolSize);
+        genericObjectPoolConfig.setMinIdle(corePoolSize);
         JedisPool jedisPool = new JedisPool(genericObjectPoolConfig, redisHost, redisPort);
         Bootstrap bootstrap = new Bootstrap();
         byte[] nodeId = Helper.nodeId();

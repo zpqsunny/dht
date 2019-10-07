@@ -69,10 +69,11 @@ public class Main {
         byte[] nodeId = Utils.nodeId();
         Map<String, NodeTable> table = new Hashtable<>();
         table.put(new String(nodeId), new NodeTable(Utils.bytesToHex(nodeId), host, port, System.currentTimeMillis()));
+        MetaInfo mongoMetaInfo = new MongoMetaInfoImpl(jedisPool, "mongodb://localhost");
         bootstrap.group(new NioEventLoopGroup())
                 .channel(NioDatagramChannel.class)
                 .option(ChannelOption.SO_BROADCAST, true)
-                .handler(new DiscardServerHandler(table, nodeId, maxNodes, jedisPool.getResource()));
+                .handler(new DiscardServerHandler(table, nodeId, maxNodes, mongoMetaInfo));
         final Channel channel = bootstrap.bind(host, port).sync().channel();
 
         ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(5);
@@ -93,7 +94,6 @@ public class Main {
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(corePoolSize, maximumPoolSize,
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(), threadFactory);
-        MetaInfo mongoMetaInfo = new MongoMetaInfoImpl("mongodb://localhost");
         scheduledExecutorService.scheduleWithFixedDelay(new Peer(threadPoolExecutor, mongoMetaInfo, jedisPool, peerId), 2, 2, TimeUnit.SECONDS);
         LOGGER.info("start ok peerRequestTask");
         LOGGER.info("server ok");

@@ -8,12 +8,12 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
+import me.zpq.dht.MetaInfo;
 import me.zpq.dht.protocol.DhtProtocol;
 import me.zpq.dht.model.NodeTable;
 import me.zpq.dht.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import redis.clients.jedis.Jedis;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -38,14 +38,14 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
     private Integer maxNodes;
 
-    private Jedis jedis;
+    private MetaInfo metaInfo;
 
-    public DiscardServerHandler(Map<String, NodeTable> nodeTable, byte[] nodeId, Integer maxNodes, Jedis jedis) {
+    public DiscardServerHandler(Map<String, NodeTable> nodeTable, byte[] nodeId, Integer maxNodes, MetaInfo metaInfo) {
 
         this.nodeId = nodeId;
         this.nodeTable = nodeTable;
         this.maxNodes = maxNodes;
-        this.jedis = jedis;
+        this.metaInfo = metaInfo;
     }
 
     @Override
@@ -155,25 +155,23 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
     private void queryAnnouncePeer(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, byte[] transactionId, Map<String, BEncodedValue> a) throws IOException {
 
-        String address = datagramPacket.sender().getAddress().getHostAddress();
-        // ip:hash:port
-        List<String> metaInfo = new ArrayList<>();
         // ip
-        metaInfo.add(address);
-        String infoHash = Utils.bytesToHex(a.get("info_hash").getBytes());
-        // hash
-        metaInfo.add(infoHash);
+        String address = datagramPacket.sender().getAddress().getHostAddress();
+        // sha1
+        byte[] infoHash = a.get("info_hash").getBytes();
         // port
+        int port;
+
         if (a.get("implied_port") != null && a.get("implied_port").getInt() != 0) {
 
-            metaInfo.add(String.valueOf(datagramPacket.sender().getPort()));
+            port = datagramPacket.sender().getPort();
 
         } else {
 
-            metaInfo.add(String.valueOf(a.get("port").getInt()));
+            port = a.get("port").getInt();
         }
 
-        jedis.sadd("meta_info", String.join(":", metaInfo));
+        metaInfo.onAnnouncePeer(address, port, infoHash);
 
         channelHandlerContext.writeAndFlush(new DatagramPacket(
                 Unpooled.copiedBuffer(

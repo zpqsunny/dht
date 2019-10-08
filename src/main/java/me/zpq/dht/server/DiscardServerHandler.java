@@ -8,13 +8,12 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
+import me.zpq.dht.MetaInfo;
 import me.zpq.dht.protocol.DhtProtocol;
-import me.zpq.dht.model.MetaInfoRequest;
 import me.zpq.dht.model.NodeTable;
-import me.zpq.dht.util.Helper;
+import me.zpq.dht.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import redis.clients.jedis.Jedis;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -39,14 +38,14 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
     private Integer maxNodes;
 
-    private Jedis jedis;
+    private MetaInfo metaInfo;
 
-    public DiscardServerHandler(Map<String, NodeTable> nodeTable, byte[] nodeId, Integer maxNodes, Jedis jedis) {
+    public DiscardServerHandler(Map<String, NodeTable> nodeTable, byte[] nodeId, Integer maxNodes, MetaInfo metaInfo) {
 
         this.nodeId = nodeId;
         this.nodeTable = nodeTable;
         this.maxNodes = maxNodes;
-        this.jedis = jedis;
+        this.metaInfo = metaInfo;
     }
 
     @Override
@@ -138,7 +137,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
         List<NodeTable> table = new ArrayList<>(nodeTable.values());
         channelHandlerContext.writeAndFlush(new DatagramPacket(
                 Unpooled.copiedBuffer(
-                        dhtProtocol.findNodeResponse(transactionId, nodeId, Helper.nodesEncode(table))),
+                        dhtProtocol.findNodeResponse(transactionId, nodeId, Utils.nodesEncode(table))),
                 datagramPacket.sender()));
     }
 
@@ -156,28 +155,23 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
     private void queryAnnouncePeer(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, byte[] transactionId, Map<String, BEncodedValue> a) throws IOException {
 
+        // ip
         String address = datagramPacket.sender().getAddress().getHostAddress();
-
-        int port = datagramPacket.sender().getPort();
-
-        MetaInfoRequest metaInfoRequest;
+        // sha1
+        byte[] infoHash = a.get("info_hash").getBytes();
+        // port
+        int port;
 
         if (a.get("implied_port") != null && a.get("implied_port").getInt() != 0) {
 
-            LOGGER.info("implied_port: {} , info_hash: {} , host: {} , p: {} ,  port: {}",
-                    a.get("implied_port").getInt(), Helper.bytesToHex(a.get("info_hash").getBytes()), address, port, a.get("port").getInt());
-
-            metaInfoRequest = new MetaInfoRequest(address, port, a.get("info_hash").getBytes());
+            port = datagramPacket.sender().getPort();
 
         } else {
 
-            LOGGER.info("implied_port: {} , info_hash: {} , host: {} , p: {} ,  port: {}",
-                    null, Helper.bytesToHex(a.get("info_hash").getBytes()), address, port, a.get("port").getInt());
-
-            metaInfoRequest = new MetaInfoRequest(address, a.get("port").getInt(), a.get("info_hash").getBytes());
+            port = a.get("port").getInt();
         }
 
-        jedis.lpush("meta_info", metaInfoRequest.toString());
+        metaInfo.onAnnouncePeer(address, port, infoHash);
 
         channelHandlerContext.writeAndFlush(new DatagramPacket(
                 Unpooled.copiedBuffer(
@@ -203,7 +197,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
             int port = datagramPacket.sender().getPort();
 
-            this.nodeTable.put(id, new NodeTable(Helper.bytesToHex(r.get("id").getBytes()), address, port, System.currentTimeMillis()));
+            this.nodeTable.put(id, new NodeTable(Utils.bytesToHex(r.get("id").getBytes()), address, port, System.currentTimeMillis()));
         }
     }
 
@@ -211,7 +205,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
         byte[] nodes = r.get("nodes").getBytes();
 
-        List<NodeTable> nodeTableList = Helper.nodesDecode(nodes);
+        List<NodeTable> nodeTableList = Utils.nodesDecode(nodes);
 
         if (nodeTable.size() >= maxNodes) {
 

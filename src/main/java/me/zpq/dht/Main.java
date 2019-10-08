@@ -7,23 +7,17 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
-import me.zpq.dht.client.PeerClient;
-import me.zpq.dht.impl.JsonMetaInfoImpl;
 import me.zpq.dht.impl.MongoMetaInfoImpl;
-import me.zpq.dht.exception.TryAgainException;
-import me.zpq.dht.model.MetaInfoRequest;
 import me.zpq.dht.model.NodeTable;
 import me.zpq.dht.scheduled.FindNode;
 import me.zpq.dht.scheduled.Peer;
 import me.zpq.dht.scheduled.Ping;
 import me.zpq.dht.scheduled.RemoveNode;
 import me.zpq.dht.server.DiscardServerHandler;
-import me.zpq.dht.util.Helper;
+import me.zpq.dht.util.Utils;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 import java.io.IOException;
@@ -67,18 +61,19 @@ public class Main {
         String redisHost = properties.getProperty("redis.host");
         Integer redisPort = Integer.valueOf(properties.getProperty("redis.port"));
         GenericObjectPoolConfig genericObjectPoolConfig = new GenericObjectPoolConfig();
-        genericObjectPoolConfig.setMaxTotal(40);
-        genericObjectPoolConfig.setMaxIdle(25);
-        genericObjectPoolConfig.setMinIdle(20);
+        genericObjectPoolConfig.setMaxTotal(maximumPoolSize * 2);
+        genericObjectPoolConfig.setMaxIdle(maximumPoolSize);
+        genericObjectPoolConfig.setMinIdle(corePoolSize);
         JedisPool jedisPool = new JedisPool(genericObjectPoolConfig, redisHost, redisPort);
         Bootstrap bootstrap = new Bootstrap();
-        byte[] nodeId = Helper.nodeId();
+        byte[] nodeId = Utils.nodeId();
         Map<String, NodeTable> table = new Hashtable<>();
-        table.put(new String(nodeId), new NodeTable(Helper.bytesToHex(nodeId), host, port, System.currentTimeMillis()));
+        table.put(new String(nodeId), new NodeTable(Utils.bytesToHex(nodeId), host, port, System.currentTimeMillis()));
+        MetaInfo mongoMetaInfo = new MongoMetaInfoImpl(jedisPool, "mongodb://localhost");
         bootstrap.group(new NioEventLoopGroup())
                 .channel(NioDatagramChannel.class)
                 .option(ChannelOption.SO_BROADCAST, true)
-                .handler(new DiscardServerHandler(table, nodeId, maxNodes, jedisPool.getResource()));
+                .handler(new DiscardServerHandler(table, nodeId, maxNodes, mongoMetaInfo));
         final Channel channel = bootstrap.bind(host, port).sync().channel();
 
         ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(5);
@@ -99,7 +94,6 @@ public class Main {
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(corePoolSize, maximumPoolSize,
                 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(), threadFactory);
-        MetaInfo mongoMetaInfo = new MongoMetaInfoImpl("mongodb://localhost");
         scheduledExecutorService.scheduleWithFixedDelay(new Peer(threadPoolExecutor, mongoMetaInfo, jedisPool, peerId), 2, 2, TimeUnit.SECONDS);
         LOGGER.info("start ok peerRequestTask");
         LOGGER.info("server ok");

@@ -5,7 +5,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.socket.DatagramPacket;
 import me.zpq.dht.model.BootstrapAddress;
 import me.zpq.dht.protocol.DhtProtocol;
-import me.zpq.dht.util.Helper;
+import me.zpq.dht.util.Utils;
 import me.zpq.dht.model.NodeTable;
 
 import java.io.IOException;
@@ -51,7 +51,7 @@ public class FindNode implements Runnable {
 
         try {
 
-            final byte[] findNodeQuery = dhtProtocol.findNodeQuery(transactionId, nodeId, Helper.nodeId());
+            final byte[] findNodeQuery = dhtProtocol.findNodeQuery(transactionId, nodeId, Utils.nodeId());
             list.forEach(bootstrapAddress -> channel.writeAndFlush(new DatagramPacket(Unpooled.copiedBuffer(findNodeQuery),
                     new InetSocketAddress(bootstrapAddress.getHost(), bootstrapAddress.getPort()))));
         } catch (IOException e) {

@@ -3,7 +3,10 @@ package me.zpq.dht.impl;
 import be.adaxisoft.bencode.BDecoder;
 import be.adaxisoft.bencode.BEncodedValue;
 import me.zpq.dht.MetaInfo;
+import me.zpq.dht.util.Utils;
 import org.json.JSONObject;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
@@ -12,6 +15,13 @@ import java.util.List;
 import java.util.Map;
 
 public class JsonMetaInfoImpl implements MetaInfo {
+
+    private JedisPool jedisPool;
+
+    public JsonMetaInfoImpl(JedisPool jedisPool) {
+
+        this.jedisPool = jedisPool;
+    }
 
     @Override
     public void todoSomething(byte[] sha1, byte[] info) throws Exception {
@@ -59,4 +69,16 @@ public class JsonMetaInfoImpl implements MetaInfo {
         JSONObject jsonObject = new JSONObject(metaInfo);
         System.out.println(jsonObject.toString());
     }
+
+    @Override
+    public void onAnnouncePeer(String host, Integer port, byte[] sha1) {
+
+        try (Jedis jedis = jedisPool.getResource()) {
+
+            String infoHash = Utils.bytesToHex(sha1);
+
+            jedis.sadd("meta_info", String.join(":", host, infoHash, String.valueOf(port)));
+        }
+    }
+
 }

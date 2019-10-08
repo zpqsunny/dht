@@ -14,7 +14,7 @@ import java.util.Random;
  * @author zpq
  * @date 2019-08-26
  */
-public class Helper {
+public class Utils {
 
     public static byte[] nodesEncode(List<NodeTable> nodes) {
 

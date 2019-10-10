@@ -92,8 +92,7 @@ public class Main {
         LOGGER.info("start peerRequestTask");
         ThreadFactory threadFactory = Executors.defaultThreadFactory();
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(corePoolSize, maximumPoolSize,
-                0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(), threadFactory);
+                0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(corePoolSize), threadFactory);
         scheduledExecutorService.scheduleWithFixedDelay(new Peer(threadPoolExecutor, mongoMetaInfo, jedisPool, peerId), 2, 2, TimeUnit.SECONDS);
         LOGGER.info("start ok peerRequestTask");
         LOGGER.info("server ok");

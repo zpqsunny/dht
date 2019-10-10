@@ -38,7 +38,7 @@ public class Peer implements Runnable {
     @Override
     public void run() {
 
-        if (threadPoolExecutor.getActiveCount() >= threadPoolExecutor.getCorePoolSize()) {
+        if (threadPoolExecutor.getActiveCount() >= threadPoolExecutor.getMaximumPoolSize()) {
 
             return;
         }

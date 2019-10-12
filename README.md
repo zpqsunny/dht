@@ -28,5 +28,5 @@
 
 ## 运行
 ```
-java -Xbootclasspath/a:/path/to/configDir -jar dht-1.0-SNAPSHOT-jar-with-dependencies
+java -Xbootclasspath/a:/path/to/configDir -jar dht-1.0-SNAPSHOT-jar-with-dependencies.jar
 ```

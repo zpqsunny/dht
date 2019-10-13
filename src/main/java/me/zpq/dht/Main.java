@@ -55,11 +55,11 @@ public class Main {
         byte[] transactionId = properties.getProperty("transactionID").getBytes();
         Integer minNodes = Integer.valueOf(properties.getProperty("minNodes"));
         Integer maxNodes = Integer.valueOf(properties.getProperty("maxNodes"));
-        Integer timeout = Integer.valueOf(properties.getProperty("timeout"));
-        Integer corePoolSize = Integer.valueOf(properties.getProperty("corePoolSize"));
-        Integer maximumPoolSize = Integer.valueOf(properties.getProperty("maximumPoolSize"));
+        int timeout = Integer.parseInt(properties.getProperty("timeout"));
+        int corePoolSize = Integer.parseInt(properties.getProperty("corePoolSize"));
+        int maximumPoolSize = Integer.parseInt(properties.getProperty("maximumPoolSize"));
         String redisHost = properties.getProperty("redis.host");
-        Integer redisPort = Integer.valueOf(properties.getProperty("redis.port"));
+        int redisPort = Integer.parseInt(properties.getProperty("redis.port"));
         GenericObjectPoolConfig genericObjectPoolConfig = new GenericObjectPoolConfig();
         genericObjectPoolConfig.setMaxTotal(maximumPoolSize * 2);
         genericObjectPoolConfig.setMaxIdle(maximumPoolSize);
@@ -92,7 +92,7 @@ public class Main {
         LOGGER.info("start peerRequestTask");
         ThreadFactory threadFactory = Executors.defaultThreadFactory();
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(corePoolSize, maximumPoolSize,
-                0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(corePoolSize), threadFactory);
+                0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(), threadFactory);
         scheduledExecutorService.scheduleWithFixedDelay(new Peer(threadPoolExecutor, mongoMetaInfo, jedisPool, peerId), 2, 2, TimeUnit.SECONDS);
         LOGGER.info("start ok peerRequestTask");
         LOGGER.info("server ok");

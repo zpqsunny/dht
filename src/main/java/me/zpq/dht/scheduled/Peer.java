@@ -55,7 +55,7 @@ public class Peer implements Runnable {
             String[] info = metaInfo.split(":", 3);
             String ip = info[0];
             byte[] infoHash = Utils.hexToByte(info[1]);
-            int port = Integer.valueOf(info[2]);
+            int port = Integer.parseInt(info[2]);
             LOGGER.info("ip {} port {} infoHash {}", ip, port, info[1]);
             threadPoolExecutor.execute(() -> {
 

@@ -44,6 +44,9 @@ public class PeerClient {
     public void request() throws TryAgainException {
 
         try (Socket socket = new Socket()) {
+            socket.setSoTimeout(60 * 1000);
+            socket.setTcpNoDelay(true);
+            socket.setKeepAlive(true);
             LOGGER.info("start connect server host: {} port: {}", host, port);
             socket.connect(new InetSocketAddress(host, port), 30000);
             LOGGER.info("connect success");
@@ -180,8 +183,8 @@ public class PeerClient {
         byte[] prefix = this.resolveLengthMessage(inputStream, 4);
         int length = byte2int(prefix);
         byte[] data = this.resolveLengthMessage(inputStream, length);
-        int messageId = (int) data[0];
-        int messageType = (int) data[1];
+        int messageId = data[0];
+        int messageType = data[1];
         if (messageId != 20) {
 
             LOGGER.error("want to get messageId 20 but messageId: {}", messageId);
@@ -237,42 +240,67 @@ public class PeerClient {
         return value;
     }
 
+//    private byte[] resolveMessage(InputStream inputStream) throws IOException {
+//
+//        long start = System.currentTimeMillis();
+//        long end = start + 60000;
+//        while (end > System.currentTimeMillis()) {
+//
+//            if (inputStream.available() > 0) {
+//
+//                int length = inputStream.read();
+//                return this.resolveLengthMessage(inputStream, length);
+//            }
+//        }
+//        throw new IOException("resolveLengthMessage read time out");
+//    }
+//
+//    private byte[] resolveLengthMessage(InputStream inputStream, int length) throws IOException {
+//
+//        byte[] result = new byte[length];
+//        int index = 0;
+//        long start = System.currentTimeMillis();
+//        long end = start + 60000;
+//        while (end > System.currentTimeMillis()) {
+//
+//            if (index < result.length) {
+//
+//                int r = inputStream.read();
+//                if (r != -1) {
+//
+//                    result[index] = (byte) r;
+//                    index++;
+//                }
+//                continue;
+//            }
+//            return result;
+//        }
+//        throw new IOException("resolveLengthMessage read time out");
+//    }
+
     private byte[] resolveMessage(InputStream inputStream) throws IOException {
 
-        long start = System.currentTimeMillis();
-        long end = start + 60000;
-        while (end > System.currentTimeMillis()) {
+        int length = inputStream.read();
+        if (length <= 0) {
 
-            if (inputStream.available() > 0) {
-
-                int length = inputStream.read();
-                return this.resolveLengthMessage(inputStream, length);
-            }
+            throw new IOException("resolveMessage read " + length);
         }
-        throw new IOException("resolveLengthMessage read time out");
+        return this.resolveLengthMessage(inputStream, length);
     }
 
     private byte[] resolveLengthMessage(InputStream inputStream, int length) throws IOException {
 
         byte[] result = new byte[length];
-        int index = 0;
-        long start = System.currentTimeMillis();
-        long end = start + 60000;
-        while (end > System.currentTimeMillis()) {
+        for (int i = 0; i < length; i++) {
 
-            if (index < result.length) {
+            int r = inputStream.read();
+            if (r == -1) {
 
-                int r = inputStream.read();
-                if (r != -1) {
-
-                    result[index] = (byte) r;
-                    index++;
-                }
-                continue;
+                throw new IOException("resolveLengthMessage read " + r);
             }
-            return result;
+            result[i] = (byte) r;
         }
-        throw new IOException("resolveLengthMessage read time out");
+        return result;
     }
 
     private byte[] packMessage(int messageId, int messageType, byte[] data) {

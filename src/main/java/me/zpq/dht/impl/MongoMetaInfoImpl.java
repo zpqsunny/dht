@@ -17,12 +17,14 @@ public class MongoMetaInfoImpl implements MetaInfo {
 
     private JedisPool jedisPool;
 
-    private MongoClient mongoClient;
+    private MongoCollection<Document> document;
 
     public MongoMetaInfoImpl(JedisPool jedisPool, String connectionString) {
 
         this.jedisPool = jedisPool;
-        this.mongoClient = MongoClients.create(connectionString);
+        MongoClient mongoClient = MongoClients.create(connectionString);
+        MongoDatabase database = mongoClient.getDatabase("dht");
+        document = database.getCollection("meta_info");
     }
 
     @Override
@@ -32,8 +34,6 @@ public class MongoMetaInfoImpl implements MetaInfo {
 
             return;
         }
-        MongoDatabase database = mongoClient.getDatabase("dht");
-        MongoCollection<Document> document = database.getCollection("meta_info");
         BEncodedValue decode = BDecoder.decode(new ByteArrayInputStream(info));
         Document metaInfo = new Document();
         metaInfo.put("sha1", new BsonBinary(sha1));
@@ -97,8 +97,6 @@ public class MongoMetaInfoImpl implements MetaInfo {
 
     private Boolean isExist(byte[] sha1) {
 
-        MongoDatabase database = mongoClient.getDatabase("dht");
-        MongoCollection<Document> document = database.getCollection("meta_info");
         Document has = new Document();
         has.put("sha1", new BsonBinary(sha1));
         FindIterable<Document> documents = document.find(has);

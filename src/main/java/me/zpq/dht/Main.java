@@ -60,11 +60,12 @@ public class Main {
         int maximumPoolSize = Integer.parseInt(properties.getProperty("maximumPoolSize"));
         String redisHost = properties.getProperty("redis.host");
         int redisPort = Integer.parseInt(properties.getProperty("redis.port"));
+        String redisPassword = properties.getProperty("redis.password");
         GenericObjectPoolConfig genericObjectPoolConfig = new GenericObjectPoolConfig();
         genericObjectPoolConfig.setMaxTotal(maximumPoolSize * 2);
         genericObjectPoolConfig.setMaxIdle(maximumPoolSize);
         genericObjectPoolConfig.setMinIdle(corePoolSize);
-        JedisPool jedisPool = new JedisPool(genericObjectPoolConfig, redisHost, redisPort);
+        JedisPool jedisPool = new JedisPool(genericObjectPoolConfig, redisHost, redisPort, 30, redisPassword);
         Bootstrap bootstrap = new Bootstrap();
         byte[] nodeId = Utils.nodeId();
         Map<String, NodeTable> table = new Hashtable<>();

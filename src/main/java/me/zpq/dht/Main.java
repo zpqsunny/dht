@@ -61,6 +61,7 @@ public class Main {
         String redisHost = properties.getProperty("redis.host");
         int redisPort = Integer.parseInt(properties.getProperty("redis.port"));
         String redisPassword = properties.getProperty("redis.password");
+        inputStream.close();
         GenericObjectPoolConfig genericObjectPoolConfig = new GenericObjectPoolConfig();
         genericObjectPoolConfig.setMaxTotal(maximumPoolSize * 2);
         genericObjectPoolConfig.setMaxIdle(maximumPoolSize);

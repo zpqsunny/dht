@@ -66,7 +66,7 @@ public class Main {
         genericObjectPoolConfig.setMaxTotal(maximumPoolSize * 2);
         genericObjectPoolConfig.setMaxIdle(maximumPoolSize);
         genericObjectPoolConfig.setMinIdle(corePoolSize);
-        JedisPool jedisPool = new JedisPool(genericObjectPoolConfig, redisHost, redisPort, 30, redisPassword);
+        JedisPool jedisPool = new JedisPool(genericObjectPoolConfig, redisHost, redisPort, 30000, redisPassword);
         Bootstrap bootstrap = new Bootstrap();
         byte[] nodeId = Utils.nodeId();
         Map<String, NodeTable> table = new Hashtable<>();

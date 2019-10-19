@@ -232,7 +232,6 @@ public class PeerClient {
     private int byte2int(byte[] bytes) {
 
         int value = 0;
-
         for (int i = 0; i < 4; i++) {
             int shift = (3 - i) * 8;
             value += (bytes[i] & 0xFF) << shift;
@@ -245,7 +244,7 @@ public class PeerClient {
         int length = inputStream.read();
         if (length <= 0) {
 
-            throw new IOException("resolveMessage read " + length);
+            throw new IOException("end of the stream is reached");
         }
         return this.resolveLengthMessage(inputStream, length);
     }
@@ -258,7 +257,7 @@ public class PeerClient {
             int r = inputStream.read();
             if (r == -1) {
 
-                throw new IOException("resolveLengthMessage read " + r);
+                throw new IOException("end of the stream is reached");
             }
             result[i] = (byte) r;
         }

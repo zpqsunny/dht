@@ -8,7 +8,8 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
-import me.zpq.dht.MetaInfo;
+import me.zpq.dht.client.PeerClient;
+import me.zpq.dht.JsonMetaInfo;
 import me.zpq.dht.protocol.DhtProtocol;
 import me.zpq.dht.model.NodeTable;
 import me.zpq.dht.util.Utils;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author zpq
@@ -30,6 +32,8 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
     private DhtProtocol dhtProtocol = new DhtProtocol();
 
+    private static String PEER_ID = "-WW0001-123456789012";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(DiscardServerHandler.class);
 
     private byte[] nodeId;
@@ -38,14 +42,14 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
     private Integer maxNodes;
 
-    private MetaInfo metaInfo;
+    private ThreadPoolExecutor threadPoolExecutor;
 
-    public DiscardServerHandler(Map<String, NodeTable> nodeTable, byte[] nodeId, Integer maxNodes, MetaInfo metaInfo) {
+    public DiscardServerHandler(Map<String, NodeTable> nodeTable, byte[] nodeId, Integer maxNodes, ThreadPoolExecutor threadPoolExecutor) {
 
         this.nodeId = nodeId;
         this.nodeTable = nodeTable;
         this.maxNodes = maxNodes;
-        this.metaInfo = metaInfo;
+        this.threadPoolExecutor = threadPoolExecutor;
     }
 
     @Override
@@ -170,13 +174,30 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
             port = a.get("port").getInt();
         }
-
-        metaInfo.onAnnouncePeer(address, port, infoHash);
-
         channelHandlerContext.writeAndFlush(new DatagramPacket(
                 Unpooled.copiedBuffer(
                         dhtProtocol.announcePeerResponse(transactionId, nodeId)),
                 datagramPacket.sender()));
+        if (threadPoolExecutor.getQueue().remainingCapacity() <= 0) {
+
+            return;
+        }
+        LOGGER.info("ip {} port {} infoHash {}", address, port, Utils.bytesToHex(infoHash));
+        threadPoolExecutor.execute(() -> {
+
+            PeerClient peerClient = new PeerClient(address, port, PEER_ID, infoHash);
+            LOGGER.info("todo request peerClient ......");
+            byte[] info = peerClient.request();
+            if (info != null) {
+
+                JsonMetaInfo jsonMetaInfo = new JsonMetaInfo();
+                try {
+                    jsonMetaInfo.show(info);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     private void queryMethodUnknown(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, byte[] transactionId) throws IOException {
@@ -211,12 +232,9 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
             return;
         }
-        nodeTableList.forEach(nodeTable -> {
-
-            this.nodeTable.put(nodeTable.getNid(), new NodeTable(nodeTable.getNid(), nodeTable.getIp(),
-                    nodeTable.getPort(), System.currentTimeMillis()));
-        });
-
+        nodeTableList.forEach(nodeTable ->
+                this.nodeTable.put(nodeTable.getNid(), new NodeTable(nodeTable.getNid(), nodeTable.getIp(),
+                nodeTable.getPort(), System.currentTimeMillis())));
     }
 
     private void responseError(BEncodedValue data) throws InvalidBEncodingException {

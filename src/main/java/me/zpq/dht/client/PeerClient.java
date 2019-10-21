@@ -3,8 +3,6 @@ package me.zpq.dht.client;
 import be.adaxisoft.bencode.BDecoder;
 import be.adaxisoft.bencode.BEncodedValue;
 import be.adaxisoft.bencode.BEncoder;
-import me.zpq.dht.MetaInfo;
-import me.zpq.dht.exception.TryAgainException;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,17 +29,14 @@ public class PeerClient {
 
     private byte[] infoHash;
 
-    private MetaInfo metaInfoTodo;
-
-    public PeerClient(String host, int port, String peerId, byte[] infoHash, MetaInfo metaInfoTodo) {
+    public PeerClient(String host, int port, String peerId, byte[] infoHash) {
         this.host = host;
         this.port = port;
         this.peerId = peerId;
         this.infoHash = infoHash;
-        this.metaInfoTodo = metaInfoTodo;
     }
 
-    public void request() throws TryAgainException {
+    public byte[] request() {
 
         try (Socket socket = new Socket()) {
             socket.setSoTimeout(60 * 1000);
@@ -49,25 +44,21 @@ public class PeerClient {
             socket.setKeepAlive(true);
             LOGGER.info("start connect server host: {} port: {}", host, port);
             socket.connect(new InetSocketAddress(host, port), 30000);
-            LOGGER.info("connect success");
             OutputStream outputStream = socket.getOutputStream();
             InputStream inputStream = socket.getInputStream();
             LOGGER.info("try to handshake");
             this.handshake(outputStream);
             if (!this.validatorHandshake(inputStream)) {
 
-                LOGGER.error("validatorHandShake false");
-                return;
+                return null;
             }
             LOGGER.info("handshake success");
             LOGGER.info("try to extHandShake");
             this.extHandShake(outputStream);
             BEncodedValue bEncodedValue = this.validatorExtHandShake(inputStream);
-
             if (bEncodedValue == null) {
 
-                LOGGER.error("validatorExtHandShake false");
-                return;
+                return null;
             }
             LOGGER.info("extHandShake success");
             int utMetadata = bEncodedValue.getMap().get("m").getMap().get("ut_metadata").getInt();
@@ -102,29 +93,22 @@ public class PeerClient {
             byte[] sha1 = DigestUtils.sha1(info);
             if (sha1.length != infoHash.length) {
 
-                throw new TryAgainException("length fail");
+                throw new Exception("length fail");
             }
             for (int i = 0; i < infoHash.length; i++) {
 
                 if (infoHash[i] != sha1[i]) {
 
-                    throw new TryAgainException("info hash not eq");
+                    throw new Exception("info hash not eq");
                 }
             }
             LOGGER.info("success");
-            metaInfoTodo.todoSomething(this.infoHash, info);
-
-        } catch (TryAgainException e) {
-
-            throw e;
-
-        } catch (IOException e) {
-
-            LOGGER.error("IOException {}", e.getMessage());
+            return info;
 
         } catch (Exception e) {
 
             LOGGER.error("Exception {}", e.getMessage());
+            return null;
         }
 
     }

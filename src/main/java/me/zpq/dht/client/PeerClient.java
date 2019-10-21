@@ -147,7 +147,7 @@ public class PeerClient {
         byte[] bitTorrent = this.resolveMessage(inputStream);
         if (!PROTOCOL.equals(new String(bitTorrent))) {
 
-            LOGGER.error("protocol != BitTorrent");
+            LOGGER.error("protocol != BitTorrent, protocol: {}", new String(bitTorrent));
             return false;
         }
         byte[] last = this.resolveLengthMessage(inputStream, 48);
@@ -232,7 +232,6 @@ public class PeerClient {
     private int byte2int(byte[] bytes) {
 
         int value = 0;
-
         for (int i = 0; i < 4; i++) {
             int shift = (3 - i) * 8;
             value += (bytes[i] & 0xFF) << shift;
@@ -240,50 +239,12 @@ public class PeerClient {
         return value;
     }
 
-//    private byte[] resolveMessage(InputStream inputStream) throws IOException {
-//
-//        long start = System.currentTimeMillis();
-//        long end = start + 60000;
-//        while (end > System.currentTimeMillis()) {
-//
-//            if (inputStream.available() > 0) {
-//
-//                int length = inputStream.read();
-//                return this.resolveLengthMessage(inputStream, length);
-//            }
-//        }
-//        throw new IOException("resolveLengthMessage read time out");
-//    }
-//
-//    private byte[] resolveLengthMessage(InputStream inputStream, int length) throws IOException {
-//
-//        byte[] result = new byte[length];
-//        int index = 0;
-//        long start = System.currentTimeMillis();
-//        long end = start + 60000;
-//        while (end > System.currentTimeMillis()) {
-//
-//            if (index < result.length) {
-//
-//                int r = inputStream.read();
-//                if (r != -1) {
-//
-//                    result[index] = (byte) r;
-//                    index++;
-//                }
-//                continue;
-//            }
-//            return result;
-//        }
-//        throw new IOException("resolveLengthMessage read time out");
-//    }
-
     private byte[] resolveMessage(InputStream inputStream) throws IOException {
 
         int length = inputStream.read();
         if (length <= 0) {
 
-            throw new IOException("resolveMessage read " + length);
+            throw new IOException("end of the stream is reached");
         }
         return this.resolveLengthMessage(inputStream, length);
     }
@@ -296,7 +257,7 @@ public class PeerClient {
             int r = inputStream.read();
             if (r == -1) {
 
-                throw new IOException("resolveLengthMessage read " + r);
+                throw new IOException("end of the stream is reached");
             }
             result[i] = (byte) r;
         }

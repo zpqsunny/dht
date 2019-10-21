@@ -16,8 +16,6 @@ import java.util.Map;
  */
 public class DhtProtocol {
 
-    private String v = "UT";
-
     private byte[] result(Map<String, BEncodedValue> document) throws IOException {
 
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -32,7 +30,6 @@ public class DhtProtocol {
         document.put("y", new BEncodedValue("q"));
         document.put("q", new BEncodedValue(q));
         document.put("a", new BEncodedValue(a));
-        document.put("v", new BEncodedValue(v));
         return this.result(document);
     }
 
@@ -42,7 +39,6 @@ public class DhtProtocol {
         document.put("t", new BEncodedValue(transactionId));
         document.put("y", new BEncodedValue("r"));
         document.put("r", new BEncodedValue(r));
-        document.put("v", new BEncodedValue(v));
         return this.result(document);
 
     }
@@ -56,7 +52,6 @@ public class DhtProtocol {
         list.add(new BEncodedValue(code));
         list.add(new BEncodedValue(description));
         document.put("e", new BEncodedValue(list));
-        document.put("v", new BEncodedValue(v));
         return this.result(document);
     }
 
@@ -98,15 +93,6 @@ public class DhtProtocol {
         return this.query(transactionId, "get_peers", data);
     }
 
-    public byte[] getPeersResponseValues(byte[] transactionId, byte[] nodeId, String token, String peers) throws IOException {
-
-        Map<String, BEncodedValue> data = new HashMap<>(6);
-        data.put("id", new BEncodedValue(nodeId));
-        data.put("token", new BEncodedValue(token));
-        data.put("values", new BEncodedValue(peers));
-        return this.response(transactionId, data);
-    }
-
     public byte[] getPeersResponseNodes(byte[] transactionId, byte[] nodeId, byte[] token, byte[] nodes) throws IOException {
 
         Map<String, BEncodedValue> data = new HashMap<>(6);
@@ -114,17 +100,6 @@ public class DhtProtocol {
         data.put("token", new BEncodedValue(token));
         data.put("nodes", new BEncodedValue(nodes));
         return this.response(transactionId, data);
-    }
-
-    public byte[] announcePeerQuery(byte[] transactionId, byte[] nodeId, byte[] infoHash, Integer port, String token) throws IOException {
-
-        Map<String, BEncodedValue> data = new HashMap<>(6);
-        data.put("id", new BEncodedValue(nodeId));
-        data.put("implied_port", new BEncodedValue(1));
-        data.put("info_hash", new BEncodedValue(infoHash));
-        data.put("port", new BEncodedValue(port));
-        data.put("token", new BEncodedValue(token));
-        return this.query(transactionId, "announce_peer", data);
     }
 
     public byte[] announcePeerResponse(byte[] transactionId, byte[] nodeId) throws IOException {

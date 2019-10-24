@@ -186,7 +186,7 @@ public class PeerClient {
             LOGGER.error("metadata_size == null");
             return null;
         }
-        if (decode.getMap().get("metadata_size").getLong() <= 0) {
+        if (decode.getMap().get("metadata_size").getInt() <= 0) {
 
             LOGGER.error("metadata_size <= 0");
             return null;

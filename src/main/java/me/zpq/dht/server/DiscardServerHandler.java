@@ -32,8 +32,6 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
     private DhtProtocol dhtProtocol = new DhtProtocol();
 
-    private static String PEER_ID = "-WW0001-123456789012";
-
     private static final Logger LOGGER = LoggerFactory.getLogger(DiscardServerHandler.class);
 
     private byte[] nodeId;
@@ -185,7 +183,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
         LOGGER.info("ip {} port {} infoHash {}", address, port, Utils.bytesToHex(infoHash));
         threadPoolExecutor.execute(() -> {
 
-            PeerClient peerClient = new PeerClient(address, port, PEER_ID, infoHash);
+            PeerClient peerClient = new PeerClient(address, port, infoHash);
             LOGGER.info("todo request peerClient ......");
             byte[] info = peerClient.request();
             if (info != null) {

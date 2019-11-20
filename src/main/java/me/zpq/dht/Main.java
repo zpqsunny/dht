@@ -34,7 +34,6 @@ public class Main {
 
     public static void main(String[] args) throws InterruptedException, IOException {
 
-        ((LoggerContext) LoggerFactory.getILoggerFactory()).getLogger("org.mongodb.driver").setLevel(Level.ERROR);
         ClassLoader classLoader = Main.class.getClassLoader();
         URL url = classLoader.getResource("config.properties");
         if (url == null) {

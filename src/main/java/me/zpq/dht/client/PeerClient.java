@@ -23,6 +23,18 @@ public class PeerClient {
 
     private static final String PROTOCOL = "BitTorrent protocol";
 
+    private static final String M = "m";
+
+    private static final String UT_METADATA = "ut_metadata";
+
+    private static final String METADATA_SIZE = "metadata_size";
+
+    private static final int CONNECT_TIMEOUT = 30 * 1000;
+
+    private static final int READ_TIMEOUT = 60 * 1000;
+
+    private static final int BLOCK_SIZE = 16384;
+
     private String host;
 
     private int port;
@@ -38,11 +50,11 @@ public class PeerClient {
     public byte[] request() {
 
         try (Socket socket = new Socket()) {
-            socket.setSoTimeout(60 * 1000);
+            socket.setSoTimeout(READ_TIMEOUT);
             socket.setTcpNoDelay(true);
             socket.setKeepAlive(true);
             LOGGER.info("start connect server host: {} port: {}", host, port);
-            socket.connect(new InetSocketAddress(host, port), 30000);
+            socket.connect(new InetSocketAddress(host, port), CONNECT_TIMEOUT);
             OutputStream outputStream = socket.getOutputStream();
             InputStream inputStream = socket.getInputStream();
             LOGGER.info("try to handshake");
@@ -51,7 +63,6 @@ public class PeerClient {
 
                 return null;
             }
-            LOGGER.info("handshake success");
             LOGGER.info("try to extHandShake");
             this.extHandShake(outputStream);
             BEncodedValue bEncodedValue = this.validatorExtHandShake(inputStream);
@@ -59,21 +70,16 @@ public class PeerClient {
 
                 return null;
             }
-            LOGGER.info("extHandShake success");
-            int utMetadata = bEncodedValue.getMap().get("m").getMap().get("ut_metadata").getInt();
-            int metaDataSize = bEncodedValue.getMap().get("metadata_size").getInt();
-            // metaDataSize / 16384
-            int block = metaDataSize % 16384 > 0 ? metaDataSize / 16384 + 1 : metaDataSize / 16384;
+            int utMetadata = bEncodedValue.getMap().get(M).getMap().get(UT_METADATA).getInt();
+            int metaDataSize = bEncodedValue.getMap().get(METADATA_SIZE).getInt();
+            int block = metaDataSize % BLOCK_SIZE > 0 ? metaDataSize / BLOCK_SIZE + 1 : metaDataSize / BLOCK_SIZE;
             LOGGER.info("metaDataSize: {} block: {}", metaDataSize, block);
-            LOGGER.info("start request block");
             for (int i = 0; i < block; i++) {
 
                 this.metadataRequest(outputStream, utMetadata, i);
                 LOGGER.info("request block index: {} ok", i);
             }
-            LOGGER.info("request block finish");
             ByteBuffer metaInfo = ByteBuffer.allocate(metaDataSize);
-            LOGGER.info("start resolve block");
             for (int i = 0; i < block; i++) {
 
                 Map<String, BEncodedValue> m = new HashMap<>(6);
@@ -86,7 +92,6 @@ public class PeerClient {
                 metaInfo.put(Arrays.copyOfRange(result, response.length + 2, result.length));
                 LOGGER.info("resolve block index: {} ok", i);
             }
-            LOGGER.info("resolve block all finish");
             LOGGER.info("validator sha1");
             byte[] info = metaInfo.array();
             byte[] sha1 = DigestUtils.sha1(info);
@@ -180,22 +185,22 @@ public class PeerClient {
         }
         byte[] bDecode = Arrays.copyOfRange(data, 2, length);
         BEncodedValue decode = BDecoder.decode(new ByteArrayInputStream(bDecode));
-        if (decode.getMap().get("metadata_size") == null) {
+        if (decode.getMap().get(METADATA_SIZE) == null) {
 
             LOGGER.error("metadata_size == null");
             return null;
         }
-        if (decode.getMap().get("metadata_size").getInt() <= 0) {
+        if (decode.getMap().get(METADATA_SIZE).getInt() <= 0) {
 
             LOGGER.error("metadata_size <= 0");
             return null;
         }
-        if (decode.getMap().get("m") == null) {
+        if (decode.getMap().get(M) == null) {
 
             LOGGER.error("m == null");
             return null;
         }
-        if (decode.getMap().get("m").getMap().get("ut_metadata") == null) {
+        if (decode.getMap().get(M).getMap().get(UT_METADATA) == null) {
 
             LOGGER.error("m.ut_metadata == null");
             return null;

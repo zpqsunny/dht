@@ -1,7 +1,5 @@
 package me.zpq.dht;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.LoggerContext;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
@@ -44,15 +42,15 @@ public class Main {
         InputStream inputStream = Files.newInputStream(Paths.get(url.getFile()));
         Properties properties = new Properties();
         properties.load(inputStream);
-        String host = properties.getProperty("serverIp");
+        String host = properties.getProperty("server.ip");
         int port = 6881;
         byte[] transactionId = new byte[5];
         new Random().nextBytes(transactionId);
         int minNodes = 3000;
         int maxNodes = 5000;
         int timeout = 60000;
-        int corePoolSize = Integer.parseInt(properties.getProperty("corePoolSize"));
-        int maximumPoolSize = Integer.parseInt(properties.getProperty("maximumPoolSize"));
+        int corePoolSize = Integer.parseInt(properties.getProperty("server.peers.core.pool.size"));
+        int maximumPoolSize = Integer.parseInt(properties.getProperty("server.peers.maximum.pool.size"));
         inputStream.close();
         Bootstrap bootstrap = new Bootstrap();
         byte[] nodeId = Utils.nodeId();

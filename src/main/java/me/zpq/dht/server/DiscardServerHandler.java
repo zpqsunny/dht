@@ -161,6 +161,24 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
         String address = datagramPacket.sender().getAddress().getHostAddress();
         // sha1
         byte[] infoHash = a.get("info_hash").getBytes();
+
+        byte[] token = Arrays.copyOfRange(infoHash, 0, 5);
+
+        byte[] validatorToken = a.get("token").getBytes();
+
+        if (validatorToken.length != token.length) {
+
+            LOGGER.error("announcePeer validator false length not eq length: {} ", validatorToken.length);
+            return;
+        }
+        for (int i = 0; i < token.length; i++) {
+
+            if (token[i] != validatorToken[i]) {
+
+                LOGGER.error("announcePeer validator false token not eq ");
+                return;
+            }
+        }
         // port
         int port;
 

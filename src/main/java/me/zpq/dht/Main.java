@@ -63,7 +63,7 @@ public class Main {
                 .channel(NioDatagramChannel.class)
                 .option(ChannelOption.SO_BROADCAST, true)
                 .handler(new DiscardServerHandler(table, nodeId, maxNodes, threadPoolExecutor));
-        final Channel channel = bootstrap.bind(host, port).sync().channel();
+        final Channel channel = bootstrap.bind(port).sync().channel();
 
         ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(5);
         LOGGER.info("start autoFindNode");

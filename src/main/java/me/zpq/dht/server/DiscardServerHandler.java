@@ -145,8 +145,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
     private void queryGetPeers(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, byte[] transactionId, Map<String, BEncodedValue> a) throws IOException {
 
-        byte[] infoHash = a.get("info_hash").getBytes();
-        byte[] token = Arrays.copyOfRange(infoHash, 0, 5);
+        byte[] token = this.getToken(a.get("info_hash").getBytes());
 //        List<NodeTable> nodes = new ArrayList<>(nodeTable.values());
         channelHandlerContext.writeAndFlush(new DatagramPacket(
                 Unpooled.copiedBuffer(
@@ -157,28 +156,19 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
     private void queryAnnouncePeer(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, byte[] transactionId, Map<String, BEncodedValue> a) throws IOException {
 
-        // ip
-        String address = datagramPacket.sender().getAddress().getHostAddress();
         // sha1
         byte[] infoHash = a.get("info_hash").getBytes();
 
-        byte[] token = Arrays.copyOfRange(infoHash, 0, 5);
+        // token
+        byte[] needValidatorToken = a.get("token").getBytes();
 
-        byte[] validatorToken = a.get("token").getBytes();
+        if (!this.validatorToken(infoHash, needValidatorToken)) {
 
-        if (validatorToken.length != token.length) {
-
-            LOGGER.error("announcePeer validator false length not eq length: {} ", validatorToken.length);
             return;
         }
-        for (int i = 0; i < token.length; i++) {
+        // ip
+        String address = datagramPacket.sender().getAddress().getHostAddress();
 
-            if (token[i] != validatorToken[i]) {
-
-                LOGGER.error("announcePeer validator false token not eq ");
-                return;
-            }
-        }
         // port
         int port;
 
@@ -259,5 +249,30 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
         LOGGER.error(" r : error Code: {} , Description: {}", e.get(0).getInt(), e.get(1).getString());
 
+    }
+
+    private byte[] getToken(byte[] infoHash) {
+
+        return Arrays.copyOfRange(infoHash, 0, 5);
+    }
+
+    private boolean validatorToken(byte[] infoHash, byte[] needValidatorToken) {
+
+        byte[] token = this.getToken(infoHash);
+
+        if (needValidatorToken.length != token.length) {
+
+            LOGGER.error("announcePeer validator false length not eq length: {} ", needValidatorToken.length);
+            return false;
+        }
+        for (int i = 0; i < token.length; i++) {
+
+            if (token[i] != needValidatorToken[i]) {
+
+                LOGGER.error("announcePeer validator false token not eq ");
+                return false;
+            }
+        }
+        return true;
     }
 }

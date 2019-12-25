@@ -39,19 +39,25 @@ public class Main {
             LOGGER.error("error config");
             return;
         }
-        InputStream inputStream = Files.newInputStream(Paths.get(url.getFile()));
-        Properties properties = new Properties();
-        properties.load(inputStream);
-        String host = properties.getProperty("server.ip");
+
         int port = 6881;
         byte[] transactionId = new byte[5];
         new Random().nextBytes(transactionId);
         int minNodes = 3000;
         int maxNodes = 5000;
         int timeout = 60000;
+        int findNodeInterval = 60;
+        int pingInterval = 300;
+        int removeNodeInterval = 300;
+
+        InputStream inputStream = Files.newInputStream(Paths.get(url.getFile()));
+        Properties properties = new Properties();
+        properties.load(inputStream);
+        String host = properties.getProperty("server.ip");
         int corePoolSize = Integer.parseInt(properties.getProperty("server.peers.core.pool.size"));
         int maximumPoolSize = Integer.parseInt(properties.getProperty("server.peers.maximum.pool.size"));
         inputStream.close();
+
         Bootstrap bootstrap = new Bootstrap();
         byte[] nodeId = Utils.nodeId();
         Map<String, NodeTable> table = new Hashtable<>();
@@ -67,13 +73,13 @@ public class Main {
 
         ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(5);
         LOGGER.info("start autoFindNode");
-        scheduledExecutorService.scheduleWithFixedDelay(new FindNode(channel, transactionId, nodeId, table, minNodes), 2, 2, TimeUnit.SECONDS);
+        scheduledExecutorService.scheduleWithFixedDelay(new FindNode(channel, transactionId, nodeId, table, minNodes), findNodeInterval, findNodeInterval, TimeUnit.SECONDS);
         LOGGER.info("start ok autoFindNode");
         LOGGER.info("start Ping");
-        scheduledExecutorService.scheduleWithFixedDelay(new Ping(channel, transactionId, nodeId, table), 5, 20, TimeUnit.SECONDS);
+        scheduledExecutorService.scheduleWithFixedDelay(new Ping(channel, transactionId, nodeId, table), pingInterval, pingInterval, TimeUnit.SECONDS);
         LOGGER.info("start ok Ping");
         LOGGER.info("start RemoveNode");
-        scheduledExecutorService.scheduleWithFixedDelay(new RemoveNode(table, timeout), 30, 60, TimeUnit.SECONDS);
+        scheduledExecutorService.scheduleWithFixedDelay(new RemoveNode(table, timeout), removeNodeInterval, removeNodeInterval, TimeUnit.SECONDS);
         LOGGER.info("start ok RemoveNode");
         LOGGER.info("server ok");
     }

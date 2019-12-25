@@ -24,13 +24,13 @@ public class FindNode implements Runnable {
 
     private Map<String, NodeTable> tableMap;
 
-    private Integer minNodes;
+    private int minNodes;
 
     private List<BootstrapAddress> list = new ArrayList<>();
 
     private DhtProtocol dhtProtocol = new DhtProtocol();
 
-    public FindNode(Channel channel, byte[] transactionId, byte[] nodeId, Map<String, NodeTable> tableMap, Integer minNodes) {
+    public FindNode(Channel channel, byte[] transactionId, byte[] nodeId, Map<String, NodeTable> tableMap, int minNodes) {
         this.channel = channel;
         this.transactionId = transactionId;
         this.nodeId = nodeId;

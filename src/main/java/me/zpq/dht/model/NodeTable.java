@@ -10,14 +10,14 @@ public class NodeTable {
 
     private String ip;
 
-    private Integer port;
+    private int port;
 
-    private Long time;
+    private long time;
 
     public NodeTable() {
     }
 
-    public NodeTable(String nid, String ip, Integer port, Long time) {
+    public NodeTable(String nid, String ip, int port, long time) {
         this.nid = nid;
         this.ip = ip;
         this.port = port;
@@ -40,19 +40,19 @@ public class NodeTable {
         this.ip = ip;
     }
 
-    public Integer getPort() {
+    public int getPort() {
         return port;
     }
 
-    public void setPort(Integer port) {
+    public void setPort(int port) {
         this.port = port;
     }
 
-    public Long getTime() {
+    public long getTime() {
         return time;
     }
 
-    public void setTime(Long time) {
+    public void setTime(long time) {
         this.time = time;
     }
 }

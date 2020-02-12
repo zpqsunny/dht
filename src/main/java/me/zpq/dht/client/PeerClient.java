@@ -3,6 +3,7 @@ package me.zpq.dht.client;
 import be.adaxisoft.bencode.BDecoder;
 import be.adaxisoft.bencode.BEncodedValue;
 import be.adaxisoft.bencode.BEncoder;
+import me.zpq.dht.util.Utils;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,12 @@ public class PeerClient {
 
     private static final String METADATA_SIZE = "metadata_size";
 
+    private static final String MSG_TYPE = "msg_type";
+
+    private static final String PIECE = "piece";
+
+    private static final String TOTAL_SIZE = "total_size";
+
     private static final int CONNECT_TIMEOUT = 30 * 1000;
 
     private static final int READ_TIMEOUT = 60 * 1000;
@@ -53,7 +60,7 @@ public class PeerClient {
             socket.setSoTimeout(READ_TIMEOUT);
             socket.setTcpNoDelay(true);
             socket.setKeepAlive(true);
-            LOGGER.info("start connect server host: {} port: {}", host, port);
+            LOGGER.info("connect server host: {} port: {} hash: {}", host, port, Utils.bytesToHex(this.infoHash));
             socket.connect(new InetSocketAddress(host, port), CONNECT_TIMEOUT);
             OutputStream outputStream = socket.getOutputStream();
             InputStream inputStream = socket.getInputStream();
@@ -83,9 +90,9 @@ public class PeerClient {
             for (int i = 0; i < block; i++) {
 
                 Map<String, BEncodedValue> m = new HashMap<>(6);
-                m.put("msg_type", new BEncodedValue(1));
-                m.put("piece", new BEncodedValue(i));
-                m.put("total_size", new BEncodedValue(metaDataSize));
+                m.put(MSG_TYPE, new BEncodedValue(1));
+                m.put(PIECE, new BEncodedValue(i));
+                m.put(TOTAL_SIZE, new BEncodedValue(metaDataSize));
                 byte[] response = BEncoder.encode(m).array();
                 byte[] length = this.resolveLengthMessage(inputStream, 4);
                 byte[] result = this.resolveLengthMessage(inputStream, byte2int(length));
@@ -97,13 +104,15 @@ public class PeerClient {
             byte[] sha1 = DigestUtils.sha1(info);
             if (sha1.length != infoHash.length) {
 
-                throw new Exception("length fail");
+                LOGGER.error("length fail");
+                return null;
             }
             for (int i = 0; i < infoHash.length; i++) {
 
                 if (infoHash[i] != sha1[i]) {
 
-                    throw new Exception("info hash not eq");
+                    LOGGER.error("info hash not eq");
+                    return null;
                 }
             }
             LOGGER.info("success");
@@ -111,7 +120,7 @@ public class PeerClient {
 
         } catch (Exception e) {
 
-            LOGGER.error("Exception {}", e.getMessage());
+            LOGGER.error("{} : {}", e.getClass().getName(), e.getMessage());
             return null;
         }
 
@@ -216,8 +225,8 @@ public class PeerClient {
     private void metadataRequest(OutputStream outputStream, int utMetadata, int piece) throws IOException {
 
         Map<String, BEncodedValue> d = new HashMap<>(6);
-        d.put("msg_type", new BEncodedValue(0));
-        d.put("piece", new BEncodedValue(piece));
+        d.put(MSG_TYPE, new BEncodedValue(0));
+        d.put(PIECE, new BEncodedValue(piece));
         outputStream.write(this.packMessage(20, utMetadata, BEncoder.encode(d).array()));
         outputStream.flush();
     }

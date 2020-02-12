@@ -16,96 +16,132 @@ import java.util.Map;
  */
 public class DhtProtocol {
 
-    private byte[] result(Map<String, BEncodedValue> document) throws IOException {
+    public static final String A = "a";
+
+    public static final String Y = "y";
+
+    public static final String Q = "q";
+
+    public static final String T = "t";
+
+    public static final String R = "r";
+
+    public static final String E = "e";
+
+    public static final String PING = "ping";
+
+    public static final String FIND_NODE = "find_node";
+
+    public static final String GET_PEERS = "get_peers";
+
+    public static final String ANNOUNCE_PEER = "announce_peer";
+
+    public static final String ID = "id";
+
+    public static final String NODES = "nodes";
+
+    public static final String IMPLIED_PORT = "implied_port";
+
+    public static final String VALUES = "values";
+
+    public static final String TARGET = "target";
+
+    public static final String INFO_HASH = "info_hash";
+
+    public static final String PORT = "port";
+
+    public static final String TOKEN = "token";
+
+    private static byte[] result(Map<String, BEncodedValue> document) throws IOException {
 
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         BEncoder.encode(document, byteArrayOutputStream);
         return byteArrayOutputStream.toByteArray();
     }
 
-    private byte[] query(byte[] transactionId, String q, Map<String, BEncodedValue> a) throws IOException {
+    private static byte[] query(byte[] transactionId, String q, Map<String, BEncodedValue> a) throws IOException {
 
         Map<String, BEncodedValue> document = new HashMap<>(6);
-        document.put("t", new BEncodedValue(transactionId));
-        document.put("y", new BEncodedValue("q"));
-        document.put("q", new BEncodedValue(q));
-        document.put("a", new BEncodedValue(a));
-        return this.result(document);
+        document.put(T, new BEncodedValue(transactionId));
+        document.put(Y, new BEncodedValue(Q));
+        document.put(Q, new BEncodedValue(q));
+        document.put(A, new BEncodedValue(a));
+        return result(document);
     }
 
-    private byte[] response(byte[] transactionId, Map<String, BEncodedValue> r) throws IOException {
+    private static byte[] response(byte[] transactionId, Map<String, BEncodedValue> r) throws IOException {
 
         Map<String, BEncodedValue> document = new HashMap<>(6);
-        document.put("t", new BEncodedValue(transactionId));
-        document.put("y", new BEncodedValue("r"));
-        document.put("r", new BEncodedValue(r));
-        return this.result(document);
+        document.put(T, new BEncodedValue(transactionId));
+        document.put(Y, new BEncodedValue(R));
+        document.put(R, new BEncodedValue(r));
+        return result(document);
 
     }
 
-    public byte[] error(byte[] transactionId, Integer code, String description) throws IOException {
+    public static byte[] error(byte[] transactionId, Integer code, String description) throws IOException {
 
         Map<String, BEncodedValue> document = new HashMap<>(6);
-        document.put("t", new BEncodedValue(transactionId));
-        document.put("y", new BEncodedValue("e"));
+        document.put(T, new BEncodedValue(transactionId));
+        document.put(Y, new BEncodedValue(E));
         List<BEncodedValue> list = new ArrayList<>();
         list.add(new BEncodedValue(code));
         list.add(new BEncodedValue(description));
-        document.put("e", new BEncodedValue(list));
-        return this.result(document);
+        document.put(E, new BEncodedValue(list));
+        return result(document);
     }
 
-    public byte[] pingQuery(byte[] transactionId, byte[] nodeId) throws IOException {
+    public static byte[] pingQuery(byte[] transactionId, byte[] nodeId) throws IOException {
 
         Map<String, BEncodedValue> data = new HashMap<>(6);
-        data.put("id", new BEncodedValue(nodeId));
-        return this.query(transactionId, "ping", data);
+        data.put(ID, new BEncodedValue(nodeId));
+        return query(transactionId, PING, data);
     }
 
-    public byte[] pingResponse(byte[] transactionId, byte[] nodeId) throws IOException {
+    public static byte[] pingResponse(byte[] transactionId, byte[] nodeId) throws IOException {
 
         Map<String, BEncodedValue> data = new HashMap<>(6);
-        data.put("id", new BEncodedValue(nodeId));
-        return this.response(transactionId, data);
+        data.put(ID, new BEncodedValue(nodeId));
+        return response(transactionId, data);
     }
 
-    public byte[] findNodeQuery(byte[] transactionId, byte[] nodeId, byte[] target) throws IOException {
+    public static byte[] findNodeQuery(byte[] transactionId, byte[] nodeId, byte[] target) throws IOException {
 
         Map<String, BEncodedValue> data = new HashMap<>(6);
-        data.put("id", new BEncodedValue(nodeId));
-        data.put("target", new BEncodedValue(target));
-        return this.query(transactionId, "find_node", data);
+        data.put(ID, new BEncodedValue(nodeId));
+        data.put(TARGET, new BEncodedValue(target));
+        return query(transactionId, FIND_NODE, data);
     }
 
-    public byte[] findNodeResponse(byte[] transactionId, byte[] nodeId, byte[] nodes) throws IOException {
+    public static byte[] findNodeResponse(byte[] transactionId, byte[] nodeId, byte[] nodes) throws IOException {
 
         Map<String, BEncodedValue> data = new HashMap<>(6);
-        data.put("id", new BEncodedValue(nodeId));
-        data.put("nodes", new BEncodedValue(nodes));
-        return this.response(transactionId, data);
+        data.put(ID, new BEncodedValue(nodeId));
+        data.put(NODES, new BEncodedValue(nodes));
+        return response(transactionId, data);
     }
 
-    public byte[] getPeersQuery(byte[] transactionId, byte[] nodeId, byte[] infoHash) throws IOException {
+    public static byte[] getPeersQuery(byte[] transactionId, byte[] nodeId, byte[] infoHash) throws IOException {
 
         Map<String, BEncodedValue> data = new HashMap<>(6);
-        data.put("id", new BEncodedValue(nodeId));
-        data.put("info_hash", new BEncodedValue(infoHash));
-        return this.query(transactionId, "get_peers", data);
+        data.put(ID, new BEncodedValue(nodeId));
+        data.put(INFO_HASH, new BEncodedValue(infoHash));
+        return query(transactionId, GET_PEERS, data);
     }
 
-    public byte[] getPeersResponseNodes(byte[] transactionId, byte[] nodeId, byte[] token, byte[] nodes) throws IOException {
+    public static byte[] getPeersResponseNodes(byte[] transactionId, byte[] nodeId, byte[] token, byte[] nodes) throws IOException {
 
         Map<String, BEncodedValue> data = new HashMap<>(6);
-        data.put("id", new BEncodedValue(nodeId));
-        data.put("token", new BEncodedValue(token));
-        data.put("nodes", new BEncodedValue(nodes));
-        return this.response(transactionId, data);
+        data.put(ID, new BEncodedValue(nodeId));
+        data.put(TOKEN, new BEncodedValue(token));
+        data.put(NODES, new BEncodedValue(nodes));
+        return response(transactionId, data);
     }
 
-    public byte[] announcePeerResponse(byte[] transactionId, byte[] nodeId) throws IOException {
+    public static byte[] announcePeerResponse(byte[] transactionId, byte[] nodeId) throws IOException {
 
         Map<String, BEncodedValue> data = new HashMap<>(6);
-        data.put("id", new BEncodedValue(nodeId));
-        return this.response(transactionId, data);
+        data.put(ID, new BEncodedValue(nodeId));
+        return response(transactionId, data);
     }
 }

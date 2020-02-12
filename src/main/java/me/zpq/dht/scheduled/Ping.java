@@ -24,8 +24,6 @@ public class Ping implements Runnable {
 
     private byte[] nodeId;
 
-    private DhtProtocol dhtProtocol = new DhtProtocol();
-
     public Ping(Channel channel, byte[] transactionId, byte[] nodeId, Map<String, NodeTable> table) {
 
         this.channel = channel;
@@ -40,7 +38,7 @@ public class Ping implements Runnable {
         table.values().forEach(nodeTable -> {
 
             try {
-                channel.writeAndFlush(new DatagramPacket(Unpooled.copiedBuffer(dhtProtocol.pingQuery(transactionId, nodeId)),
+                channel.writeAndFlush(new DatagramPacket(Unpooled.copiedBuffer(DhtProtocol.pingQuery(transactionId, nodeId)),
                         new InetSocketAddress(nodeTable.getIp(), nodeTable.getPort())));
             } catch (IOException e) {
                 e.printStackTrace();

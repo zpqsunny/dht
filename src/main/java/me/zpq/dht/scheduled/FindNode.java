@@ -28,8 +28,6 @@ public class FindNode implements Runnable {
 
     private List<BootstrapAddress> list = new ArrayList<>();
 
-    private DhtProtocol dhtProtocol = new DhtProtocol();
-
     public FindNode(Channel channel, byte[] transactionId, byte[] nodeId, Map<String, NodeTable> tableMap, Integer minNodes) {
         this.channel = channel;
         this.transactionId = transactionId;
@@ -51,7 +49,7 @@ public class FindNode implements Runnable {
 
         try {
 
-            final byte[] findNodeQuery = dhtProtocol.findNodeQuery(transactionId, nodeId, Utils.nodeId());
+            final byte[] findNodeQuery = DhtProtocol.findNodeQuery(transactionId, nodeId, Utils.nodeId());
             list.forEach(bootstrapAddress -> channel.writeAndFlush(new DatagramPacket(Unpooled.copiedBuffer(findNodeQuery),
                     new InetSocketAddress(bootstrapAddress.getHost(), bootstrapAddress.getPort()))));
         } catch (IOException e) {

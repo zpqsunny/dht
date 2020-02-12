@@ -30,8 +30,6 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPacket> {
 
-    private DhtProtocol dhtProtocol = new DhtProtocol();
-
     private static final Logger LOGGER = LoggerFactory.getLogger(DiscardServerHandler.class);
 
     private byte[] nodeId;
@@ -61,49 +59,49 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
             content.release();
 
             BEncodedValue data = BDecoder.decode(new ByteArrayInputStream(req));
-            byte[] transactionId = data.getMap().get("t").getBytes();
+            byte[] transactionId = data.getMap().get(DhtProtocol.T).getBytes();
 
-            switch (data.getMap().get("y").getString()) {
+            switch (data.getMap().get(DhtProtocol.Y).getString()) {
 
-                case "q":
+                case DhtProtocol.Q:
 
-                    Map<String, BEncodedValue> a = data.getMap().get("a").getMap();
-                    switch (data.getMap().get("q").getString()) {
+                    Map<String, BEncodedValue> a = data.getMap().get(DhtProtocol.A).getMap();
+                    switch (data.getMap().get(DhtProtocol.Q).getString()) {
 
-                        case "ping":
+                        case DhtProtocol.PING:
                             this.queryPing(channelHandlerContext, datagramPacket, transactionId, a);
                             break;
-                        case "find_node":
+                        case DhtProtocol.FIND_NODE:
                             this.queryFindNode(channelHandlerContext, datagramPacket, transactionId);
                             break;
-                        case "get_peers":
+                        case DhtProtocol.GET_PEERS:
                             this.queryGetPeers(channelHandlerContext, datagramPacket, transactionId, a);
                             break;
-                        case "announce_peer":
+                        case DhtProtocol.ANNOUNCE_PEER:
                             this.queryAnnouncePeer(channelHandlerContext, datagramPacket, transactionId, a);
                             break;
                         default:
-//                            this.queryMethodUnknown(channelHandlerContext, datagramPacket, transactionId);
+                            this.queryMethodUnknown(channelHandlerContext, datagramPacket, transactionId);
                             break;
                     }
 
                     break;
-                case "r":
+                case DhtProtocol.R:
 
-                    Map<String, BEncodedValue> r = data.getMap().get("r").getMap();
-                    if (r.get("a") != null) {
+                    Map<String, BEncodedValue> r = data.getMap().get(DhtProtocol.R).getMap();
+                    if (r.get(DhtProtocol.A) != null) {
 
                         this.responseHasId(r, datagramPacket);
                     }
 
-                    if (r.get("nodes") != null) {
+                    if (r.get(DhtProtocol.NODES) != null) {
 
                         this.responseHasNodes(r);
                     }
 
                     break;
 
-                case "e":
+                case DhtProtocol.E:
 
                     this.responseError(data);
 
@@ -123,9 +121,9 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
     private void queryPing(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, byte[] transactionId, Map<String, BEncodedValue> a) throws IOException {
 
         channelHandlerContext.writeAndFlush(new DatagramPacket(
-                Unpooled.copiedBuffer(dhtProtocol.pingResponse(transactionId, nodeId)),
+                Unpooled.copiedBuffer(DhtProtocol.pingResponse(transactionId, nodeId)),
                 datagramPacket.sender()));
-        String id = a.get("id").getString();
+        String id = a.get(DhtProtocol.ID).getString();
         if (nodeTable.containsKey(id)) {
 
             NodeTable nodeTable = this.nodeTable.get(id);
@@ -139,17 +137,17 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
         List<NodeTable> table = new ArrayList<>(nodeTable.values());
         channelHandlerContext.writeAndFlush(new DatagramPacket(
                 Unpooled.copiedBuffer(
-                        dhtProtocol.findNodeResponse(transactionId, nodeId, Utils.nodesEncode(table))),
+                        DhtProtocol.findNodeResponse(transactionId, nodeId, Utils.nodesEncode(table))),
                 datagramPacket.sender()));
     }
 
     private void queryGetPeers(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, byte[] transactionId, Map<String, BEncodedValue> a) throws IOException {
 
-        byte[] token = this.getToken(a.get("info_hash").getBytes());
+        byte[] token = this.getToken(a.get(DhtProtocol.INFO_HASH).getBytes());
 //        List<NodeTable> nodes = new ArrayList<>(nodeTable.values());
         channelHandlerContext.writeAndFlush(new DatagramPacket(
                 Unpooled.copiedBuffer(
-                        dhtProtocol.getPeersResponseNodes(transactionId, nodeId, token, new byte[0])),
+                        DhtProtocol.getPeersResponseNodes(transactionId, nodeId, token, new byte[0])),
                 datagramPacket.sender()));
 
     }
@@ -157,10 +155,10 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
     private void queryAnnouncePeer(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, byte[] transactionId, Map<String, BEncodedValue> a) throws IOException {
 
         // sha1
-        byte[] infoHash = a.get("info_hash").getBytes();
+        byte[] infoHash = a.get(DhtProtocol.INFO_HASH).getBytes();
 
         // token
-        byte[] needValidatorToken = a.get("token").getBytes();
+        byte[] needValidatorToken = a.get(DhtProtocol.TOKEN).getBytes();
 
         if (!this.validatorToken(infoHash, needValidatorToken)) {
 
@@ -172,17 +170,17 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
         // port
         int port;
 
-        if (a.get("implied_port") != null && a.get("implied_port").getInt() != 0) {
+        if (a.get(DhtProtocol.IMPLIED_PORT) != null && a.get(DhtProtocol.IMPLIED_PORT).getInt() != 0) {
 
             port = datagramPacket.sender().getPort();
 
         } else {
 
-            port = a.get("port").getInt();
+            port = a.get(DhtProtocol.PORT).getInt();
         }
         channelHandlerContext.writeAndFlush(new DatagramPacket(
                 Unpooled.copiedBuffer(
-                        dhtProtocol.announcePeerResponse(transactionId, nodeId)),
+                        DhtProtocol.announcePeerResponse(transactionId, nodeId)),
                 datagramPacket.sender()));
         if (threadPoolExecutor.getQueue().remainingCapacity() <= 0) {
 
@@ -210,13 +208,13 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
         channelHandlerContext.writeAndFlush(new DatagramPacket(
                 Unpooled.copiedBuffer(
-                        dhtProtocol.error(transactionId, 204, "Method Unknown")),
+                        DhtProtocol.error(transactionId, 204, "Method Unknown")),
                 datagramPacket.sender()));
     }
 
     private void responseHasId(Map<String, BEncodedValue> r, DatagramPacket datagramPacket) throws InvalidBEncodingException {
 
-        String id = r.get("id").getString();
+        String id = r.get(DhtProtocol.ID).getString();
 
         if (this.nodeTable.containsKey(id)) {
 
@@ -224,13 +222,13 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
             int port = datagramPacket.sender().getPort();
 
-            this.nodeTable.put(id, new NodeTable(Utils.bytesToHex(r.get("id").getBytes()), address, port, System.currentTimeMillis()));
+            this.nodeTable.put(id, new NodeTable(Utils.bytesToHex(r.get(DhtProtocol.ID).getBytes()), address, port, System.currentTimeMillis()));
         }
     }
 
     private void responseHasNodes(Map<String, BEncodedValue> r) throws InvalidBEncodingException {
 
-        byte[] nodes = r.get("nodes").getBytes();
+        byte[] nodes = r.get(DhtProtocol.NODES).getBytes();
 
         List<NodeTable> nodeTableList = Utils.nodesDecode(nodes);
 
@@ -245,7 +243,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
     private void responseError(BEncodedValue data) throws InvalidBEncodingException {
 
-        List<BEncodedValue> e = data.getMap().get("e").getList();
+        List<BEncodedValue> e = data.getMap().get(DhtProtocol.E).getList();
 
         LOGGER.error(" r : error Code: {} , Description: {}", e.get(0).getInt(), e.get(1).getString());
 

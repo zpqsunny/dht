@@ -160,8 +160,8 @@ public class PeerClient {
 
         Map<String, BEncodedValue> m = new HashMap<>(6);
         Map<String, BEncodedValue> utMetadata = new HashMap<>(6);
-        utMetadata.put("ut_metadata", new BEncodedValue(1));
-        m.put("m", new BEncodedValue(utMetadata));
+        utMetadata.put(UT_METADATA, new BEncodedValue(1));
+        m.put(M, new BEncodedValue(utMetadata));
         outputStream.write(this.packMessage(20, 0, BEncoder.encode(m).array()));
         outputStream.flush();
     }

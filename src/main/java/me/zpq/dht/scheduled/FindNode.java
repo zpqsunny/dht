@@ -24,7 +24,7 @@ public class FindNode implements Runnable {
 
     private Map<String, NodeTable> tableMap;
 
-    private Integer minNodes;
+    private int minNodes;
 
     private List<BootstrapAddress> list = new ArrayList<>();
 

@@ -47,7 +47,7 @@ public class Utils {
             index += 4;
             byte[] port = Arrays.copyOfRange(nodes, index, index + 2);
             index += 2;
-            nodeTableList.add(new NodeTable(bytesToHex(nodeId), bytesToIp(ip), bytesToInt2(port), null));
+            nodeTableList.add(new NodeTable(bytesToHex(nodeId), bytesToIp(ip), bytesToInt2(port), 0));
         }
         return nodeTableList;
     }

@@ -16,8 +16,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
@@ -32,11 +32,11 @@ public class Main {
 
     public static void main(String[] args) throws InterruptedException, IOException {
 
-        ClassLoader classLoader = Main.class.getClassLoader();
-        URL url = classLoader.getResource("config.properties");
-        if (url == null) {
+        String dir = System.getProperty("user.dir");
+        Path configFile = Paths.get(dir + "/config.properties");
+        if (!Files.exists(configFile)) {
 
-            LOGGER.error("error config");
+            LOGGER.error("dir {} no find config.properties", dir);
             return;
         }
 
@@ -50,7 +50,7 @@ public class Main {
         int pingInterval = 300;
         int removeNodeInterval = 300;
 
-        InputStream inputStream = Files.newInputStream(Paths.get(url.getFile()));
+        InputStream inputStream = Files.newInputStream(configFile);
         Properties properties = new Properties();
         properties.load(inputStream);
         String host = properties.getProperty("server.ip");

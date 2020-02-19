@@ -49,14 +49,13 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket) {
+    protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
 
         try {
 
             ByteBuf content = datagramPacket.copy().content();
             byte[] req = new byte[content.readableBytes()];
             content.readBytes(req);
-            content.release();
 
             BEncodedValue data = BDecoder.decode(new ByteArrayInputStream(req));
             byte[] transactionId = data.getMap().get(DhtProtocol.T).getBytes();
@@ -69,19 +68,19 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
                     switch (data.getMap().get(DhtProtocol.Q).getString()) {
 
                         case DhtProtocol.PING:
-                            this.queryPing(channelHandlerContext, datagramPacket, transactionId, a);
+                            this.queryPing(ctx, datagramPacket, transactionId, a);
                             break;
                         case DhtProtocol.FIND_NODE:
-                            this.queryFindNode(channelHandlerContext, datagramPacket, transactionId);
+                            this.queryFindNode(ctx, datagramPacket, transactionId);
                             break;
                         case DhtProtocol.GET_PEERS:
-                            this.queryGetPeers(channelHandlerContext, datagramPacket, transactionId, a);
+                            this.queryGetPeers(ctx, datagramPacket, transactionId, a);
                             break;
                         case DhtProtocol.ANNOUNCE_PEER:
-                            this.queryAnnouncePeer(channelHandlerContext, datagramPacket, transactionId, a);
+                            this.queryAnnouncePeer(ctx, datagramPacket, transactionId, a);
                             break;
                         default:
-                            this.queryMethodUnknown(channelHandlerContext, datagramPacket, transactionId);
+                            this.queryMethodUnknown(ctx, datagramPacket, transactionId);
                             break;
                     }
 
@@ -110,7 +109,6 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
                     break;
             }
 
-
         } catch (Exception e) {
 
             // nothing to do
@@ -118,11 +116,15 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
     }
 
-    private void queryPing(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, byte[] transactionId, Map<String, BEncodedValue> a) throws IOException {
+    @Override
+    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
 
-        channelHandlerContext.writeAndFlush(new DatagramPacket(
-                Unpooled.copiedBuffer(DhtProtocol.pingResponse(transactionId, nodeId)),
-                datagramPacket.sender()));
+        ctx.flush();
+    }
+
+    private void queryPing(ChannelHandlerContext ctx, DatagramPacket datagramPacket, byte[] transactionId, Map<String, BEncodedValue> a) throws IOException {
+
+        ctx.write(new DatagramPacket(Unpooled.copiedBuffer(DhtProtocol.pingResponse(transactionId, nodeId)), datagramPacket.sender()));
         String id = a.get(DhtProtocol.ID).getString();
         if (nodeTable.containsKey(id)) {
 
@@ -132,27 +134,27 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
         }
     }
 
-    private void queryFindNode(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, byte[] transactionId) throws IOException {
+    private void queryFindNode(ChannelHandlerContext ctx, DatagramPacket datagramPacket, byte[] transactionId) throws IOException {
 
         List<NodeTable> table = new ArrayList<>(nodeTable.values());
-        channelHandlerContext.writeAndFlush(new DatagramPacket(
+        ctx.write(new DatagramPacket(
                 Unpooled.copiedBuffer(
                         DhtProtocol.findNodeResponse(transactionId, nodeId, Utils.nodesEncode(table))),
                 datagramPacket.sender()));
     }
 
-    private void queryGetPeers(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, byte[] transactionId, Map<String, BEncodedValue> a) throws IOException {
+    private void queryGetPeers(ChannelHandlerContext ctx, DatagramPacket datagramPacket, byte[] transactionId, Map<String, BEncodedValue> a) throws IOException {
 
         byte[] token = this.getToken(a.get(DhtProtocol.INFO_HASH).getBytes());
 //        List<NodeTable> nodes = new ArrayList<>(nodeTable.values());
-        channelHandlerContext.writeAndFlush(new DatagramPacket(
+        ctx.write(new DatagramPacket(
                 Unpooled.copiedBuffer(
                         DhtProtocol.getPeersResponseNodes(transactionId, nodeId, token, new byte[0])),
                 datagramPacket.sender()));
 
     }
 
-    private void queryAnnouncePeer(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, byte[] transactionId, Map<String, BEncodedValue> a) throws IOException {
+    private void queryAnnouncePeer(ChannelHandlerContext ctx, DatagramPacket datagramPacket, byte[] transactionId, Map<String, BEncodedValue> a) throws IOException {
 
         // sha1
         byte[] infoHash = a.get(DhtProtocol.INFO_HASH).getBytes();
@@ -178,7 +180,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
             port = a.get(DhtProtocol.PORT).getInt();
         }
-        channelHandlerContext.writeAndFlush(new DatagramPacket(
+        ctx.write(new DatagramPacket(
                 Unpooled.copiedBuffer(
                         DhtProtocol.announcePeerResponse(transactionId, nodeId)),
                 datagramPacket.sender()));
@@ -204,12 +206,9 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
         });
     }
 
-    private void queryMethodUnknown(ChannelHandlerContext channelHandlerContext, DatagramPacket datagramPacket, byte[] transactionId) throws IOException {
+    private void queryMethodUnknown(ChannelHandlerContext ctx, DatagramPacket datagramPacket, byte[] transactionId) throws IOException {
 
-        channelHandlerContext.writeAndFlush(new DatagramPacket(
-                Unpooled.copiedBuffer(
-                        DhtProtocol.error(transactionId, 204, "Method Unknown")),
-                datagramPacket.sender()));
+        ctx.write(new DatagramPacket(Unpooled.copiedBuffer(DhtProtocol.error(transactionId, 204, "Method Unknown")), datagramPacket.sender()));
     }
 
     private void responseHasId(Map<String, BEncodedValue> r, DatagramPacket datagramPacket) throws InvalidBEncodingException {

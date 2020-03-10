@@ -7,6 +7,8 @@ import me.zpq.dht.model.BootstrapAddress;
 import me.zpq.dht.protocol.DhtProtocol;
 import me.zpq.dht.util.Utils;
 import me.zpq.dht.model.NodeTable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -15,6 +17,8 @@ import java.util.List;
 import java.util.Map;
 
 public class FindNode implements Runnable {
+
+    private static final Logger log = LoggerFactory.getLogger(FindNode.class);
 
     private Channel channel;
 
@@ -28,7 +32,7 @@ public class FindNode implements Runnable {
 
     private List<BootstrapAddress> list = new ArrayList<>();
 
-    public FindNode(Channel channel, byte[] transactionId, byte[] nodeId, Map<String, NodeTable> tableMap, Integer minNodes) {
+    public FindNode(Channel channel, byte[] transactionId, byte[] nodeId, Map<String, NodeTable> tableMap, int minNodes) {
         this.channel = channel;
         this.transactionId = transactionId;
         this.nodeId = nodeId;
@@ -42,18 +46,31 @@ public class FindNode implements Runnable {
     @Override
     public void run() {
 
-        if (tableMap.size() >= minNodes) {
-
-            return;
-        }
-
         try {
 
-            final byte[] findNodeQuery = DhtProtocol.findNodeQuery(transactionId, nodeId, Utils.nodeId());
-            list.forEach(bootstrapAddress -> channel.writeAndFlush(new DatagramPacket(Unpooled.copiedBuffer(findNodeQuery),
-                    new InetSocketAddress(bootstrapAddress.getHost(), bootstrapAddress.getPort()))));
+            byte[] findNodeQuery = DhtProtocol.findNodeQuery(transactionId, nodeId, Utils.nodeId());
+            int size = tableMap.size();
+            log.info("tableMap size: {} ", size);
+            if (size < minNodes) {
+
+                log.info("do find Node in BootstrapAddress, minNodes: {} ", minNodes);
+                list.forEach(bootstrapAddress -> channel.writeAndFlush(
+                        new DatagramPacket(Unpooled.copiedBuffer(findNodeQuery),
+                                new InetSocketAddress(bootstrapAddress.getHost(), bootstrapAddress.getPort())
+                        )));
+            } else {
+
+                log.info("do find Node in NodeTable");
+                List<NodeTable> nodeTables = new ArrayList<>(tableMap.values());
+                nodeTables.forEach(nodeTable -> channel.writeAndFlush(
+                        new DatagramPacket(Unpooled.copiedBuffer(findNodeQuery),
+                                new InetSocketAddress(nodeTable.getIp(), nodeTable.getPort())
+                        )));
+            }
+
         } catch (IOException e) {
-            e.printStackTrace();
+
+            log.error(e.getMessage(), e);
         }
     }
 }

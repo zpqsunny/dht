@@ -60,7 +60,7 @@ public class Main {
 
         Bootstrap bootstrap = new Bootstrap();
         byte[] nodeId = Utils.nodeId();
-        Map<String, NodeTable> table = new Hashtable<>();
+        Map<String, NodeTable> table = new ConcurrentHashMap<>(6);
         table.put(new String(nodeId), new NodeTable(Utils.bytesToHex(nodeId), host, port, System.currentTimeMillis()));
         ThreadFactory threadFactory = Executors.defaultThreadFactory();
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(corePoolSize, maximumPoolSize,

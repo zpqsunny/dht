@@ -156,12 +156,12 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
         byte[] infoHash = a.get(DhtProtocol.INFO_HASH).getBytes();
 
         // token
-        byte[] needValidatorToken = a.get(DhtProtocol.TOKEN).getBytes();
-
-        if (!this.validatorToken(infoHash, needValidatorToken)) {
-
-            return;
-        }
+//        byte[] needValidatorToken = a.get(DhtProtocol.TOKEN).getBytes();
+//
+//        if (!this.validatorToken(infoHash, needValidatorToken)) {
+//
+//            return;
+//        }
         // ip
         String ip = datagramPacket.sender().getAddress().getHostAddress();
 
@@ -181,26 +181,8 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
                         DhtProtocol.announcePeerResponse(transactionId, nodeId)),
                 datagramPacket.sender()));
         this.saveNodeTable(id, ip, port);
-        if (threadPoolExecutor.getQueue().remainingCapacity() <= 0) {
-
-            return;
-        }
         log.info("ip {} port {} infoHash {}", ip, port, Utils.bytesToHex(infoHash));
-        threadPoolExecutor.execute(() -> {
-
-            PeerClient peerClient = new PeerClient(ip, port, infoHash);
-            log.info("todo request peerClient ......");
-            byte[] info = peerClient.request();
-            if (info != null) {
-
-                JsonMetaInfo jsonMetaInfo = new JsonMetaInfo();
-                try {
-                    jsonMetaInfo.show(info);
-                } catch (Exception e) {
-                    log.error(e.getMessage());
-                }
-            }
-        });
+        threadPoolExecutor.execute(new PeerClient(ip, port, infoHash));
     }
 
     private void queryMethodUnknown(ChannelHandlerContext ctx, DatagramPacket datagramPacket, byte[] transactionId) throws IOException {

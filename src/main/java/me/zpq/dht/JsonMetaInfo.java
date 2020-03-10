@@ -26,7 +26,7 @@ public class JsonMetaInfo {
 
     private static final String PATH_UTF8 = "path.utf-8";
 
-    public void show(byte[] info) throws Exception {
+    public static String show(byte[] info) throws Exception {
 
         Map<String, Object> metaInfo = new HashMap<>(6);
         BEncodedValue decode = BDecoder.decode(new ByteArrayInputStream(info));
@@ -68,7 +68,6 @@ public class JsonMetaInfo {
 
             metaInfo.put(FILES, arrayList);
         }
-        JSONObject jsonObject = new JSONObject(metaInfo);
-        System.out.println(jsonObject.toString());
+        return new JSONObject(metaInfo).toString();
     }
 }

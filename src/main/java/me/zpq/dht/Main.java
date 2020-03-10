@@ -45,7 +45,7 @@ public class Main {
         new Random().nextBytes(transactionId);
         int minNodes = 100;
         int maxNodes = 5000;
-        int timeout = 60000;
+        int timeout = 600000;
         int findNodeInterval = 60;
         int pingInterval = 300;
         int removeNodeInterval = 300;

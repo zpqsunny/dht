@@ -166,15 +166,17 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
         String ip = datagramPacket.sender().getAddress().getHostAddress();
 
         // port
-        int port;
+        int port = datagramPacket.sender().getPort();
+
+        int peerPort;
 
         if (a.get(DhtProtocol.IMPLIED_PORT) != null && a.get(DhtProtocol.IMPLIED_PORT).getInt() != 0) {
 
-            port = datagramPacket.sender().getPort();
+            peerPort = port;
 
         } else {
 
-            port = a.get(DhtProtocol.PORT).getInt();
+            peerPort = a.get(DhtProtocol.PORT).getInt();
         }
         ctx.writeAndFlush(new DatagramPacket(
                 Unpooled.copiedBuffer(
@@ -182,7 +184,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
                 datagramPacket.sender()));
         this.saveNodeTable(id, ip, port);
         log.info("ip {} port {} infoHash {}", ip, port, Utils.bytesToHex(infoHash));
-        threadPoolExecutor.execute(new PeerClient(ip, port, infoHash));
+        threadPoolExecutor.execute(new PeerClient(ip, peerPort, infoHash));
     }
 
     private void queryMethodUnknown(ChannelHandlerContext ctx, DatagramPacket datagramPacket, byte[] transactionId) throws IOException {
@@ -212,8 +214,8 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
             return;
         }
         nodeTableList.forEach(table ->
-                        nodeTableMap.put(table.getNid(),
-                                new NodeTable(table.getNid(), table.getIp(), table.getPort(), System.currentTimeMillis()))
+                nodeTableMap.put(table.getNid(),
+                        new NodeTable(table.getNid(), table.getIp(), table.getPort(), System.currentTimeMillis()))
         );
 
     }

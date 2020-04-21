@@ -2,9 +2,9 @@
 
 ## config.properties 配置文件
 
-3. serverIp=0.0.0.0     //服务器ip
-8. corePoolSize=5       //核心线程池数量 用于请求metadata的客户端
-9. maximumPoolSize=10   //最大线程池数量
+1. server.ip=0.0.0.0                    //服务器ip
+2. server.peers.core.pool.size=20       //核心线程池数量 用于请求metadata的客户端
+3. server.peers.maximum.pool.size=40    //最大线程池数量
 
 ## 实现协议
 
@@ -13,6 +13,7 @@
 - [x] [Extension Protocol](http://www.bittorrent.org/beps/bep_0010.html)
 
 ## 运行
+jar包和config.properties配置文件要在同一目录
 ```shell script
-java -Xbootclasspath/a:/path/to/configDir -jar dht-1.0-SNAPSHOT-jar-with-dependencies.jar
+java  -jar dht-1.0-SNAPSHOT-jar-with-dependencies.jar
 ```

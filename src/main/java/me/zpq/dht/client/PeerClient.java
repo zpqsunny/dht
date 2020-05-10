@@ -129,7 +129,7 @@ public class PeerClient implements Runnable {
 
     private void handshake(OutputStream outputStream) throws IOException {
 
-        byte[] extension = new byte[]{0, 0, 0, 0, 0, 16, 0, 1};
+        byte[] extension = new byte[]{0, 0, 0, 0, 0, 16, 0, 0};
         ByteBuffer handshake = ByteBuffer.allocate(68);
         handshake.put((byte) PROTOCOL.length())
                 .put(PROTOCOL.getBytes())

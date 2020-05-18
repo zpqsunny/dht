@@ -64,6 +64,16 @@ public class Utils {
         return nodeId;
     }
 
+    public static byte[] nearNodeId(byte[] nodeId) {
+
+        byte[] nearNodeId = new byte[20];
+        System.arraycopy(nodeId, 0, nearNodeId, 0, 10);
+        byte[] after = new byte[10];
+        (new Random()).nextBytes(after);
+        System.arraycopy(after, 0, nearNodeId, 10, 10);
+        return nearNodeId;
+    }
+
     private static String bytesToIp(byte[] src) {
         return (src[0] & 0xff) + "." + (src[1] & 0xff) + "." + (src[2] & 0xff)
                 + "." + (src[3] & 0xff);

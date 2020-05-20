@@ -150,8 +150,6 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
     private void queryAnnouncePeer(ChannelHandlerContext ctx, DatagramPacket datagramPacket, byte[] transactionId, Map<String, BEncodedValue> a) throws IOException {
 
-        String id = Utils.bytesToHex(a.get(DhtProtocol.ID).getBytes());
-
         // sha1
         byte[] infoHash = a.get(DhtProtocol.INFO_HASH).getBytes();
 

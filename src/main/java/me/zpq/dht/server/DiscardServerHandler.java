@@ -182,7 +182,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
                 Unpooled.copiedBuffer(
                         DhtProtocol.announcePeerResponse(transactionId, nodeId)),
                 datagramPacket.sender()));
-        this.saveNodeTable(id, ip, port);
+
         log.info("ip {} port {} infoHash {}", ip, port, Utils.bytesToHex(infoHash));
         threadPoolExecutor.execute(new PeerClient(ip, peerPort, infoHash));
     }

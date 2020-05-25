@@ -37,7 +37,7 @@ public class PeerClient implements Runnable {
 
     private static final String TOTAL_SIZE = "total_size";
 
-    private static final int CONNECT_TIMEOUT = 30 * 1000;
+    private static final int CONNECT_TIMEOUT = 10 * 1000;
 
     private static final int READ_TIMEOUT = 60 * 1000;
 

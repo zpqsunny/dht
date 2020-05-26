@@ -83,22 +83,24 @@ public class PeerClient implements Runnable {
             int metaDataSize = bEncodedValue.getMap().get(METADATA_SIZE).getInt();
             int block = metaDataSize % BLOCK_SIZE > 0 ? metaDataSize / BLOCK_SIZE + 1 : metaDataSize / BLOCK_SIZE;
             log.info("metaDataSize: {} block: {}", metaDataSize, block);
+            ByteBuffer metaInfo = ByteBuffer.allocate(metaDataSize);
             for (int i = 0; i < block; i++) {
 
                 this.metadataRequest(outputStream, utMetadata, i);
                 log.info("request block index: {} ok", i);
-            }
-            ByteBuffer metaInfo = ByteBuffer.allocate(metaDataSize);
-            for (int i = 0; i < block; i++) {
-
-                Map<String, BEncodedValue> m = new HashMap<>(6);
+                Map<String, BEncodedValue> m = new HashMap<>(16);
                 m.put(MSG_TYPE, new BEncodedValue(1));
                 m.put(PIECE, new BEncodedValue(i));
                 m.put(TOTAL_SIZE, new BEncodedValue(metaDataSize));
-                byte[] response = BEncoder.encode(m).array();
+                byte[] data = BEncoder.encode(m).array();
                 byte[] length = this.resolveLengthMessage(inputStream, 4);
-                byte[] result = this.resolveLengthMessage(inputStream, byte2int(length));
-                metaInfo.put(Arrays.copyOfRange(result, response.length + 2, result.length));
+                byte[] response = this.resolveLengthMessage(inputStream, byte2int(length));
+                if (response.length <= (data.length + 2)) {
+
+                    log.info("resolve block index: {} fail", i);
+                    return;
+                }
+                metaInfo.put(Arrays.copyOfRange(response, data.length + 2, response.length));
                 log.info("resolve block index: {} ok", i);
             }
             log.info("validator sha1");

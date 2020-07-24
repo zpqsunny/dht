@@ -151,7 +151,11 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
         // sha1
         byte[] infoHash = a.get(KrpcConstant.INFO_HASH).getBytes();
-        log.info("queryAnnouncePeer infoHash length: {}", infoHash.length);
+
+        if (infoHash.length != 20) {
+
+            return;
+        }
         // token
 //        byte[] needValidatorToken = a.get(KrpcConstant.TOKEN).getBytes();
 //

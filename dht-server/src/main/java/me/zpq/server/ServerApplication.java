@@ -1,0 +1,134 @@
+package me.zpq.server;
+
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisURI;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.sync.RedisCommands;
+import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
+import io.lettuce.core.resource.ClientResources;
+import io.lettuce.core.resource.DefaultClientResources;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioDatagramChannel;
+import lombok.extern.slf4j.Slf4j;
+import me.zpq.dht.common.Utils;
+import me.zpq.route.IRoutingTable;
+import me.zpq.route.NodeTable;
+import me.zpq.route.RoutingTable;
+import me.zpq.server.schedule.FindNode;
+import me.zpq.server.schedule.Ping;
+import me.zpq.server.schedule.RemoveNode;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Properties;
+import java.util.concurrent.*;
+
+/**
+ * @author zpq
+ * @date 2020/7/23
+ */
+@Slf4j
+public class ServerApplication {
+
+    private static String HOST = "127.0.0.1";
+
+    private static int PORT = 6881;
+
+    private static final byte[] NODE_ID = Utils.nodeId();
+
+    private static final byte[] TRANSACTION_ID = Utils.transactionId();
+
+    private static int MIN_NODES = 20;
+
+    private static int MAX_NODES = 5000;
+
+    private static int FIND_NODE_INTERVAL = 60;
+
+    private static int PING_INTERVAL = 300;
+
+    private static int REMOVE_NODE_INTERVAL = 300;
+
+    private static String REDIS_HOST = "127.0.0.1";
+
+    private static int REDIS_PORT = 6379;
+
+    private static String REDIS_PASSWORD = "";
+
+    public static void main(String[] args) throws InterruptedException, IOException {
+
+        readConfig();
+
+        Bootstrap bootstrap = new Bootstrap();
+
+        RoutingTable routingTable = new RoutingTable();
+
+        routingTable.put(new NodeTable(Utils.bytesToHex(NODE_ID), HOST, PORT, System.currentTimeMillis()));
+
+        RedisCommands<String, String> redis = redis();
+
+        bootstrap.group(new NioEventLoopGroup())
+                .channel(NioDatagramChannel.class)
+                .option(ChannelOption.SO_BROADCAST, true)
+                .handler(new DiscardServerHandler(routingTable, NODE_ID, MAX_NODES, redis));
+        final Channel channel = bootstrap.bind(PORT).sync().channel();
+
+        scheduled(channel, routingTable);
+    }
+
+    private static RedisCommands<String, String> redis() {
+
+        DefaultClientResources.Builder resourceBuild = DefaultClientResources.builder();
+        RedisURI.Builder builder = RedisURI.builder();
+        builder.withHost(REDIS_HOST);
+        builder.withPort(REDIS_PORT);
+//        builder.withPassword(REDIS_PASSWORD);
+        RedisClient redisClient = RedisClient.create(resourceBuild.build(), builder.build());
+        StatefulRedisConnection<String, String> connection = redisClient.connect();
+        return connection.sync();
+    }
+
+    private static void readConfig() throws IOException {
+
+        String dir = System.getProperty("user.dir");
+        Path configFile = Paths.get(dir + "/config.properties");
+        if (!Files.exists(configFile)) {
+
+            log.warn("dir {} no find config.properties read default config", dir);
+            return;
+        }
+        InputStream inputStream = Files.newInputStream(configFile);
+        Properties properties = new Properties();
+        properties.load(inputStream);
+        HOST = properties.getProperty("server.ip");
+        PORT = Integer.parseInt(properties.getProperty("server.port"));
+        MIN_NODES = Integer.parseInt(properties.getProperty("server.nodes.min"));
+        MAX_NODES = Integer.parseInt(properties.getProperty("server.nodes.max"));
+        FIND_NODE_INTERVAL = Integer.parseInt(properties.getProperty("server.findNode.interval"));
+        PING_INTERVAL = Integer.parseInt(properties.getProperty("server.ping.interval"));
+        REMOVE_NODE_INTERVAL = Integer.parseInt(properties.getProperty("server.removeNode.interval"));
+
+        inputStream.close();
+
+    }
+
+    private static void scheduled(final Channel channel, IRoutingTable routingTable) {
+
+        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(5);
+        log.info("start autoFindNode");
+        scheduledExecutorService.scheduleWithFixedDelay(new FindNode(channel, TRANSACTION_ID, NODE_ID, routingTable, MIN_NODES), FIND_NODE_INTERVAL, FIND_NODE_INTERVAL, TimeUnit.SECONDS);
+        log.info("start ok autoFindNode");
+        log.info("start Ping");
+        scheduledExecutorService.scheduleWithFixedDelay(new Ping(channel, TRANSACTION_ID, NODE_ID, routingTable), PING_INTERVAL, PING_INTERVAL, TimeUnit.SECONDS);
+        log.info("start ok Ping");
+        log.info("start RemoveNode");
+        scheduledExecutorService.scheduleWithFixedDelay(new RemoveNode(routingTable), REMOVE_NODE_INTERVAL, REMOVE_NODE_INTERVAL, TimeUnit.SECONDS);
+        log.info("start ok RemoveNode");
+        log.info("server ok");
+    }
+}

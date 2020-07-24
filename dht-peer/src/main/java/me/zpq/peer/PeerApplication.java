@@ -76,8 +76,8 @@ public class PeerApplication {
             inputStream.close();
         }
 
-        log.info("=> server.peers.core.pool.size: {}", CORE_POOL_SIZE);
-        log.info("=> server.peers.maximum.pool.size: {}", MAX_POOL_SIZE);
+        log.info("=> peers.core.pool.size: {}", CORE_POOL_SIZE);
+        log.info("=> peers.maximum.pool.size: {}", MAX_POOL_SIZE);
         log.info("=> redis.host: {}", REDIS_HOST);
         log.info("=> redis.port: {}", REDIS_PORT);
         log.info("=> redis.password: {}", REDIS_PASSWORD);

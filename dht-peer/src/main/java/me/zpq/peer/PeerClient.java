@@ -137,7 +137,7 @@ public class PeerClient {
             return false;
         }
         byte[] last = this.resolveLengthMessage(inputStream, 48);
-        log.warn("{} {} {} {} {} {} {} {}", last[0], last[1], last[2], last[3], last[4], last[5], last[6], last[7]);
+        log.info("{} {} {} {} {} {} {} {}", last[0], last[1], last[2], last[3], last[4], last[5], last[6], last[7]);
         byte[] infoHash = Arrays.copyOfRange(last, 8, 28);
         if (infoHash.length != this.infoHash.length) {
 

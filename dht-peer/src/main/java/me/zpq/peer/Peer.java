@@ -51,7 +51,7 @@ public class Peer implements Runnable {
 
         String infoHash = redis.rpop(LIST_KEY);
         if (infoHash != null) {
-
+            log.info("redis peer len: {}", redis.llen(LIST_KEY));
             StringTokenizer stringTokenizer = new StringTokenizer(infoHash, "|");
             String hashHex = stringTokenizer.nextToken();
             redis.srem(SET_KEY, hashHex);

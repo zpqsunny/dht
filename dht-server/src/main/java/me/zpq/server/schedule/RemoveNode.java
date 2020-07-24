@@ -9,7 +9,7 @@ public class RemoveNode implements Runnable {
 
     private final IRoutingTable routingTable;
 
-    private final long NODE_EXPIRATION_TIME = 15 * 60;
+    private final long NODE_EXPIRATION_TIME = 15 * 60 * 1000;
 
     public RemoveNode(IRoutingTable routingTable) {
 

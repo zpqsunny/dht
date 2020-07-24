@@ -79,6 +79,7 @@ public class ServerApplication {
         final Channel channel = bootstrap.bind(PORT).sync().channel();
 
         scheduled(channel, routingTable);
+        log.info("server ok");
     }
 
     private static RedisCommands<String, String> redis() {
@@ -87,7 +88,7 @@ public class ServerApplication {
         RedisURI.Builder builder = RedisURI.builder();
         builder.withHost(REDIS_HOST);
         builder.withPort(REDIS_PORT);
-//        builder.withPassword(REDIS_PASSWORD);
+        builder.withPassword(REDIS_PASSWORD);
         RedisClient redisClient = RedisClient.create(resourceBuild.build(), builder.build());
         StatefulRedisConnection<String, String> connection = redisClient.connect();
         return connection.sync();
@@ -97,23 +98,35 @@ public class ServerApplication {
 
         String dir = System.getProperty("user.dir");
         Path configFile = Paths.get(dir + "/config.properties");
-        if (!Files.exists(configFile)) {
+        if (Files.exists(configFile)) {
 
-            log.warn("dir {} no find config.properties read default config", dir);
-            return;
+            log.info("=> read config...");
+            InputStream inputStream = Files.newInputStream(configFile);
+            Properties properties = new Properties();
+            properties.load(inputStream);
+            HOST = properties.getProperty("server.ip", HOST);
+            PORT = Integer.parseInt(properties.getProperty("server.port", String.valueOf(PORT)));
+            MIN_NODES = Integer.parseInt(properties.getProperty("server.nodes.min"));
+            MAX_NODES = Integer.parseInt(properties.getProperty("server.nodes.max"));
+            FIND_NODE_INTERVAL = Integer.parseInt(properties.getProperty("server.findNode.interval"));
+            PING_INTERVAL = Integer.parseInt(properties.getProperty("server.ping.interval"));
+            REMOVE_NODE_INTERVAL = Integer.parseInt(properties.getProperty("server.removeNode.interval"));
+            REDIS_HOST = properties.getProperty("redis.host", REDIS_HOST);
+            REDIS_PORT = Integer.parseInt(properties.getProperty("redis.port", String.valueOf(REDIS_PORT)));
+            REDIS_PASSWORD = properties.getProperty("redis.password", REDIS_PASSWORD);
+            inputStream.close();
         }
-        InputStream inputStream = Files.newInputStream(configFile);
-        Properties properties = new Properties();
-        properties.load(inputStream);
-        HOST = properties.getProperty("server.ip");
-        PORT = Integer.parseInt(properties.getProperty("server.port"));
-        MIN_NODES = Integer.parseInt(properties.getProperty("server.nodes.min"));
-        MAX_NODES = Integer.parseInt(properties.getProperty("server.nodes.max"));
-        FIND_NODE_INTERVAL = Integer.parseInt(properties.getProperty("server.findNode.interval"));
-        PING_INTERVAL = Integer.parseInt(properties.getProperty("server.ping.interval"));
-        REMOVE_NODE_INTERVAL = Integer.parseInt(properties.getProperty("server.removeNode.interval"));
 
-        inputStream.close();
+        log.info("=> server.ip: {}", HOST);
+        log.info("=> server.port: {}", PORT);
+        log.info("=> server.nodes.min: {}", MIN_NODES);
+        log.info("=> server.nodes.max: {}", MAX_NODES);
+        log.info("=> server.findNode.interval: {}", FIND_NODE_INTERVAL);
+        log.info("=> server.ping.interval: {}", PING_INTERVAL);
+        log.info("=> server.removeNode.interval: {}", REMOVE_NODE_INTERVAL);
+        log.info("=> redis.host: {}", REDIS_HOST);
+        log.info("=> redis.port: {}", REDIS_PORT);
+        log.info("=> redis.password: {}", REDIS_PASSWORD);
 
     }
 
@@ -129,6 +142,5 @@ public class ServerApplication {
         log.info("start RemoveNode");
         scheduledExecutorService.scheduleWithFixedDelay(new RemoveNode(routingTable), REMOVE_NODE_INTERVAL, REMOVE_NODE_INTERVAL, TimeUnit.SECONDS);
         log.info("start ok RemoveNode");
-        log.info("server ok");
     }
 }

@@ -1,9 +1,15 @@
 package me.zpq.peer;
 
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoCollection;
 import io.lettuce.core.api.sync.RedisCommands;
 import lombok.extern.slf4j.Slf4j;
 import me.zpq.dht.common.Utils;
+import org.bson.BsonBinary;
+import org.bson.Document;
 
+import java.io.IOException;
 import java.util.Random;
 import java.util.StringTokenizer;
 import java.util.concurrent.ExecutionException;
@@ -22,13 +28,21 @@ public class Peer implements Runnable {
 
     private final static String LIST_KEY = "peer";
 
+    private static final String DHT = "dht";
+
+    private static final String METADATA = "metadata";
+
+    private static final String HASH = "hash";
+
     private final RedisCommands<String, String> redis;
+
+    private final MongoCollection<Document> document;
 
     private final ThreadPoolExecutor threadPoolExecutor;
 
-    public Peer(RedisCommands<String, String> redis, ThreadPoolExecutor threadPoolExecutor) {
-
+    public Peer(RedisCommands<String, String> redis, MongoClient mongoClient, ThreadPoolExecutor threadPoolExecutor) {
         this.redis = redis;
+        this.document = mongoClient.getDatabase(DHT).getCollection(METADATA);
         this.threadPoolExecutor = threadPoolExecutor;
     }
 
@@ -51,15 +65,24 @@ public class Peer implements Runnable {
                 byte[] info = peerClient.run();
                 if (info != null) {
 
+                    Document has = new Document();
+                    has.put(HASH, new BsonBinary(hash));
+                    FindIterable<Document> documents = document.find(has);
+                    if (documents.first() != null) {
+                        return;
+                    }
+
                     try {
-                        String show = JsonMetaInfo.show(info);
-                        System.out.println(show);
-                    } catch (Exception e) {
-                        //ignore
+
+                        Document doc = MongoMetaInfo.saveLocalFile(info);
+                        document.insertOne(doc);
+
+                    } catch (IOException e) {
+                        //
+                        log.error(e.getMessage(), e);
                     }
                 }
             });
         }
-
     }
 }

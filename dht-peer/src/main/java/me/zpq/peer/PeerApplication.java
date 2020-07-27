@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.management.ManagementFactory;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -54,7 +55,7 @@ public class PeerApplication {
 
         scheduledExecutorService.scheduleWithFixedDelay(new Peer(redis, mongoClient, threadPoolExecutor), 2L, 2L, TimeUnit.SECONDS);
 
-        log.info("peer start");
+        log.info("peer started pid: {}", ManagementFactory.getRuntimeMXBean().getName());
     }
 
     private static void readConfig() throws IOException {

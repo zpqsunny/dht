@@ -23,6 +23,8 @@ import me.zpq.server.schedule.RemoveNode;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -79,7 +81,8 @@ public class ServerApplication {
         final Channel channel = bootstrap.bind(PORT).sync().channel();
 
         scheduled(channel, routingTable);
-        log.info("server ok");
+
+        log.info("server ok pid: {}", ManagementFactory.getRuntimeMXBean().getName());
     }
 
     private static RedisCommands<String, String> redis() {

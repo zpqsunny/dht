@@ -53,7 +53,7 @@ public class PeerApplication {
 
         ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(5);
 
-        scheduledExecutorService.scheduleWithFixedDelay(new Peer(redis, mongoClient, threadPoolExecutor), 2L, 2L, TimeUnit.SECONDS);
+        scheduledExecutorService.scheduleWithFixedDelay(new Peer(redis, mongoClient, threadPoolExecutor), 1L, 1L, TimeUnit.SECONDS);
 
         log.info("peer started pid: {}", ManagementFactory.getRuntimeMXBean().getName());
     }

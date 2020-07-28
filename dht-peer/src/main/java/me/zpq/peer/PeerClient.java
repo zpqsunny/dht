@@ -4,7 +4,7 @@ import be.adaxisoft.bencode.BDecoder;
 import be.adaxisoft.bencode.BEncodedValue;
 import be.adaxisoft.bencode.BEncoder;
 import lombok.extern.slf4j.Slf4j;
-import me.zpq.dht.common.Utils;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.ByteArrayInputStream;
@@ -17,7 +17,6 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 import static me.zpq.peer.MetadataConstant.*;
 
@@ -48,7 +47,7 @@ public class PeerClient {
             socket.setSoTimeout(READ_TIMEOUT);
             socket.setTcpNoDelay(true);
             socket.setKeepAlive(true);
-            log.info("connect server host: {} port: {} hash: {}", host, port, Utils.bytesToHex(this.infoHash));
+            log.info("connect server host: {} port: {} hash: {}", host, port, Hex.encodeHexString(this.infoHash));
             socket.connect(new InetSocketAddress(host, port), CONNECT_TIMEOUT);
             OutputStream outputStream = socket.getOutputStream();
             InputStream inputStream = socket.getInputStream();

@@ -20,6 +20,7 @@ import me.zpq.route.RoutingTable;
 import me.zpq.server.schedule.FindNode;
 import me.zpq.server.schedule.Ping;
 import me.zpq.server.schedule.RemoveNode;
+import org.apache.commons.codec.binary.Hex;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -70,7 +71,7 @@ public class ServerApplication {
 
         RoutingTable routingTable = new RoutingTable();
 
-        routingTable.put(new NodeTable(Utils.bytesToHex(NODE_ID), HOST, PORT, System.currentTimeMillis()));
+        routingTable.put(new NodeTable(Hex.encodeHexString(NODE_ID), HOST, PORT, System.currentTimeMillis()));
 
         RedisCommands<String, String> redis = redis();
 

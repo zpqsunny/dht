@@ -15,6 +15,8 @@ import me.zpq.krpc.KrpcConstant;
 import me.zpq.krpc.KrpcProtocol;
 import me.zpq.route.IRoutingTable;
 import me.zpq.route.NodeTable;
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -183,7 +185,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
         ctx.writeAndFlush(new DatagramPacket(Unpooled.copiedBuffer(
                 KrpcProtocol.announcePeerResponse(transactionId, nodeId)), datagramPacket.sender()));
 
-        String hash = Utils.bytesToHex(infoHash);
+        String hash = Hex.encodeHexString(infoHash);
 
         log.info("ip {} port {} infoHash {}", ip, peerPort, hash);
 
@@ -238,7 +240,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
     private void updateRoutingTable(byte[] id, String ip, int port) {
 
-        String nId = Utils.bytesToHex(id);
+        String nId = Hex.encodeHexString(id);
         NodeTable nodeTable = new NodeTable();
         if (routingTable.has(nId)) {
 
@@ -246,15 +248,17 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
             nodeTable.setId(nId);
             nodeTable.setIp(ip);
             nodeTable.setPort(port);
+            nodeTable.setLastChanged(System.currentTimeMillis());
             routingTable.replace(nodeTable);
             return;
         }
 
         if (routingTable.size() < maxNodes) {
 
-            nodeTable.setId(Utils.bytesToHex(id));
+            nodeTable.setId(nId);
             nodeTable.setIp(ip);
             nodeTable.setPort(port);
+            nodeTable.setLastChanged(System.currentTimeMillis());
             routingTable.put(nodeTable);
         }
 
@@ -268,10 +272,10 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
         collection.forEach(nodeTable -> {
 
             try {
-                byteBuffer.put(Utils.hexToByte(nodeTable.getId()))
+                byteBuffer.put(Hex.decodeHex(nodeTable.getId()))
                         .put(Utils.ipToByte(nodeTable.getIp()))
                         .put(Utils.intToBytes2(nodeTable.getPort()));
-            } catch (UnknownHostException e) {
+            } catch (UnknownHostException | DecoderException e) {
                 // ignore
             }
 
@@ -292,7 +296,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
             index += 4;
             byte[] port = Arrays.copyOfRange(nodes, index, index + 2);
             index += 2;
-            nodeTableList.add(new NodeTable(Utils.bytesToHex(nodeId), Utils.bytesToIp(ip), Utils.bytesToInt2(port), System.currentTimeMillis()));
+            nodeTableList.add(new NodeTable(Hex.encodeHexString(nodeId), Utils.bytesToIp(ip), Utils.bytesToInt2(port), System.currentTimeMillis()));
         }
         return nodeTableList;
     }

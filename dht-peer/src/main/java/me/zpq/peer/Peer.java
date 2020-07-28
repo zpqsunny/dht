@@ -5,16 +5,13 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import io.lettuce.core.api.sync.RedisCommands;
 import lombok.extern.slf4j.Slf4j;
-import me.zpq.dht.common.Utils;
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 import org.bson.BsonBinary;
 import org.bson.Document;
 
 import java.io.IOException;
-import java.util.Random;
 import java.util.StringTokenizer;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -55,7 +52,14 @@ public class Peer implements Runnable {
             StringTokenizer stringTokenizer = new StringTokenizer(infoHash, "|");
             String hashHex = stringTokenizer.nextToken();
             redis.srem(SET_KEY, hashHex);
-            byte[] hash = Utils.hexToByte(hashHex);
+            byte[] hash;
+            try {
+                hash = Hex.decodeHex(hashHex);
+            } catch (DecoderException e) {
+                // ignore
+                log.error(e.getMessage());
+                return;
+            }
             String ip = stringTokenizer.nextToken();
             int port = Integer.parseInt(stringTokenizer.nextToken());
 

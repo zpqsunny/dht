@@ -57,26 +57,4 @@ public class Utils {
         return data;
     }
 
-    public static String bytesToHex(byte[] bytes) {
-
-        StringBuilder sb = new StringBuilder();
-        for (byte b : bytes) {
-            sb.append(String.format("%02x", b));
-        }
-        return sb.toString();
-    }
-
-    public static byte[] hexToByte(String hex) {
-
-        int m, n;
-        int byteLen = hex.length() / 2;
-        byte[] ret = new byte[byteLen];
-        for (int i = 0; i < byteLen; i++) {
-            m = i * 2 + 1;
-            n = m + 1;
-            int intVal = Integer.decode("0x" + hex.substring(i * 2, m) + hex.substring(m, n));
-            ret[i] = (byte) intVal;
-        }
-        return ret;
-    }
 }

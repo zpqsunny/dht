@@ -7,6 +7,7 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import lombok.extern.slf4j.Slf4j;
 import me.zpq.dht.common.Utils;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.bson.*;
 
@@ -54,7 +55,7 @@ public class MongoMetaInfo {
 
     public static Document saveLocalFile(byte[] info) throws IOException {
         byte[] sha1 = DigestUtils.sha1(info);
-        String hex = Utils.bytesToHex(sha1);
+        String hex = Hex.encodeHexString(sha1);
         String date = LocalDate.now().format(FORMATTER);
         String dir = "/" + METADATA + "/" + date;
         if (!Files.exists(Paths.get(dir))) {

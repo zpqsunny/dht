@@ -43,7 +43,9 @@ public class PeerApplication {
 
         readConfig();
 
-        RedisCommands<String, String> redis = redis();
+        RedisClient redisClient = redis();
+
+        RedisCommands<String, String> redis = redisClient.connect().sync();
 
         MongoClient mongoClient = mongo(MONGODB_URL);
 
@@ -56,6 +58,19 @@ public class PeerApplication {
         scheduledExecutorService.scheduleWithFixedDelay(new Peer(redis, mongoClient, threadPoolExecutor), 1L, 1L, TimeUnit.SECONDS);
 
         log.info("peer started pid: {}", ManagementFactory.getRuntimeMXBean().getName());
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+
+            log.info("closing...");
+            threadPoolExecutor.shutdown();
+            log.info("closed threadPool...");
+            scheduledExecutorService.shutdown();
+            log.info("closed scheduled...");
+            redisClient.shutdown();
+            log.info("closed redis...");
+            mongoClient.close();
+            log.info("closed mongodb...");
+        }));
     }
 
     private static void readConfig() throws IOException {
@@ -85,16 +100,14 @@ public class PeerApplication {
         log.info("=> mongodb.url: {}", MONGODB_URL);
     }
 
-    private static RedisCommands<String, String> redis() {
+    private static RedisClient redis() {
 
         DefaultClientResources.Builder resourceBuild = DefaultClientResources.builder();
         RedisURI.Builder builder = RedisURI.builder();
         builder.withHost(REDIS_HOST);
         builder.withPort(REDIS_PORT);
         builder.withPassword(REDIS_PASSWORD);
-        RedisClient redisClient = RedisClient.create(resourceBuild.build(), builder.build());
-        StatefulRedisConnection<String, String> connection = redisClient.connect();
-        return connection.sync();
+        return RedisClient.create(resourceBuild.build(), builder.build());
     }
 
     private static MongoClient mongo(String mongoUri) {

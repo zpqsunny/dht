@@ -31,7 +31,9 @@ public class MongoMetaInfo {
 
     private static final String PIECE_LENGTH = "piece length";
 
-    private static final String CREATED_DATETIME = "created datetime";
+    private static final String PIECE_LEN = "pieceLength";
+
+    private static final String CREATED_DATETIME = "createdDateTime";
 
     private static final String FILES = "files";
 
@@ -44,6 +46,8 @@ public class MongoMetaInfo {
     private static final String METADATA = "metadata";
 
     private static final String SIZE = "size";
+
+    private static final String FILE_NUMBER = "fileNumber";
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM/dd");
 
@@ -62,6 +66,7 @@ public class MongoMetaInfo {
         BEncodedValue decode = BDecoder.decode(new ByteArrayInputStream(info));
         Document metaInfo = new Document();
         long size = 0;
+        int fileNumber = 1;
         metaInfo.put(HASH, new BsonBinary(sha1));
         String name = decode.getMap().get(NAME).getString();
         if (decode.getMap().get(NAME_UTF8) != null) {
@@ -70,7 +75,7 @@ public class MongoMetaInfo {
             name = decode.getMap().get(NAME_UTF8).getString();
         }
         metaInfo.put(NAME, name);
-        metaInfo.put(PIECE_LENGTH, decode.getMap().get(PIECE_LENGTH).getInt());
+        metaInfo.put(PIECE_LEN, decode.getMap().get(PIECE_LENGTH).getInt());
         metaInfo.put(CREATED_DATETIME, new BsonDateTime(System.currentTimeMillis()));
         if (decode.getMap().get(LENGTH) != null) {
 
@@ -82,6 +87,7 @@ public class MongoMetaInfo {
             // multi-file mode
             BsonArray bsonArray = new BsonArray();
             List<BEncodedValue> files = decode.getMap().get(FILES).getList();
+            fileNumber = files.size();
             for (BEncodedValue file : files) {
 
                 BsonDocument f = new BsonDocument();
@@ -105,6 +111,7 @@ public class MongoMetaInfo {
         }
         metaInfo.put(PATH, "/" + date + "/" + fileName);
         metaInfo.put(SIZE, new BsonInt64(size));
+        metaInfo.put(FILE_NUMBER, new BsonInt32(fileNumber));
         OutputStream outputStream = Files.newOutputStream(Paths.get(dir + "/" + fileName));
         outputStream.write(info);
         outputStream.close();

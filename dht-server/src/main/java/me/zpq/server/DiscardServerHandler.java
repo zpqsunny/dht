@@ -191,7 +191,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
         log.info("ip {} port {} infoHash {}", ip, peerPort, hash);
         // format hash|ip|port|timestamp
-        redis.lpush(FRESH_EKY, String.join("|", hash, ip, Integer.toString(peerPort), Long.toString(System.currentTimeMillis())));
+        redis.lpush(FRESH_EKY, String.join("|", hash, ip, Integer.toString(port), Long.toString(System.currentTimeMillis())));
 
         if (!redis.sismember(SET_KEY, hash)) {
 

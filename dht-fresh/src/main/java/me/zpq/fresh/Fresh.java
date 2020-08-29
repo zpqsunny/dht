@@ -52,7 +52,7 @@ public class Fresh implements Runnable {
             } catch (DecoderException e) {
                 // ignore
                 log.error(e.getMessage());
-                return;
+                continue;
             }
             Document d = new Document();
             d.put("hash", new BsonBinary(hash));

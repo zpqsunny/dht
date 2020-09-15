@@ -46,7 +46,7 @@ public class FreshApplication {
 
         ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(5);
 
-        scheduledExecutorService.scheduleWithFixedDelay(new Fresh(redis, mongoClient), 10L, 10L, TimeUnit.SECONDS);
+        scheduledExecutorService.scheduleWithFixedDelay(new Fresh(redis, mongoClient), 5L, 5L, TimeUnit.SECONDS);
 
         log.info("fresh started pid: {}", ManagementFactory.getRuntimeMXBean().getName());
 

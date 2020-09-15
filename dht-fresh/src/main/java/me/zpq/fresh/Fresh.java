@@ -40,6 +40,10 @@ public class Fresh implements Runnable {
         for (long i = 0; i < freshLength; i++) {
 
             String freshValue = redis.rpop(FRESH_KEY);
+            if (freshValue == null) {
+
+                break;
+            }
             // format hash|ip|port|timestamp
             StringTokenizer stringTokenizer = new StringTokenizer(freshValue, "|");
             String hashHex = stringTokenizer.nextToken();

@@ -23,9 +23,9 @@ import static me.zpq.peer.MetadataConstant.*;
 @Slf4j
 public class PeerClient {
 
-    private static final int CONNECT_TIMEOUT = 10 * 1000;
+    private static final int CONNECT_TIMEOUT = 5 * 1000;
 
-    private static final int READ_TIMEOUT = 60 * 1000;
+    private static final int READ_TIMEOUT = 30 * 1000;
 
     private static final int BLOCK_SIZE = 16384;
 

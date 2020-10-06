@@ -43,6 +43,8 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
     private final static String LIST_KEY = "peer";
 
+    private final static String FRESH_EKY = "fresh";
+
     public DiscardServerHandler(IRoutingTable routingTable, byte[] nodeId, int maxNodes, RedisCommands<String, String> redis) {
 
         this.nodeId = nodeId;
@@ -188,12 +190,14 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
         String hash = Hex.encodeHexString(infoHash);
 
         log.info("ip {} port {} infoHash {}", ip, peerPort, hash);
+        // format hash|ip|port|timestamp
+        redis.lpush(FRESH_EKY, String.join("|", hash, ip, Integer.toString(port), Long.toString(System.currentTimeMillis())));
 
         if (!redis.sismember(SET_KEY, hash)) {
 
             redis.sadd(SET_KEY, hash);
             // format hash|ip|port
-            redis.lpush(LIST_KEY, String.join("|", hash, ip, String.valueOf(peerPort)));
+            redis.lpush(LIST_KEY, String.join("|", hash, ip, Integer.toString(peerPort)));
         }
 
     }

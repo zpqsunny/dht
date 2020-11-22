@@ -33,13 +33,13 @@ public class Peer implements Runnable {
 
     private final RedisCommands<String, String> redis;
 
-    private final MongoCollection<Document> document;
+    private final MongoCollection<Document> collection;
 
     private final ThreadPoolExecutor threadPoolExecutor;
 
     public Peer(RedisCommands<String, String> redis, MongoClient mongoClient, ThreadPoolExecutor threadPoolExecutor) {
         this.redis = redis;
-        this.document = mongoClient.getDatabase(DHT).getCollection(METADATA);
+        this.collection = mongoClient.getDatabase(DHT).getCollection(METADATA);
         this.threadPoolExecutor = threadPoolExecutor;
     }
 
@@ -65,21 +65,28 @@ public class Peer implements Runnable {
 
             threadPoolExecutor.execute(() -> {
 
+                Document has = new Document();
+                has.put(HASH, new BsonBinary(hash));
+                FindIterable<Document> documents = collection.find(has);
+                if (documents.first() != null) {
+                    log.info("hash is exist, ignore");
+                    return;
+                }
+
                 PeerClient peerClient = new PeerClient(ip, port, hash);
                 byte[] info = peerClient.run();
                 if (info != null) {
 
-                    Document has = new Document();
-                    has.put(HASH, new BsonBinary(hash));
-                    FindIterable<Document> documents = document.find(has);
+                    documents = collection.find(has);
                     if (documents.first() != null) {
+                        log.info("hash is exist, ignore too");
                         return;
                     }
 
                     try {
 
                         Document doc = MongoMetaInfo.saveLocalFile(info);
-                        document.insertOne(doc);
+                        collection.insertOne(doc);
 
                     } catch (IOException e) {
                         //

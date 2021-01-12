@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -56,7 +57,7 @@ public class MongoMetaInfo {
     public static Document saveLocalFile(byte[] info) throws IOException {
         byte[] sha1 = DigestUtils.sha1(info);
         String hex = Hex.encodeHexString(sha1);
-        String date = LocalDate.now().format(FORMATTER);
+        String date = LocalDate.now(ZoneId.of("GMT+8")).format(FORMATTER);
         String dir = "/" + METADATA + "/" + date;
         if (!Files.exists(Paths.get(dir))) {
 

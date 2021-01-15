@@ -118,6 +118,12 @@ public class ServerApplication {
             inputStream.close();
         }
 
+        String env = System.getenv().get("IP");
+        if (env != null && !env.isEmpty()) {
+
+            log.info("=> have env");
+            HOST = env;
+        }
         log.info("=> server.ip: {}", HOST);
         log.info("=> server.port: {}", PORT);
         log.info("=> server.nodes.min: {}", MIN_NODES);

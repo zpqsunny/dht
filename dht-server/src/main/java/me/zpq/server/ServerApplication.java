@@ -118,12 +118,9 @@ public class ServerApplication {
             inputStream.close();
         }
 
-        String env = System.getenv().get("IP");
-        if (env != null && !env.isEmpty()) {
+        readEnv();
 
-            log.info("=> have env");
-            HOST = env;
-        }
+        log.info("==========>");
         log.info("=> server.ip: {}", HOST);
         log.info("=> server.port: {}", PORT);
         log.info("=> server.nodes.min: {}", MIN_NODES);
@@ -134,6 +131,17 @@ public class ServerApplication {
         log.info("=> redis.host: {}", REDIS_HOST);
         log.info("=> redis.port: {}", REDIS_PORT);
         log.info("=> redis.password: {}", REDIS_PASSWORD);
+
+    }
+
+    private static void readEnv() {
+        // docker
+        String ip = System.getenv("IP");
+        if (ip != null && !ip.isEmpty()) {
+
+            log.info("=> env IP: {}", ip);
+            HOST = ip;
+        }
 
     }
 

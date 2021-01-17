@@ -91,12 +91,26 @@ public class PeerApplication {
             inputStream.close();
         }
 
+        readEnv();
+
+        log.info("==========>");
         log.info("=> peers.core.pool.size: {}", CORE_POOL_SIZE);
         log.info("=> peers.maximum.pool.size: {}", MAX_POOL_SIZE);
         log.info("=> redis.host: {}", REDIS_HOST);
         log.info("=> redis.port: {}", REDIS_PORT);
         log.info("=> redis.password: {}", REDIS_PASSWORD);
         log.info("=> mongodb.url: {}", MONGODB_URL);
+    }
+
+    private static void readEnv() {
+        // docker
+        String mongodbUrl = System.getenv("MONGODB_URL");
+        if (mongodbUrl != null && !mongodbUrl.isEmpty()) {
+
+            log.info("=> env MONGODB_URL: {}", mongodbUrl);
+            MONGODB_URL = mongodbUrl;
+        }
+
     }
 
     private static RedisClient redis() {

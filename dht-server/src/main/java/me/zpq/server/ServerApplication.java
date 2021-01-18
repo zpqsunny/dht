@@ -136,11 +136,35 @@ public class ServerApplication {
 
     private static void readEnv() {
         // docker
-        String ip = System.getenv("IP");
-        if (ip != null && !ip.isEmpty()) {
-
-            log.info("=> env IP: {}", ip);
-            HOST = ip;
+        String host = System.getenv("HOST");
+        String minNodes = System.getenv("MIN_NODES");
+        String maxNodes = System.getenv("MAX_NODES");
+        String redisHost = System.getenv("REDIS_HOST");
+        String redisPort = System.getenv("REDIS_PORT");
+        String redisPassword = System.getenv("REDIS_PASSWORD");
+        if (host != null && !host.isEmpty()) {
+            log.info("=> env HOST: {}", host);
+            HOST = host;
+        }
+        if (minNodes != null && !minNodes.isEmpty()) {
+            log.info("=> env MIN_NODES: {}", minNodes);
+            MIN_NODES = Integer.parseInt(minNodes);
+        }
+        if (maxNodes != null && !maxNodes.isEmpty()) {
+            log.info("=> env MAX_NODES: {}", maxNodes);
+            MAX_NODES = Integer.parseInt(maxNodes);
+        }
+        if (redisHost != null && !redisHost.isEmpty()) {
+            log.info("=> env REDIS_HOST: {}", redisHost);
+            REDIS_HOST = redisHost;
+        }
+        if (redisPort != null && !redisPort.isEmpty()) {
+            log.info("=> env REDIS_PORT: {}", redisPort);
+            REDIS_PORT = Integer.parseInt(redisPort);
+        }
+        if (redisPassword != null && !redisPassword.isEmpty()) {
+            log.info("=> env REDIS_PASSWORD: {}", redisPassword);
+            REDIS_PASSWORD = redisPassword;
         }
 
     }

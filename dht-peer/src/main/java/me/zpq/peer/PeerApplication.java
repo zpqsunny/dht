@@ -104,9 +104,23 @@ public class PeerApplication {
 
     private static void readEnv() {
         // docker
+        String redisHost = System.getenv("REDIS_HOST");
+        String redisPort = System.getenv("REDIS_PORT");
+        String redisPassword = System.getenv("REDIS_PASSWORD");
         String mongodbUrl = System.getenv("MONGODB_URL");
+        if (redisHost != null && !redisHost.isEmpty()) {
+            log.info("=> env REDIS_HOST: {}", redisHost);
+            REDIS_HOST = redisHost;
+        }
+        if (redisPort != null && !redisPort.isEmpty()) {
+            log.info("=> env REDIS_PORT: {}", redisPort);
+            REDIS_PORT = Integer.parseInt(redisPort);
+        }
+        if (redisPassword != null && !redisPassword.isEmpty()) {
+            log.info("=> env REDIS_PASSWORD: {}", redisPassword);
+            REDIS_PASSWORD = redisPassword;
+        }
         if (mongodbUrl != null && !mongodbUrl.isEmpty()) {
-
             log.info("=> env MONGODB_URL: {}", mongodbUrl);
             MONGODB_URL = mongodbUrl;
         }

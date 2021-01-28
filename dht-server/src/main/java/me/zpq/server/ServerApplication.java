@@ -137,6 +137,7 @@ public class ServerApplication {
     private static void readEnv() {
         // docker
         String host = System.getenv("HOST");
+        String port = System.getenv("PORT");
         String minNodes = System.getenv("MIN_NODES");
         String maxNodes = System.getenv("MAX_NODES");
         String redisHost = System.getenv("REDIS_HOST");
@@ -145,6 +146,10 @@ public class ServerApplication {
         if (host != null && !host.isEmpty()) {
             log.info("=> env HOST: {}", host);
             HOST = host;
+        }
+        if (port != null && !port.isEmpty()) {
+            log.info("=> env PORT: {}", port);
+            PORT = Integer.parseInt(port);
         }
         if (minNodes != null && !minNodes.isEmpty()) {
             log.info("=> env MIN_NODES: {}", minNodes);

@@ -81,6 +81,8 @@ public class ServerApplication {
         scheduled(channel, routingTable);
 
         log.info("server ok pid: {}", ManagementFactory.getRuntimeMXBean().getName());
+
+        channel.closeFuture().sync();
     }
 
     private static RedisCommands<String, String> redis() {
@@ -176,15 +178,14 @@ public class ServerApplication {
 
     private static void scheduled(final Channel channel, IRoutingTable routingTable) {
 
-        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(5);
         log.info("start autoFindNode");
-        scheduledExecutorService.scheduleWithFixedDelay(new FindNode(channel, TRANSACTION_ID, NODE_ID, routingTable, MIN_NODES), FIND_NODE_INTERVAL, FIND_NODE_INTERVAL, TimeUnit.SECONDS);
+        channel.eventLoop().scheduleWithFixedDelay(new FindNode(channel, TRANSACTION_ID, NODE_ID, routingTable, MIN_NODES), FIND_NODE_INTERVAL, FIND_NODE_INTERVAL, TimeUnit.SECONDS);
         log.info("start ok autoFindNode");
         log.info("start Ping");
-        scheduledExecutorService.scheduleWithFixedDelay(new Ping(channel, TRANSACTION_ID, NODE_ID, routingTable), PING_INTERVAL, PING_INTERVAL, TimeUnit.SECONDS);
+        channel.eventLoop().scheduleWithFixedDelay(new Ping(channel, TRANSACTION_ID, NODE_ID, routingTable), PING_INTERVAL, PING_INTERVAL, TimeUnit.SECONDS);
         log.info("start ok Ping");
         log.info("start RemoveNode");
-        scheduledExecutorService.scheduleWithFixedDelay(new RemoveNode(routingTable), REMOVE_NODE_INTERVAL, REMOVE_NODE_INTERVAL, TimeUnit.SECONDS);
+        channel.eventLoop().scheduleWithFixedDelay(new RemoveNode(routingTable), REMOVE_NODE_INTERVAL, REMOVE_NODE_INTERVAL, TimeUnit.SECONDS);
         log.info("start ok RemoveNode");
     }
 }

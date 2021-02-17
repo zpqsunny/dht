@@ -226,8 +226,13 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DHTData> {
             return;
         }
 
-        list.forEach(table ->
-                routingTable.put(new NodeTable(table.getId(), table.getIp(), table.getPort(), System.currentTimeMillis()))
+        list.forEach(table -> routingTable.put(NodeTable
+                        .builder()
+                        .id(table.getId())
+                        .ip(table.getIp())
+                        .port(table.getPort())
+                        .lastChanged(System.currentTimeMillis())
+                        .build())
         );
     }
 
@@ -242,24 +247,22 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DHTData> {
     private void updateRoutingTable(byte[] id, String ip, int port) {
 
         String nId = Hex.encodeHexString(id);
-        NodeTable nodeTable = new NodeTable();
+
+        NodeTable nodeTable = NodeTable.builder()
+                .id(nId)
+                .ip(ip)
+                .port(port)
+                .lastChanged(System.currentTimeMillis())
+                .build();
         if (routingTable.has(nId)) {
 
             // exists
-            nodeTable.setId(nId);
-            nodeTable.setIp(ip);
-            nodeTable.setPort(port);
-            nodeTable.setLastChanged(System.currentTimeMillis());
             routingTable.replace(nodeTable);
             return;
         }
 
         if (routingTable.size() < maxNodes) {
 
-            nodeTable.setId(nId);
-            nodeTable.setIp(ip);
-            nodeTable.setPort(port);
-            nodeTable.setLastChanged(System.currentTimeMillis());
             routingTable.put(nodeTable);
         }
 

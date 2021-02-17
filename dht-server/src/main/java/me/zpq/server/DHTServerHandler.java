@@ -1,10 +1,8 @@
 package me.zpq.server;
 
-import be.adaxisoft.bencode.BDecoder;
 import be.adaxisoft.bencode.BEncodedValue;
 import be.adaxisoft.bencode.InvalidBEncodingException;
 import io.lettuce.core.api.sync.RedisCommands;
-import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -18,18 +16,18 @@ import me.zpq.route.NodeTable;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author zpq
  * @date 2019-08-21
  */
 @Slf4j
-public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPacket> {
+public class DHTServerHandler extends SimpleChannelInboundHandler<DHTData> {
 
     private final byte[] nodeId;
 
@@ -45,7 +43,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
     private final static String FRESH_EKY = "fresh";
 
-    public DiscardServerHandler(IRoutingTable routingTable, byte[] nodeId, int maxNodes, RedisCommands<String, String> redis) {
+    public DHTServerHandler(IRoutingTable routingTable, byte[] nodeId, int maxNodes, RedisCommands<String, String> redis) {
 
         this.nodeId = nodeId;
         this.routingTable = routingTable;
@@ -54,48 +52,44 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket datagramPacket) {
+    protected void channelRead0(ChannelHandlerContext ctx, DHTData data) {
 
         try {
 
-            ByteBuf content = datagramPacket.content();
-            byte[] req = new byte[content.readableBytes()];
-            content.readBytes(req);
+            BEncodedValue value = data.getData();
+            byte[] transactionId = value.getMap().get(KrpcConstant.T).getBytes();
 
-            BEncodedValue data = BDecoder.decode(new ByteArrayInputStream(req));
-            byte[] transactionId = data.getMap().get(KrpcConstant.T).getBytes();
-
-            switch (data.getMap().get(KrpcConstant.Y).getString()) {
+            switch (value.getMap().get(KrpcConstant.Y).getString()) {
 
                 case KrpcConstant.Q:
 
-                    Map<String, BEncodedValue> a = data.getMap().get(KrpcConstant.A).getMap();
-                    switch (data.getMap().get(KrpcConstant.Q).getString()) {
+                    Map<String, BEncodedValue> a = value.getMap().get(KrpcConstant.A).getMap();
+                    switch (value.getMap().get(KrpcConstant.Q).getString()) {
 
                         case KrpcConstant.PING:
-                            this.queryPing(ctx, datagramPacket, transactionId, a);
+                            this.queryPing(ctx, data, transactionId, a);
                             break;
                         case KrpcConstant.FIND_NODE:
-                            this.queryFindNode(ctx, datagramPacket, transactionId);
+                            this.queryFindNode(ctx, data, transactionId);
                             break;
                         case KrpcConstant.GET_PEERS:
-                            this.queryGetPeers(ctx, datagramPacket, transactionId, a);
+                            this.queryGetPeers(ctx, data, transactionId, a);
                             break;
                         case KrpcConstant.ANNOUNCE_PEER:
-                            this.queryAnnouncePeer(ctx, datagramPacket, transactionId, a);
+                            this.queryAnnouncePeer(ctx, data, transactionId, a);
                             break;
                         default:
-                            this.queryMethodUnknown(ctx, datagramPacket, transactionId);
+                            this.queryMethodUnknown(ctx, data, transactionId);
                             break;
                     }
 
                     break;
                 case KrpcConstant.R:
 
-                    Map<String, BEncodedValue> r = data.getMap().get(KrpcConstant.R).getMap();
+                    Map<String, BEncodedValue> r = value.getMap().get(KrpcConstant.R).getMap();
                     if (r.get(KrpcConstant.A) != null) {
 
-                        this.responseHasId(r, datagramPacket);
+                        this.responseHasId(r, data);
                     }
 
                     if (r.get(KrpcConstant.NODES) != null) {
@@ -121,37 +115,40 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
     }
 
-    private void queryPing(ChannelHandlerContext ctx, DatagramPacket datagramPacket, byte[] transactionId, Map<String, BEncodedValue> a) throws IOException {
+    private void queryPing(ChannelHandlerContext ctx, DHTData value, byte[] transactionId, Map<String, BEncodedValue> a) throws IOException {
 
         ctx.writeAndFlush(new DatagramPacket(Unpooled.copiedBuffer(
-                KrpcProtocol.pingResponse(transactionId, nodeId)), datagramPacket.sender()));
+                KrpcProtocol.pingResponse(transactionId, nodeId)), value.getSender()));
 
         byte[] id = a.get(KrpcConstant.ID).getBytes();
-        String ip = datagramPacket.sender().getAddress().getHostAddress();
-        int port = datagramPacket.sender().getPort();
+        String ip = value.getSender().getAddress().getHostAddress();
+        int port = value.getSender().getPort();
         this.updateRoutingTable(id, ip, port);
     }
 
-    private void queryFindNode(ChannelHandlerContext ctx, DatagramPacket datagramPacket, byte[] transactionId) throws IOException {
+    private void queryFindNode(ChannelHandlerContext ctx, DHTData value, byte[] transactionId) throws IOException {
 
         Collection<NodeTable> table = routingTable.values();
+        List<NodeTable> t = table.stream().sorted(Comparator.comparingLong(NodeTable::getLastChanged).reversed())
+                .limit(10)
+                .collect(Collectors.toList());
         ctx.writeAndFlush(new DatagramPacket(
-                Unpooled.copiedBuffer(KrpcProtocol.findNodeResponse(transactionId, nodeId, this.nodesEncode(table))),
-                datagramPacket.sender()));
+                Unpooled.copiedBuffer(KrpcProtocol.findNodeResponse(transactionId, nodeId, this.nodesEncode(t))),
+                value.getSender()));
     }
 
-    private void queryGetPeers(ChannelHandlerContext ctx, DatagramPacket datagramPacket, byte[] transactionId, Map<String, BEncodedValue> a) throws IOException {
+    private void queryGetPeers(ChannelHandlerContext ctx, DHTData value, byte[] transactionId, Map<String, BEncodedValue> a) throws IOException {
 
         byte[] token = this.getToken(a.get(KrpcConstant.INFO_HASH).getBytes());
 //        List<NodeTable> nodes = new ArrayList<>(nodeTable.values());
         ctx.writeAndFlush(new DatagramPacket(
                 Unpooled.copiedBuffer(
                         KrpcProtocol.getPeersResponseNodes(transactionId, nodeId, token, new byte[0])),
-                datagramPacket.sender()));
+                value.getSender()));
 
     }
 
-    private void queryAnnouncePeer(ChannelHandlerContext ctx, DatagramPacket datagramPacket, byte[] transactionId, Map<String, BEncodedValue> a) throws IOException {
+    private void queryAnnouncePeer(ChannelHandlerContext ctx, DHTData value, byte[] transactionId, Map<String, BEncodedValue> a) throws IOException {
 
         // sha1
         byte[] infoHash = a.get(KrpcConstant.INFO_HASH).getBytes();
@@ -168,10 +165,10 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 //            return;
 //        }
         // ip
-        String ip = datagramPacket.sender().getAddress().getHostAddress();
+        String ip = value.getSender().getAddress().getHostAddress();
 
         // port
-        int port = datagramPacket.sender().getPort();
+        int port = value.getSender().getPort();
 
         int peerPort;
 
@@ -185,7 +182,7 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
         }
 
         ctx.writeAndFlush(new DatagramPacket(Unpooled.copiedBuffer(
-                KrpcProtocol.announcePeerResponse(transactionId, nodeId)), datagramPacket.sender()));
+                KrpcProtocol.announcePeerResponse(transactionId, nodeId)), value.getSender()));
 
         String hash = Hex.encodeHexString(infoHash);
 
@@ -202,19 +199,19 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
 
     }
 
-    private void queryMethodUnknown(ChannelHandlerContext ctx, DatagramPacket datagramPacket, byte[] transactionId) throws IOException {
+    private void queryMethodUnknown(ChannelHandlerContext ctx, DHTData value, byte[] transactionId) throws IOException {
 
         ctx.writeAndFlush(new DatagramPacket(
                 Unpooled.copiedBuffer(
                         KrpcProtocol.error(transactionId, 204, "Method Unknown")),
-                datagramPacket.sender()));
+                value.getSender()));
     }
 
-    private void responseHasId(Map<String, BEncodedValue> r, DatagramPacket datagramPacket) throws InvalidBEncodingException {
+    private void responseHasId(Map<String, BEncodedValue> r, DHTData value) throws InvalidBEncodingException {
 
         byte[] id = r.get(KrpcConstant.ID).getBytes();
-        String ip = datagramPacket.sender().getAddress().getHostAddress();
-        int port = datagramPacket.sender().getPort();
+        String ip = value.getSender().getAddress().getHostAddress();
+        int port = value.getSender().getPort();
         this.updateRoutingTable(id, ip, port);
     }
 
@@ -234,11 +231,11 @@ public class DiscardServerHandler extends SimpleChannelInboundHandler<DatagramPa
         );
     }
 
-    private void responseError(BEncodedValue data) throws InvalidBEncodingException {
+    private void responseError(DHTData value) throws InvalidBEncodingException {
 
-        List<BEncodedValue> e = data.getMap().get(KrpcConstant.E).getList();
+        List<BEncodedValue> e = value.getData().getMap().get(KrpcConstant.E).getList();
 
-        log.error(" r : error Code: {} , Description: {}", e.get(0).getInt(), e.get(1).getString());
+        log.error("from: {} r : error Code: {} , Description: {}", value.getSender().getAddress().getHostAddress(), e.get(0).getInt(), e.get(1).getString());
 
     }
 

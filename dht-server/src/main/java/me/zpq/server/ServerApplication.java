@@ -7,6 +7,7 @@ import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.resource.DefaultClientResources;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
@@ -72,10 +73,21 @@ public class ServerApplication {
 
         RedisCommands<String, String> redis = redis();
 
-        bootstrap.group(new NioEventLoopGroup())
+        NioEventLoopGroup eventLoopGroup = new NioEventLoopGroup();
+
+        bootstrap.group(eventLoopGroup)
                 .channel(NioDatagramChannel.class)
                 .option(ChannelOption.SO_BROADCAST, true)
-                .handler(new DiscardServerHandler(routingTable, NODE_ID, MAX_NODES, redis));
+                .handler(new ChannelInitializer<NioDatagramChannel>() {
+                    @Override
+                    protected void initChannel(NioDatagramChannel ch) throws Exception {
+                        ch.pipeline()
+                                .addLast(new DataDecode())
+                                .addLast(new DHTServerHandler(routingTable, NODE_ID, MAX_NODES, redis))
+                        ;
+                    }
+
+                });
         final Channel channel = bootstrap.bind(PORT).sync().channel();
 
         scheduled(channel, routingTable);

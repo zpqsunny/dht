@@ -73,28 +73,35 @@ public class ServerApplication {
 
         RedisCommands<String, String> redis = redis();
 
-        NioEventLoopGroup eventLoopGroup = new NioEventLoopGroup();
+        NioEventLoopGroup group = new NioEventLoopGroup();
 
-        bootstrap.group(eventLoopGroup)
-                .channel(NioDatagramChannel.class)
-                .option(ChannelOption.SO_BROADCAST, true)
-                .handler(new ChannelInitializer<NioDatagramChannel>() {
-                    @Override
-                    protected void initChannel(NioDatagramChannel ch) throws Exception {
-                        ch.pipeline()
-                                .addLast(new DataDecode())
-                                .addLast(new DHTServerHandler(routingTable, NODE_ID, MAX_NODES, redis))
-                        ;
-                    }
+        try {
 
-                });
-        final Channel channel = bootstrap.bind(PORT).sync().channel();
+            bootstrap.group(group)
+                    .channel(NioDatagramChannel.class)
+                    .option(ChannelOption.SO_BROADCAST, true)
+                    .handler(new ChannelInitializer<NioDatagramChannel>() {
+                        @Override
+                        protected void initChannel(NioDatagramChannel ch) throws Exception {
+                            ch.pipeline()
+                                    .addLast(new DataDecode())
+                                    .addLast(new DHTServerHandler(routingTable, NODE_ID, MAX_NODES, redis))
+                            ;
+                        }
 
-        scheduled(channel, routingTable);
+                    });
+            final Channel channel = bootstrap.bind(PORT).sync().channel();
 
-        log.info("server ok pid: {}", ManagementFactory.getRuntimeMXBean().getName());
+            scheduled(channel, routingTable);
 
-        channel.closeFuture().sync();
+            log.info("server ok pid: {}", ManagementFactory.getRuntimeMXBean().getName());
+
+            channel.closeFuture().await();
+
+        } finally {
+            group.shutdownGracefully();
+        }
+
     }
 
     private static RedisCommands<String, String> redis() {

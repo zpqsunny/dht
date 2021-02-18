@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.net.InetSocketAddress;
+import java.util.Map;
 
 /**
  * @author zpq
@@ -12,9 +13,9 @@ import java.net.InetSocketAddress;
  */
 @Data
 @Builder
-public class DHTData {
+public class DHTResponse {
 
-    private BEncodedValue data;
+    private Map<String, BEncodedValue> data;
 
     private InetSocketAddress sender;
 }

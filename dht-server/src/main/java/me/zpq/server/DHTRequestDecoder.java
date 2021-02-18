@@ -16,7 +16,7 @@ import java.util.List;
  * @date 2021/2/13
  */
 @Slf4j
-public class DataDecode extends MessageToMessageDecoder<DatagramPacket> {
+public class DHTRequestDecoder extends MessageToMessageDecoder<DatagramPacket> {
 
     @Override
     protected void decode(ChannelHandlerContext ctx, DatagramPacket datagramPacket, List<Object> out) throws Exception {
@@ -26,11 +26,11 @@ public class DataDecode extends MessageToMessageDecoder<DatagramPacket> {
         content.readBytes(req);
 
         BEncodedValue data = BDecoder.decode(new ByteArrayInputStream(req));
-        DHTData dhtData = DHTData.builder()
+        DHTRequest dhtRequest = DHTRequest.builder()
                 .data(data)
                 .sender(datagramPacket.sender())
                 .build();
-        out.add(dhtData);
+        out.add(dhtRequest);
     }
 
     @Override

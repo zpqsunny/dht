@@ -1,10 +1,9 @@
 package me.zpq.server.schedule;
 
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
-import io.netty.channel.socket.DatagramPacket;
 import me.zpq.krpc.KrpcProtocol;
 import me.zpq.route.IRoutingTable;
+import me.zpq.server.DHTResponse;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -37,8 +36,11 @@ public class Ping implements Runnable {
         routingTable.values().forEach(nodeTable -> {
 
             try {
-                channel.writeAndFlush(new DatagramPacket(Unpooled.copiedBuffer(KrpcProtocol.pingQuery(transactionId, nodeId)),
-                        new InetSocketAddress(nodeTable.getIp(), nodeTable.getPort())));
+                channel.writeAndFlush(DHTResponse.builder()
+                        .data(KrpcProtocol.pingQuery(transactionId, nodeId))
+                        .sender(new InetSocketAddress(nodeTable.getIp(), nodeTable.getPort()))
+                        .build());
+
             } catch (IOException e) {
                 // ignore
             }

@@ -3,10 +3,8 @@ package me.zpq.server;
 import be.adaxisoft.bencode.BEncodedValue;
 import be.adaxisoft.bencode.InvalidBEncodingException;
 import io.lettuce.core.api.sync.RedisCommands;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.channel.socket.DatagramPacket;
 import lombok.extern.slf4j.Slf4j;
 import me.zpq.dht.common.Utils;
 import me.zpq.krpc.KrpcConstant;
@@ -27,7 +25,7 @@ import java.util.stream.Collectors;
  * @date 2019-08-21
  */
 @Slf4j
-public class DHTServerHandler extends SimpleChannelInboundHandler<DHTData> {
+public class DHTServerHandler extends SimpleChannelInboundHandler<DHTRequest> {
 
     private final byte[] nodeId;
 
@@ -52,7 +50,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DHTData> {
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, DHTData data) {
+    protected void channelRead0(ChannelHandlerContext ctx, DHTRequest data) {
 
         try {
 
@@ -115,40 +113,41 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DHTData> {
 
     }
 
-    private void queryPing(ChannelHandlerContext ctx, DHTData value, byte[] transactionId, Map<String, BEncodedValue> a) throws IOException {
+    private void queryPing(ChannelHandlerContext ctx, DHTRequest value, byte[] transactionId, Map<String, BEncodedValue> a) throws IOException {
 
-        ctx.writeAndFlush(new DatagramPacket(Unpooled.copiedBuffer(
-                KrpcProtocol.pingResponse(transactionId, nodeId)), value.getSender()));
-
+        ctx.writeAndFlush(DHTResponse.builder()
+                .data(KrpcProtocol.pingResponse(transactionId, nodeId))
+                .sender(value.getSender())
+                .build());
         byte[] id = a.get(KrpcConstant.ID).getBytes();
         String ip = value.getSender().getAddress().getHostAddress();
         int port = value.getSender().getPort();
         this.updateRoutingTable(id, ip, port);
     }
 
-    private void queryFindNode(ChannelHandlerContext ctx, DHTData value, byte[] transactionId) throws IOException {
+    private void queryFindNode(ChannelHandlerContext ctx, DHTRequest value, byte[] transactionId) throws IOException {
 
         Collection<NodeTable> table = routingTable.values();
         List<NodeTable> t = table.stream().sorted(Comparator.comparingLong(NodeTable::getLastChanged).reversed())
                 .limit(10)
                 .collect(Collectors.toList());
-        ctx.writeAndFlush(new DatagramPacket(
-                Unpooled.copiedBuffer(KrpcProtocol.findNodeResponse(transactionId, nodeId, this.nodesEncode(t))),
-                value.getSender()));
+        ctx.writeAndFlush(DHTResponse.builder()
+                .data(KrpcProtocol.findNodeResponse(transactionId, nodeId, this.nodesEncode(t)))
+                .sender(value.getSender())
+                .build());
     }
 
-    private void queryGetPeers(ChannelHandlerContext ctx, DHTData value, byte[] transactionId, Map<String, BEncodedValue> a) throws IOException {
+    private void queryGetPeers(ChannelHandlerContext ctx, DHTRequest value, byte[] transactionId, Map<String, BEncodedValue> a) throws IOException {
 
         byte[] token = this.getToken(a.get(KrpcConstant.INFO_HASH).getBytes());
 //        List<NodeTable> nodes = new ArrayList<>(nodeTable.values());
-        ctx.writeAndFlush(new DatagramPacket(
-                Unpooled.copiedBuffer(
-                        KrpcProtocol.getPeersResponseNodes(transactionId, nodeId, token, new byte[0])),
-                value.getSender()));
-
+        ctx.writeAndFlush(DHTResponse.builder()
+                .data(KrpcProtocol.getPeersResponseNodes(transactionId, nodeId, token, new byte[0]))
+                .sender(value.getSender())
+                .build());
     }
 
-    private void queryAnnouncePeer(ChannelHandlerContext ctx, DHTData value, byte[] transactionId, Map<String, BEncodedValue> a) throws IOException {
+    private void queryAnnouncePeer(ChannelHandlerContext ctx, DHTRequest value, byte[] transactionId, Map<String, BEncodedValue> a) throws IOException {
 
         // sha1
         byte[] infoHash = a.get(KrpcConstant.INFO_HASH).getBytes();
@@ -181,8 +180,10 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DHTData> {
             peerPort = a.get(KrpcConstant.PORT).getInt();
         }
 
-        ctx.writeAndFlush(new DatagramPacket(Unpooled.copiedBuffer(
-                KrpcProtocol.announcePeerResponse(transactionId, nodeId)), value.getSender()));
+        ctx.writeAndFlush(DHTResponse.builder()
+                .data(KrpcProtocol.announcePeerResponse(transactionId, nodeId))
+                .sender(value.getSender())
+                .build());
 
         String hash = Hex.encodeHexString(infoHash);
 
@@ -199,15 +200,15 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DHTData> {
 
     }
 
-    private void queryMethodUnknown(ChannelHandlerContext ctx, DHTData value, byte[] transactionId) throws IOException {
+    private void queryMethodUnknown(ChannelHandlerContext ctx, DHTRequest value, byte[] transactionId) throws IOException {
 
-        ctx.writeAndFlush(new DatagramPacket(
-                Unpooled.copiedBuffer(
-                        KrpcProtocol.error(transactionId, 204, "Method Unknown")),
-                value.getSender()));
+        ctx.writeAndFlush(DHTResponse.builder()
+                .data(KrpcProtocol.error(transactionId, 204, "Method Unknown"))
+                .sender(value.getSender())
+                .build());
     }
 
-    private void responseHasId(Map<String, BEncodedValue> r, DHTData value) throws InvalidBEncodingException {
+    private void responseHasId(Map<String, BEncodedValue> r, DHTRequest value) throws InvalidBEncodingException {
 
         byte[] id = r.get(KrpcConstant.ID).getBytes();
         String ip = value.getSender().getAddress().getHostAddress();
@@ -227,16 +228,16 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DHTData> {
         }
 
         list.forEach(table -> routingTable.put(NodeTable
-                        .builder()
-                        .id(table.getId())
-                        .ip(table.getIp())
-                        .port(table.getPort())
-                        .lastChanged(System.currentTimeMillis())
-                        .build())
+                .builder()
+                .id(table.getId())
+                .ip(table.getIp())
+                .port(table.getPort())
+                .lastChanged(System.currentTimeMillis())
+                .build())
         );
     }
 
-    private void responseError(DHTData value) throws InvalidBEncodingException {
+    private void responseError(DHTRequest value) throws InvalidBEncodingException {
 
         List<BEncodedValue> e = value.getData().getMap().get(KrpcConstant.E).getList();
 

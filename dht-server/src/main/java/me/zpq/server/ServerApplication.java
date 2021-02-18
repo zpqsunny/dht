@@ -84,7 +84,8 @@ public class ServerApplication {
                         @Override
                         protected void initChannel(NioDatagramChannel ch) throws Exception {
                             ch.pipeline()
-                                    .addLast(new DataDecode())
+                                    .addLast(new DHTRequestDecoder())
+                                    .addLast(new DHTResponseEncoder())
                                     .addLast(new DHTServerHandler(routingTable, NODE_ID, MAX_NODES, redis))
                             ;
                         }

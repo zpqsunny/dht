@@ -1,18 +1,19 @@
 package me.zpq.server.schedule;
 
-import io.netty.buffer.Unpooled;
+import be.adaxisoft.bencode.BEncodedValue;
 import io.netty.channel.Channel;
-import io.netty.channel.socket.DatagramPacket;
 import lombok.extern.slf4j.Slf4j;
 import me.zpq.dht.common.Utils;
 import me.zpq.krpc.KrpcProtocol;
 import me.zpq.route.IRoutingTable;
 import me.zpq.server.BootstrapAddress;
+import me.zpq.server.DHTResponse;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 public class FindNode implements Runnable {
@@ -46,7 +47,7 @@ public class FindNode implements Runnable {
 
         try {
 
-            byte[] findNodeQuery;
+            Map<String, BEncodedValue> findNodeQuery;
             int size = routingTable.size();
             log.info("tableMap size: {} ", size);
             if (size < minNodes) {
@@ -54,17 +55,21 @@ public class FindNode implements Runnable {
                 log.info("do find Node in BootstrapAddress, minNodes: {} ", minNodes);
                 findNodeQuery = KrpcProtocol.findNodeQuery(transactionId, nodeId, Utils.nodeId());
                 list.forEach(bootstrapAddress -> channel.writeAndFlush(
-                        new DatagramPacket(Unpooled.copiedBuffer(findNodeQuery),
-                                new InetSocketAddress(bootstrapAddress.getHost(), bootstrapAddress.getPort())
-                        )));
+                        DHTResponse.builder()
+                                .data(findNodeQuery)
+                                .sender(new InetSocketAddress(bootstrapAddress.getHost(), bootstrapAddress.getPort()))
+                                .build())
+                );
             } else {
 
                 log.info("do find Node in NodeTable");
                 findNodeQuery = KrpcProtocol.findNodeQuery(transactionId, nodeId, Utils.nearNodeId(nodeId));
                 routingTable.values().forEach(nodeTable -> channel.writeAndFlush(
-                        new DatagramPacket(Unpooled.copiedBuffer(findNodeQuery),
-                                new InetSocketAddress(nodeTable.getIp(), nodeTable.getPort())
-                        )));
+                        DHTResponse.builder()
+                                .data(findNodeQuery)
+                                .sender(new InetSocketAddress(nodeTable.getIp(), nodeTable.getPort()))
+                                .build())
+                );
             }
 
         } catch (IOException e) {

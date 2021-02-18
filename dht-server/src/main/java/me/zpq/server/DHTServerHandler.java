@@ -240,7 +240,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DHTData> {
 
         List<BEncodedValue> e = value.getData().getMap().get(KrpcConstant.E).getList();
 
-        log.error("from: {} r : error Code: {} , Description: {}", value.getSender().getAddress().getHostAddress(), e.get(0).getInt(), e.get(1).getString());
+        log.error("ip: {} r : error Code: {} , Description: {}", value.getSender().getAddress().getHostAddress(), e.get(0).getInt(), e.get(1).getString());
 
     }
 

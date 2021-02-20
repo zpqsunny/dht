@@ -2,7 +2,7 @@ package me.zpq.dht.common;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author zpq
@@ -18,7 +18,7 @@ public class Utils {
     public static byte[] nodeId() {
 
         byte[] nodeId = new byte[20];
-        (new Random()).nextBytes(nodeId);
+        ThreadLocalRandom.current().nextBytes(nodeId);
         return nodeId;
     }
 
@@ -27,7 +27,7 @@ public class Utils {
         byte[] nearNodeId = new byte[20];
         System.arraycopy(nodeId, 0, nearNodeId, 0, 10);
         byte[] after = new byte[10];
-        (new Random()).nextBytes(after);
+        ThreadLocalRandom.current().nextBytes(after);
         System.arraycopy(after, 0, nearNodeId, 10, 10);
         return nearNodeId;
     }
@@ -35,7 +35,7 @@ public class Utils {
     public static byte[] transactionId() {
 
         byte[] nodeId = new byte[5];
-        (new Random()).nextBytes(nodeId);
+        ThreadLocalRandom.current().nextBytes(nodeId);
         return nodeId;
     }
 

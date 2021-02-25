@@ -10,6 +10,7 @@ import me.zpq.peer.coder.ExtMessageDecoder;
 import me.zpq.peer.coder.ExtMessageEncoder;
 import me.zpq.peer.message.ExtendedMessage;
 import me.zpq.peer.message.HandshakeMessage;
+import org.apache.commons.codec.binary.Hex;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -75,6 +76,7 @@ public class HandshakeHandle extends SimpleChannelInboundHandler<HandshakeMessag
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
 
+        log.info("connected server host: {} hash: {}", ctx.channel().remoteAddress(), Hex.encodeHexString(this.hash));
         byte[] extension = new byte[]{0, 0, 0, 0, 0, 16, 0, 0};
         HandshakeMessage handshakeMessage = HandshakeMessage.builder()
                 .protocol(MetadataConstant.PROTOCOL)

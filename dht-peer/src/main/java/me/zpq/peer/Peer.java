@@ -4,6 +4,7 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import io.lettuce.core.api.sync.RedisCommands;
+import io.netty.bootstrap.Bootstrap;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
@@ -37,10 +38,13 @@ public class Peer implements Runnable {
 
     private final ThreadPoolExecutor threadPoolExecutor;
 
-    public Peer(RedisCommands<String, String> redis, MongoClient mongoClient, ThreadPoolExecutor threadPoolExecutor) {
+    private final Bootstrap b;
+
+    public Peer(RedisCommands<String, String> redis, MongoClient mongoClient, ThreadPoolExecutor threadPoolExecutor, Bootstrap b) {
         this.redis = redis;
         this.collection = mongoClient.getDatabase(DHT).getCollection(METADATA);
         this.threadPoolExecutor = threadPoolExecutor;
+        this.b = b;
     }
 
     @Override
@@ -73,26 +77,28 @@ public class Peer implements Runnable {
                     return;
                 }
 
-                PeerClient peerClient = new PeerClient(ip, port, hash);
-                byte[] info = peerClient.run();
-                if (info != null) {
-
-                    documents = collection.find(has);
-                    if (documents.first() != null) {
-                        log.info("hash is exist, ignore too");
-                        return;
-                    }
-
-                    try {
-
-                        Document doc = MongoMetaInfo.saveLocalFile(info);
-                        collection.insertOne(doc);
-
-                    } catch (IOException e) {
-                        //
-                        log.error(e.getMessage(), e);
-                    }
-                }
+                b.handler(new Initializer(hash));
+                b.connect(ip, port);
+//                PeerClient peerClient = new PeerClient(ip, port, hash);
+//                byte[] info = peerClient.run();
+//                if (info != null) {
+//
+//                    documents = collection.find(has);
+//                    if (documents.first() != null) {
+//                        log.info("hash is exist, ignore too");
+//                        return;
+//                    }
+//
+//                    try {
+//
+//                        Document doc = MongoMetaInfo.saveLocalFile(info);
+//                        collection.insertOne(doc);
+//
+//                    } catch (IOException e) {
+//                        //
+//                        log.error(e.getMessage(), e);
+//                    }
+//                }
             });
         }
     }

@@ -8,6 +8,11 @@ import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.resource.DefaultClientResources;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -53,8 +58,16 @@ public class PeerApplication {
                 0L, TimeUnit.MINUTES, new LinkedBlockingQueue<>(), threadFactory);
 
         ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(5);
-
-        scheduledExecutorService.scheduleWithFixedDelay(new Peer(redis, mongoClient, threadPoolExecutor), 1L, 1L, TimeUnit.SECONDS);
+        EventLoopGroup group = new NioEventLoopGroup(MAX_POOL_SIZE);
+        Bootstrap b = new Bootstrap();
+        b.group(group)
+                .channel(NioSocketChannel.class)
+                .option(ChannelOption.AUTO_READ, true)
+                .option(ChannelOption.TCP_NODELAY, true)
+                .option(ChannelOption.SO_KEEPALIVE, true)
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30000)
+        ;
+        scheduledExecutorService.scheduleWithFixedDelay(new Peer(redis, mongoClient, threadPoolExecutor, b), 1L, 1L, TimeUnit.SECONDS);
 
         log.info("peer started pid: {}", ManagementFactory.getRuntimeMXBean().getName());
 

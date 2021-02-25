@@ -94,7 +94,7 @@ public class MetadataHandle extends SimpleChannelInboundHandler<ExtendedMessage>
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 
-        log.error("MetadataHandle exceptionCaught", cause);
+        log.error("MetadataHandle exceptionCaught {}", cause.getMessage());
         ctx.close();
     }
 }

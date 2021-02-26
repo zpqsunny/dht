@@ -57,7 +57,7 @@ public class PeerApplication {
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(CORE_POOL_SIZE, MAX_POOL_SIZE,
                 0L, TimeUnit.MINUTES, new LinkedBlockingQueue<>(), threadFactory);
 
-        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(5);
+        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(2);
         EventLoopGroup group = new NioEventLoopGroup(MAX_POOL_SIZE);
         Bootstrap b = new Bootstrap();
         b.group(group)
@@ -65,7 +65,7 @@ public class PeerApplication {
                 .option(ChannelOption.AUTO_READ, true)
                 .option(ChannelOption.TCP_NODELAY, true)
                 .option(ChannelOption.SO_KEEPALIVE, true)
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 30000)
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
         ;
         scheduledExecutorService.scheduleWithFixedDelay(new Peer(redis, mongoClient, threadPoolExecutor, b), 1L, 1L, TimeUnit.SECONDS);
 

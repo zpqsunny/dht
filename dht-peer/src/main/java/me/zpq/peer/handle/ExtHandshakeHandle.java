@@ -38,7 +38,7 @@ public class ExtHandshakeHandle extends SimpleChannelInboundHandler<ExtendedMess
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ExtendedMessage msg) throws Exception {
 
-        log.info("getMessageType {} extendedMessageId {}", msg.getBittorrentMessageId(), msg.getExtendedMessageId());
+        log.info("getBittorrentMessageId {} extendedMessageId {}", msg.getBittorrentMessageId(), msg.getExtendedMessageId());
         if (msg.getBittorrentMessageId() == 20 && msg.getExtendedMessageId() == 0) {
 
             // ext handshake

@@ -46,7 +46,11 @@ public class MetadataHandle extends SimpleChannelInboundHandler<ExtendedMessage>
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ExtendedMessage msg) throws Exception {
 
-        log.info("getMessageType {} extendedMessageId {}", msg.getBittorrentMessageId(), msg.getExtendedMessageId());
+        log.info("getBittorrentMessageId {} extendedMessageId {}", msg.getBittorrentMessageId(), msg.getExtendedMessageId());
+        if (msg.getBittorrentMessageId() == 5) {
+
+            return;
+        }
         if (msg.getBittorrentMessageId() == 20 && msg.getExtendedMessageId() == 0) {
 
             Map<String, BEncodedValue> m = new HashMap<>(16);

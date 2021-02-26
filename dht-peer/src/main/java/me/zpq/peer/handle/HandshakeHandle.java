@@ -31,7 +31,6 @@ public class HandshakeHandle extends SimpleChannelInboundHandler<HandshakeMessag
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, HandshakeMessage msg) throws Exception {
 
-        log.info("validatorHandshake");
         if (!msg.getProtocol().equals(MetadataConstant.PROTOCOL)) {
 
             log.error("protocol != BitTorrent, protocol: {}", msg.getProtocol());

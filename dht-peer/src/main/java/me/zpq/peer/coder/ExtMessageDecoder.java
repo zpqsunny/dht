@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import me.zpq.peer.message.ExtendedMessage;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -41,8 +42,26 @@ public class ExtMessageDecoder extends ByteToMessageDecoder {
         byteBuffer.flip();
         byte bittorrentMessageId = byteBuffer.get();
         byte extendedMessageId = byteBuffer.get();
-        byte[] message = new byte[length - 2];
-        byteBuffer.get(message);
+
+        /*
+         * http://www.bittorrent.org/beps/bep_0003.html
+         * 0 - choke
+         * 1 - unchoke
+         * 2 - interested
+         * 3 - not interested
+         * 4 - have
+         * 5 - bitfield
+         * 6 - request
+         * 7 - piece
+         * 8 - cancel
+         * 'choke', 'unchoke', 'interested', and 'not interested' have no payload.
+         */
+        byte[] message = null;
+        if (Arrays.binarySearch(new int[]{0, 1, 2, 3}, bittorrentMessageId) < 0) {
+
+            message = new byte[length - 2];
+            byteBuffer.get(message);
+        }
         ExtendedMessage extendedMessage = ExtendedMessage.builder()
                 .bittorrentMessageId(bittorrentMessageId)
                 .extendedMessageId(extendedMessageId)

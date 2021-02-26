@@ -70,9 +70,6 @@ public class MetadataHandle extends SimpleChannelInboundHandler<ExtendedMessage>
             this.metadata.put(metadata);
             log.info("resolve block index: {} ok", i);
             i++;
-        } else {
-
-            log.info(" other {}",new String(msg.getMessage()));
         }
 
         if (this.metadata.position() == this.metadata.capacity()) {

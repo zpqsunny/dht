@@ -46,6 +46,7 @@ public class HandshakeDecoder extends ByteToMessageDecoder {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.error("HandshakeDecoder exceptionCaught {}", cause.getMessage());
+        log.error("HandshakeDecoder exceptionCaught {} {}", cause.getClass(), cause.getMessage());
+        ctx.close();
     }
 }

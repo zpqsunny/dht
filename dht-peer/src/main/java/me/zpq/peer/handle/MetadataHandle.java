@@ -66,6 +66,9 @@ public class MetadataHandle extends SimpleChannelInboundHandler<ExtendedMessage>
             this.metadata.put(metadata);
             log.info("resolve block index: {} ok", i);
             i++;
+        } else {
+
+            log.info(" other {}",new String(msg.getMessage()));
         }
 
         if (this.metadata.position() == this.metadata.capacity()) {
@@ -94,7 +97,7 @@ public class MetadataHandle extends SimpleChannelInboundHandler<ExtendedMessage>
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 
-        log.error("MetadataHandle exceptionCaught {}", cause.getMessage());
+        log.error("MetadataHandle exceptionCaught {} {}", cause.getClass(), cause.getMessage());
         ctx.close();
     }
 }

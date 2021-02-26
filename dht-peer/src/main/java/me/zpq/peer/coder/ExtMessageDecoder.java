@@ -54,7 +54,8 @@ public class ExtMessageDecoder extends ByteToMessageDecoder {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 
-        log.error("ExtMessageDecoder exceptionCaught {}", cause.getMessage());
+        log.error("ExtMessageDecoder exceptionCaught {} {}", cause.getClass(), cause.getMessage());
+        ctx.close();
     }
 
 }

@@ -91,7 +91,7 @@ public class HandshakeHandle extends SimpleChannelInboundHandler<HandshakeMessag
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 
-        log.error("HandshakeHandle exceptionCaught {}", cause.getMessage());
+        log.error("HandshakeHandle exceptionCaught {} {}", cause.getClass(), cause.getMessage());
         ctx.close();
     }
 }

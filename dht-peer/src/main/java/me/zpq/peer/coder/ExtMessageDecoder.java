@@ -41,8 +41,7 @@ public class ExtMessageDecoder extends ByteToMessageDecoder {
         byteBuf.readBytes(byteBuffer);
         byteBuffer.flip();
         byte bittorrentMessageId = byteBuffer.get();
-        byte extendedMessageId = byteBuffer.get();
-
+        byte extendedMessageId = -1;
         /*
          * http://www.bittorrent.org/beps/bep_0003.html
          * 0 - choke
@@ -59,6 +58,7 @@ public class ExtMessageDecoder extends ByteToMessageDecoder {
         byte[] message = null;
         if (Arrays.binarySearch(new int[]{0, 1, 2, 3}, bittorrentMessageId) < 0) {
 
+            extendedMessageId = byteBuffer.get();
             message = new byte[length - 2];
             byteBuffer.get(message);
         }

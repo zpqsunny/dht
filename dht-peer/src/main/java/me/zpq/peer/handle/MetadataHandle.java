@@ -2,10 +2,9 @@ package me.zpq.peer.handle;
 
 import be.adaxisoft.bencode.BEncodedValue;
 import be.adaxisoft.bencode.BEncoder;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.*;
+import io.netty.util.AttributeKey;
 import lombok.extern.slf4j.Slf4j;
-import me.zpq.peer.JsonMetaInfo;
 import me.zpq.peer.MetadataConstant;
 import me.zpq.peer.message.ExtendedMessage;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -90,7 +89,8 @@ public class MetadataHandle extends SimpleChannelInboundHandler<ExtendedMessage>
                 }
             }
             log.info("success");
-            log.info("{}", JsonMetaInfo.show(this.metadata.array()));
+            ctx.pipeline().remove(this);
+            ctx.channel().attr(AttributeKey.valueOf("metadata")).set(this.metadata);
             ctx.close();
         }
     }

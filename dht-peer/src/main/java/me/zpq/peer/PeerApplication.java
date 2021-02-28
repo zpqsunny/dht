@@ -51,7 +51,7 @@ public class PeerApplication {
 
         RedisCommands<String, String> redis = redisClient.connect().sync();
 
-        MongoClient mongoClient = mongo(MONGODB_URL);
+//        MongoClient mongoClient = mongo(MONGODB_URL);
 
         ThreadFactory threadFactory = Executors.defaultThreadFactory();
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(CORE_POOL_SIZE, MAX_POOL_SIZE,
@@ -67,7 +67,7 @@ public class PeerApplication {
                 .option(ChannelOption.SO_KEEPALIVE, true)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
         ;
-        scheduledExecutorService.scheduleWithFixedDelay(new Peer(redis, mongoClient, threadPoolExecutor, b), 1L, 1L, TimeUnit.SECONDS);
+        scheduledExecutorService.scheduleWithFixedDelay(new Peer(redis, null, threadPoolExecutor, b), 1L, 1L, TimeUnit.SECONDS);
 
         log.info("peer started pid: {}", ManagementFactory.getRuntimeMXBean().getName());
 
@@ -80,8 +80,8 @@ public class PeerApplication {
             log.info("closed scheduled...");
             redisClient.shutdown();
             log.info("closed redis...");
-            mongoClient.close();
-            log.info("closed mongodb...");
+//            mongoClient.close();
+//            log.info("closed mongodb...");
         }));
     }
 

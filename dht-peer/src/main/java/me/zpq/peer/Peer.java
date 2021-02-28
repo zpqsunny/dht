@@ -38,7 +38,7 @@ public class Peer implements Runnable {
 
     private final RedisCommands<String, String> redis;
 
-    private final MongoCollection<Document> collection;
+//    private final MongoCollection<Document> collection;
 
     private final ThreadPoolExecutor threadPoolExecutor;
 
@@ -46,7 +46,7 @@ public class Peer implements Runnable {
 
     public Peer(RedisCommands<String, String> redis, MongoClient mongoClient, ThreadPoolExecutor threadPoolExecutor, Bootstrap b) {
         this.redis = redis;
-        this.collection = mongoClient.getDatabase(DHT).getCollection(METADATA);
+//        this.collection = mongoClient.getDatabase(DHT).getCollection(METADATA);
         this.threadPoolExecutor = threadPoolExecutor;
         this.b = b;
     }

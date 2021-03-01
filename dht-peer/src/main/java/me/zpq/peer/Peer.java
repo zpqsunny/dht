@@ -92,8 +92,6 @@ public class Peer implements Runnable {
 
                         log.info("metadata success : {}", JsonMetaInfo.show(((ByteBuffer) metadata).array()));
                     }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

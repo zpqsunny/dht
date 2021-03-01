@@ -83,17 +83,14 @@ public class Peer implements Runnable {
 
                 b.handler(new Initializer(hash));
                 try {
-                    Object metadata = b.connect(ip, port).addListener((ChannelFutureListener) channelFuture -> {
-                        if (channelFuture.isSuccess()) {
-                            log.info("connect server host: {} hash: {}", channelFuture.channel().remoteAddress(), Hex.encodeHexString(hash));
-                        }
-                    }).channel().closeFuture().sync().channel().attr(AttributeKey.valueOf("metadata")).get();
+                    log.info("connect server host: {}:{} hash: {}", ip, port, Hex.encodeHexString(hash));
+                    Object metadata = b.connect(ip, port).channel().closeFuture().sync().channel().attr(AttributeKey.valueOf("metadata")).get();
                     if (metadata instanceof ByteBuffer) {
 
                         log.info("metadata success : {}", JsonMetaInfo.show(((ByteBuffer) metadata).array()));
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    log.error("{} {}", e.getClass(), e);
                 }
             });
         }

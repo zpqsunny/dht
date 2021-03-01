@@ -83,7 +83,6 @@ public class Peer implements Runnable {
 
                 b.handler(new Initializer(hash));
                 try {
-                    log.info("connect server host: {}:{} hash: {}", ip, port, Hex.encodeHexString(hash));
                     Object metadata = b.connect(ip, port).channel().closeFuture().sync().channel().attr(AttributeKey.valueOf("metadata")).get();
                     if (metadata instanceof ByteBuffer) {
 

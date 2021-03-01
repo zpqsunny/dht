@@ -9,8 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import me.zpq.peer.message.ExtendedMessage;
 
 import java.io.ByteArrayInputStream;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 

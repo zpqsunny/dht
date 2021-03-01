@@ -75,6 +75,7 @@ public class HandshakeHandle extends SimpleChannelInboundHandler<HandshakeMessag
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
 
+        log.info("connected server host: {} hash: {}", ctx.channel().remoteAddress(), Hex.encodeHexString(this.hash));
         byte[] extension = new byte[]{0, 0, 0, 0, 0, 16, 0, 0};
         HandshakeMessage handshakeMessage = HandshakeMessage.builder()
                 .protocol(MetadataConstant.PROTOCOL)

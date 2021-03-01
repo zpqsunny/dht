@@ -38,7 +38,7 @@ public class Peer implements Runnable {
 
     private final RedisCommands<String, String> redis;
 
-//    private final MongoCollection<Document> collection;
+    private final MongoCollection<Document> collection;
 
     private final ThreadPoolExecutor threadPoolExecutor;
 
@@ -46,7 +46,7 @@ public class Peer implements Runnable {
 
     public Peer(RedisCommands<String, String> redis, MongoClient mongoClient, ThreadPoolExecutor threadPoolExecutor, Bootstrap b) {
         this.redis = redis;
-//        this.collection = mongoClient.getDatabase(DHT).getCollection(METADATA);
+        this.collection = mongoClient.getDatabase(DHT).getCollection(METADATA);
         this.threadPoolExecutor = threadPoolExecutor;
         this.b = b;
     }
@@ -73,13 +73,13 @@ public class Peer implements Runnable {
 
             threadPoolExecutor.execute(() -> {
 
-//                Document has = new Document();
-//                has.put(HASH, new BsonBinary(hash));
-//                FindIterable<Document> documents = collection.find(has);
-//                if (documents.first() != null) {
-//                    log.info("hash is exist, ignore");
-//                    return;
-//                }
+                Document has = new Document();
+                has.put(HASH, new BsonBinary(hash));
+                FindIterable<Document> documents = collection.find(has);
+                if (documents.first() != null) {
+                    log.info("hash is exist, ignore");
+                    return;
+                }
 
                 b.handler(new Initializer(hash));
                 try {
@@ -87,7 +87,9 @@ public class Peer implements Runnable {
                     Object metadata = b.connect(ip, port).channel().closeFuture().sync().channel().attr(AttributeKey.valueOf("metadata")).get();
                     if (metadata instanceof ByteBuffer) {
 
-                        log.info("metadata success : {}", JsonMetaInfo.show(((ByteBuffer) metadata).array()));
+                        Document doc = MongoMetaInfo.saveLocalFile(((ByteBuffer) metadata).array());
+                        collection.insertOne(doc);
+                        log.info("metadata save success");
                     }
                 } catch (Exception e) {
                     log.error("{} {}", e.getClass(), e);

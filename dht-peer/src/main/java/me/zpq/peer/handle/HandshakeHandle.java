@@ -52,7 +52,7 @@ public class HandshakeHandle extends SimpleChannelInboundHandler<HandshakeMessag
                 return;
             }
         }
-        log.info("validatorHandshake success");
+
         ctx.pipeline()
                 .addLast("extHandshakeDecoder", new ExtMessageDecoder())
                 .addLast("extHandshakeEncoder", new ExtMessageEncoder())

@@ -56,7 +56,7 @@ public class Peer implements Runnable {
 
         String infoHash = redis.rpop(LIST_KEY);
         if (infoHash != null) {
-            log.info("redis peer len: {}", redis.llen(LIST_KEY));
+            log.info("redis peer len: {} threadPoolExecutor queue size: {}", redis.llen(LIST_KEY), threadPoolExecutor.getQueue().size());
             StringTokenizer stringTokenizer = new StringTokenizer(infoHash, "|");
             String hashHex = stringTokenizer.nextToken();
             redis.srem(SET_KEY, hashHex);
@@ -70,7 +70,6 @@ public class Peer implements Runnable {
             }
             String ip = stringTokenizer.nextToken();
             int port = Integer.parseInt(stringTokenizer.nextToken());
-            log.info("threadPoolExecutor queue size: {}",threadPoolExecutor.getQueue().size());
             threadPoolExecutor.execute(() -> {
 
                 Document has = new Document();

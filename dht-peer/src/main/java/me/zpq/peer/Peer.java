@@ -75,8 +75,7 @@ public class Peer implements Runnable {
 
                 Document has = new Document();
                 has.put(HASH, new BsonBinary(hash));
-                FindIterable<Document> documents = collection.find(has);
-                if (documents.first() != null) {
+                if (collection.find().first() != null) {
                     log.info("hash is exist, ignore");
                     return;
                 }
@@ -86,6 +85,11 @@ public class Peer implements Runnable {
                     Object metadata = b.connect(ip, port).channel().closeFuture().sync().channel().attr(AttributeKey.valueOf("metadata")).get();
                     if (metadata instanceof ByteBuffer) {
 
+                        if (collection.find(has).first() != null) {
+
+                            log.info("hash is exist, ignore too");
+                            return;
+                        }
                         Document doc = MongoMetaInfo.saveLocalFile(((ByteBuffer) metadata).array());
                         collection.insertOne(doc);
                         log.info("metadata save success");

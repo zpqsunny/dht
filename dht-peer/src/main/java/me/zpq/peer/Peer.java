@@ -75,7 +75,7 @@ public class Peer implements Runnable {
 
                 Document has = new Document();
                 has.put(HASH, new BsonBinary(hash));
-                if (collection.find().first() != null) {
+                if (collection.find(has).first() != null) {
                     log.info("hash is exist, ignore");
                     return;
                 }

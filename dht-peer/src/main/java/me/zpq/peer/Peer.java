@@ -70,7 +70,7 @@ public class Peer implements Runnable {
             }
             String ip = stringTokenizer.nextToken();
             int port = Integer.parseInt(stringTokenizer.nextToken());
-
+            log.info("threadPoolExecutor queue size: {}",threadPoolExecutor.getQueue().size());
             threadPoolExecutor.execute(() -> {
 
                 Document has = new Document();

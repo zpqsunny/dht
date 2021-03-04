@@ -45,8 +45,7 @@ public class MetadataHandle extends SimpleChannelInboundHandler<ExtendedMessage>
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ExtendedMessage msg) throws Exception {
 
-        log.info("getBittorrentMessageId {} extendedMessageId {}", msg.getBittorrentMessageId(), msg.getExtendedMessageId());
-        if (Arrays.binarySearch(new int[]{1, 4, 5}, msg.getBittorrentMessageId()) >= 0) {
+        if (Arrays.binarySearch(new int[]{0, 1, 2, 3, 4, 5}, msg.getBittorrentMessageId()) >= 0) {
 
             return;
         }
@@ -92,7 +91,9 @@ public class MetadataHandle extends SimpleChannelInboundHandler<ExtendedMessage>
             ctx.pipeline().remove(this);
             ctx.channel().attr(AttributeKey.valueOf("metadata")).set(this.metadata);
             ctx.close();
+            return;
         }
+        log.info("getBittorrentMessageId {} extendedMessageId {}", msg.getBittorrentMessageId(), msg.getExtendedMessageId());
     }
 
     @Override

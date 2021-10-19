@@ -45,3 +45,47 @@ jar包和config.properties配置文件要在同一目录
 java  -jar dht-server-1.0-SNAPSHOT-jar-with-dependencies.jar &
 java  -jar dht-peer-1.0-SNAPSHOT-jar-with-dependencies.jar &
 ```
+
+## Docker
+
+运行在Docker
+
+[dht-server](https://hub.docker.com/repository/docker/zpqsunny/dht-server)
+
+[dht-peer](https://hub.docker.com/repository/docker/zpqsunny/dht-peer)
+
+### ENV 环境变量配置
+
+#### DHT Server
+
+```properties
+HOST = 127.0.0.1 #服务器IP
+PORT = 6881 端口
+MIN_NODES = 20#node节点最少数量
+MAX_NODES = 5000 #node节点最大数量
+REDIS_HOST = 127.0.0.1 #redis地址
+REDIS_PORT = 6379 #redis端口
+REDIS_PASSWORD = '' #redis密码
+```
+
+#### DHT Peer
+
+```properties
+REDIS_HOST = 127.0.0.1 #redis地址
+REDIS_PORT = 6379 #redis端口
+REDIS_PASSWORD = '' #redis密码
+MONGODB_URL = 'mongodb://localhost' #mongodb url
+```
+
+## 快速运行
+
+```shell
+docker run -d --name redis --network host redis:5.0.10
+docker run -d --name dht-server --network host -e HOST={HOST} zpqsunny/dht-server:latest
+docker run -d --name mongo --network host -v /docker/mongo/db:/data/db -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INITDB_ROOT_PASSWORD=admin mongo:4.4.1
+docker run -d --name dht-peer --network host -v /metadata:/metadata -e MONGODB_URL="mongodb://admin:admin@127.0.0.1:27017/?authSource=admin" -e REDIS_HOST=127.0.0.1 -e REDIS_PORT=6379 zpqsunny/dht-peer:latest
+```
+
+## 示例数据
+
+![example-data](example-data.png)

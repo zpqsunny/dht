@@ -41,6 +41,8 @@ public class PeerApplication {
 
     private static String REDIS_PASSWORD = "";
 
+    private static int REDIS_DATABASE = 0;
+
     private static String MONGODB_URL = "mongodb://localhost";
 
     public static void main(String[] args) throws IOException {
@@ -102,6 +104,7 @@ public class PeerApplication {
             REDIS_HOST = properties.getProperty("redis.host", REDIS_HOST);
             REDIS_PORT = Integer.parseInt(properties.getProperty("redis.port", String.valueOf(REDIS_PORT)));
             REDIS_PASSWORD = properties.getProperty("redis.password", REDIS_PASSWORD);
+            REDIS_DATABASE = Integer.parseInt(properties.getProperty("redis.database", String.valueOf(REDIS_DATABASE)));
             MONGODB_URL = properties.getProperty("mongodb.url", MONGODB_URL);
             inputStream.close();
         }
@@ -114,6 +117,7 @@ public class PeerApplication {
         log.info("=> redis.host: {}", REDIS_HOST);
         log.info("=> redis.port: {}", REDIS_PORT);
         log.info("=> redis.password: {}", REDIS_PASSWORD);
+        log.info("=> redis.database: {}", REDIS_DATABASE);
         log.info("=> mongodb.url: {}", MONGODB_URL);
     }
 
@@ -122,6 +126,7 @@ public class PeerApplication {
         String redisHost = System.getenv("REDIS_HOST");
         String redisPort = System.getenv("REDIS_PORT");
         String redisPassword = System.getenv("REDIS_PASSWORD");
+        String redisDatabase = System.getenv("REDIS_DATABASE");
         String mongodbUrl = System.getenv("MONGODB_URL");
         if (redisHost != null && !redisHost.isEmpty()) {
             log.info("=> env REDIS_HOST: {}", redisHost);
@@ -134,6 +139,10 @@ public class PeerApplication {
         if (redisPassword != null && !redisPassword.isEmpty()) {
             log.info("=> env REDIS_PASSWORD: {}", redisPassword);
             REDIS_PASSWORD = redisPassword;
+        }
+        if (redisDatabase != null && !redisDatabase.isEmpty()) {
+            log.info("=> env REDIS_DATABASE: {}", redisDatabase);
+            REDIS_DATABASE = Integer.parseInt(redisDatabase);
         }
         if (mongodbUrl != null && !mongodbUrl.isEmpty()) {
             log.info("=> env MONGODB_URL: {}", mongodbUrl);
@@ -149,6 +158,7 @@ public class PeerApplication {
         builder.withHost(REDIS_HOST);
         builder.withPort(REDIS_PORT);
         builder.withPassword(REDIS_PASSWORD);
+        builder.withDatabase(REDIS_DATABASE);
         return RedisClient.create(resourceBuild.build(), builder.build());
     }
 

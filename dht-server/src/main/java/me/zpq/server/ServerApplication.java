@@ -61,6 +61,8 @@ public class ServerApplication {
 
     private static String REDIS_PASSWORD = "";
 
+    private static int REDIS_DATABASE = 0;
+
     public static void main(String[] args) throws InterruptedException, IOException {
 
         readConfig();
@@ -112,6 +114,7 @@ public class ServerApplication {
         builder.withHost(REDIS_HOST);
         builder.withPort(REDIS_PORT);
         builder.withPassword(REDIS_PASSWORD);
+        builder.withDatabase(REDIS_DATABASE);
         RedisClient redisClient = RedisClient.create(resourceBuild.build(), builder.build());
         StatefulRedisConnection<String, String> connection = redisClient.connect();
         return connection.sync();
@@ -137,6 +140,7 @@ public class ServerApplication {
             REDIS_HOST = properties.getProperty("redis.host", REDIS_HOST);
             REDIS_PORT = Integer.parseInt(properties.getProperty("redis.port", String.valueOf(REDIS_PORT)));
             REDIS_PASSWORD = properties.getProperty("redis.password", REDIS_PASSWORD);
+            REDIS_DATABASE = Integer.parseInt(properties.getProperty("redis.database", String.valueOf(REDIS_DATABASE)));
             inputStream.close();
         }
 
@@ -153,6 +157,7 @@ public class ServerApplication {
         log.info("=> redis.host: {}", REDIS_HOST);
         log.info("=> redis.port: {}", REDIS_PORT);
         log.info("=> redis.password: {}", REDIS_PASSWORD);
+        log.info("=> redis.database: {}", REDIS_DATABASE);
 
     }
 
@@ -165,6 +170,7 @@ public class ServerApplication {
         String redisHost = System.getenv("REDIS_HOST");
         String redisPort = System.getenv("REDIS_PORT");
         String redisPassword = System.getenv("REDIS_PASSWORD");
+        String redisDatabase = System.getenv("REDIS_DATABASE");
         if (host != null && !host.isEmpty()) {
             log.info("=> env HOST: {}", host);
             HOST = host;
@@ -192,6 +198,10 @@ public class ServerApplication {
         if (redisPassword != null && !redisPassword.isEmpty()) {
             log.info("=> env REDIS_PASSWORD: {}", redisPassword);
             REDIS_PASSWORD = redisPassword;
+        }
+        if (redisDatabase != null && !redisDatabase.isEmpty()) {
+            log.info("=> env REDIS_DATABASE: {}", redisDatabase);
+            REDIS_DATABASE = Integer.parseInt(redisDatabase);
         }
 
     }

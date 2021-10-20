@@ -21,7 +21,7 @@ public class DHTResponseEncoder extends MessageToMessageEncoder<DHTResponse> {
         ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
         BEncoder.encode(msg.getData(), byteArray);
 
-        out.add(new DatagramPacket(Unpooled.copiedBuffer(byteArray.toByteArray()),msg.getSender()));
+        out.add(new DatagramPacket(Unpooled.copiedBuffer(byteArray.toByteArray()), msg.getSender()));
 
     }
 }

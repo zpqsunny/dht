@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class Initializer extends ChannelInitializer<SocketChannel> {
 
-    private byte[] hash;
+    private final byte[] hash;
 
     public Initializer(byte[] hash) {
         this.hash = hash;

@@ -19,9 +19,8 @@ jobs:
           mvn -Dfile.encoding=UTF-8 -DskipTests=true install
           mvn -Dmaven.multiModuleProjectDirectory=./dht-server -Dfile.encoding=UTF-8 -DskipTests=true package
           mvn -Dmaven.multiModuleProjectDirectory=./dht-peer -Dfile.encoding=UTF-8 -DskipTests=true package
-          mv ./dht-server/target/dht-server-1.0-SNAPSHOT-jar-with-dependencies.jar ./dht-server-${{ github.ref }}.jar
-          mv ./dht-peer/target/dht-peer-1.0-SNAPSHOT-jar-with-dependencies.jar ./dht-peer-${{ github.ref }}.jar
-
+          mv ./dht-server/target/dht-server-1.0-SNAPSHOT-jar-with-dependencies.jar ./dht-server-${GITHUB_REF##*/}.jar
+          mv ./dht-peer/target/dht-peer-1.0-SNAPSHOT-jar-with-dependencies.jar ./dht-peer-${GITHUB_REF##*/}.jar
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -29,7 +28,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          release_name: Release ${GITHUB_REF##*/}
           draft: false
           prerelease: false
       - name: Upload Release Asset
@@ -39,5 +38,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-          asset_path: '["dht-server-${{ github.ref }}.jar", "dht-peer-${{ github.ref }}.jar"]'
+          asset_path: '["dht-server-${GITHUB_REF##*/}.jar", "dht-peer-${GITHUB_REF##*/}.jar"]'
           asset_content_type: application/x-java-archive

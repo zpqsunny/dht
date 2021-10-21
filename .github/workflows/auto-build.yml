@@ -17,8 +17,8 @@ jobs:
       - name: Build with Maven
         run: |
           mvn -Dfile.encoding=UTF-8 -DskipTests=true install
-          mvn -Dmaven.multiModuleProjectDirectory=./dht-server -Dfile.encoding=UTF-8 -DskipTests=true org.apache.maven.plugins:maven-assembly-plugin:2.2-beta-5:assembly
-          mvn -Dmaven.multiModuleProjectDirectory=./dht-peer -Dfile.encoding=UTF-8 -DskipTests=true org.apache.maven.plugins:maven-assembly-plugin:2.2-beta-5:assembly
+          mvn -Dmaven.multiModuleProjectDirectory=./dht-server -Dfile.encoding=UTF-8 -DskipTests=true package
+          mvn -Dmaven.multiModuleProjectDirectory=./dht-peer -Dfile.encoding=UTF-8 -DskipTests=true package
           mv ./dht-server/target/dht-server-1.0-SNAPSHOT-jar-with-dependencies.jar ./dht-server-${{ github.ref }}.jar
           mv ./dht-peer/target/dht-peer-1.0-SNAPSHOT-jar-with-dependencies.jar ./dht-peer-${{ github.ref }}.jar
 

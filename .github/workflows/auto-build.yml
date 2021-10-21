@@ -13,6 +13,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: '8'
+          distribution: 'zulu'
       - name: Build with Maven
         run: |
           mvn -Dfile.encoding=UTF-8 -DskipTests=true install

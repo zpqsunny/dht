@@ -24,6 +24,7 @@ jobs:
           mvn -Dmaven.multiModuleProjectDirectory=./dht-peer -Dfile.encoding=UTF-8 -DskipTests=true package
           mv ./dht-server/target/dht-server-1.0-SNAPSHOT-jar-with-dependencies.jar ./dht-server-${{ steps.branch-name.outputs.current_branch }}.jar
           mv ./dht-peer/target/dht-peer-1.0-SNAPSHOT-jar-with-dependencies.jar ./dht-peer-${{ steps.branch-name.outputs.current_branch }}.jar
+          zip -q -r release.zip *.jar
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -41,6 +42,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-          asset_path: '["./dht-server-${{ steps.branch-name.outputs.current_branch }}.jar", "./dht-peer-${{ steps.branch-name.outputs.current_branch }}.jar"]'
-          asset_name: '["dht-server-${{ steps.branch-name.outputs.current_branch }}.jar", "dht-peer-${{ steps.branch-name.outputs.current_branch }}.jar"]'
-          asset_content_type: application/x-java-archive
+          asset_path: ./release.zip
+          asset_name: release-${{ steps.branch-name.outputs.current_branch }}.zip
+          asset_content_type: application/zip

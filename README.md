@@ -19,6 +19,7 @@ server.removeNode.interval=300 #执行删除失效节点时间间隔（单位秒
 redis.host=127.0.0.1 #redis地址
 redis.port=6379 #redis端口
 redis.password= #redis密码
+redis.database=0 #redis Database
 ```
 ### Peer
 ```properties
@@ -27,6 +28,7 @@ peers.maximum.pool.size= #peer最大线程数
 redis.host=127.0.0.1 #redis地址
 redis.port=6379 #redis端口
 redis.password= #redis密码
+redis.database=0 #redis Database
 mongodb.url= #mongodb url
 ```
 
@@ -66,6 +68,7 @@ MAX_NODES = 5000 #node节点最大数量
 REDIS_HOST = 127.0.0.1 #redis地址
 REDIS_PORT = 6379 #redis端口
 REDIS_PASSWORD = '' #redis密码
+REDIS_DATABASE = 0 #redis Database
 ```
 
 #### DHT Peer
@@ -74,6 +77,7 @@ REDIS_PASSWORD = '' #redis密码
 REDIS_HOST = 127.0.0.1 #redis地址
 REDIS_PORT = 6379 #redis端口
 REDIS_PASSWORD = '' #redis密码
+REDIS_DATABASE = 0 #redis Database
 MONGODB_URL = 'mongodb://localhost' #mongodb url
 ```
 

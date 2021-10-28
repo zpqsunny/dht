@@ -33,6 +33,8 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DHTRequest> {
 
     private final int maxNodes;
 
+    private final boolean fresh;
+
     private final RedisCommands<String, String> redis;
 
     private final static String SET_KEY = "announce";
@@ -41,11 +43,12 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DHTRequest> {
 
     private final static String FRESH_EKY = "fresh";
 
-    public DHTServerHandler(IRoutingTable routingTable, byte[] nodeId, int maxNodes, RedisCommands<String, String> redis) {
+    public DHTServerHandler(IRoutingTable routingTable, byte[] nodeId, int maxNodes, boolean fresh, RedisCommands<String, String> redis) {
 
         this.nodeId = nodeId;
         this.routingTable = routingTable;
         this.maxNodes = maxNodes;
+        this.fresh = fresh;
         this.redis = redis;
     }
 
@@ -188,8 +191,10 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DHTRequest> {
         String hash = Hex.encodeHexString(infoHash);
 
         log.info("ip {} port {} infoHash {}", ip, peerPort, hash);
-        // format hash|ip|port|timestamp
-//        redis.lpush(FRESH_EKY, String.join("|", hash, ip, Integer.toString(port), Long.toString(System.currentTimeMillis())));
+        // format hash|timestamp
+        if (fresh) {
+            redis.lpush(FRESH_EKY, String.join("|", hash, Long.toString(System.currentTimeMillis())));
+        }
 
         if (!redis.sismember(SET_KEY, hash)) {
 

@@ -1,13 +1,12 @@
 package me.zpq.fresh;
 
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoCollection;
 import io.lettuce.core.api.sync.RedisCommands;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.DecoderException;
-import org.apache.commons.codec.binary.Hex;
-import org.bson.*;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.util.Date;
 import java.util.StringTokenizer;
 
 /**
@@ -19,17 +18,10 @@ public class Fresh implements Runnable {
 
     private final static String FRESH_KEY = "fresh";
 
-    private static final String DHT = "dht";
-
-    private static final String FRESH = "fresh";
-
     private final RedisCommands<String, String> redis;
 
-    private final MongoCollection<Document> document;
-
-    public Fresh(RedisCommands<String, String> redis, MongoClient mongoClient) {
+    public Fresh(RedisCommands<String, String> redis) {
         this.redis = redis;
-        this.document = mongoClient.getDatabase(DHT).getCollection(FRESH);
     }
 
     @Override
@@ -44,27 +36,15 @@ public class Fresh implements Runnable {
 
                 break;
             }
-            // format hash|ip|port|timestamp
+            // format hash|timestamp
             StringTokenizer stringTokenizer = new StringTokenizer(freshValue, "|");
             String hashHex = stringTokenizer.nextToken();
-            String ip = stringTokenizer.nextToken();
-            int port = Integer.parseInt(stringTokenizer.nextToken());
-            long time = Long.parseLong(stringTokenizer.nextToken());
-            byte[] hash;
-            try {
-                hash = Hex.decodeHex(hashHex);
-            } catch (DecoderException e) {
-                // ignore
-                log.error(e.getMessage());
-                continue;
-            }
-            Document d = new Document();
-            d.put("hash", new BsonBinary(hash));
-            d.put("ip", ip);
-            d.put("port", new BsonInt32(port));
-            d.put("time", new BsonDateTime(time));
-            document.insertOne(d);
-            log.info("index: {} OK", i);
+            String t = stringTokenizer.nextToken();
+            Date d = new Date(Long.parseLong(t));
+            LocalDateTime localDateTime = LocalDateTime.ofInstant(d.toInstant(), ZoneId.systemDefault())
+                    .withHour(0).withMinute(0).withSecond(0).withNano(0);
+            redis.zaddincr(hashHex, 1D, String.valueOf(localDateTime.toEpochSecond(ZoneOffset.of("+8"))));
+            redis.expire(hashHex, 7L * 24 * 60 * 60);
         }
 
         log.info("finish");

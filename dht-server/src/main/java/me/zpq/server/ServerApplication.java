@@ -55,6 +55,8 @@ public class ServerApplication {
 
     private static int REMOVE_NODE_INTERVAL = 300;
 
+    private static boolean FRESH = false;
+
     private static String REDIS_HOST = "127.0.0.1";
 
     private static int REDIS_PORT = 6379;
@@ -84,11 +86,11 @@ public class ServerApplication {
                     .option(ChannelOption.SO_BROADCAST, true)
                     .handler(new ChannelInitializer<NioDatagramChannel>() {
                         @Override
-                        protected void initChannel(NioDatagramChannel ch) throws Exception {
+                        protected void initChannel(NioDatagramChannel ch) {
                             ch.pipeline()
                                     .addLast(new DHTRequestDecoder())
                                     .addLast(new DHTResponseEncoder())
-                                    .addLast(new DHTServerHandler(routingTable, NODE_ID, MAX_NODES, redis))
+                                    .addLast(new DHTServerHandler(routingTable, NODE_ID, MAX_NODES, FRESH, redis))
                             ;
                         }
 
@@ -137,6 +139,7 @@ public class ServerApplication {
             FIND_NODE_INTERVAL = Integer.parseInt(properties.getProperty("server.findNode.interval"));
             PING_INTERVAL = Integer.parseInt(properties.getProperty("server.ping.interval"));
             REMOVE_NODE_INTERVAL = Integer.parseInt(properties.getProperty("server.removeNode.interval"));
+            FRESH = Boolean.parseBoolean(properties.getProperty("server.fresh"));
             REDIS_HOST = properties.getProperty("redis.host", REDIS_HOST);
             REDIS_PORT = Integer.parseInt(properties.getProperty("redis.port", String.valueOf(REDIS_PORT)));
             REDIS_PASSWORD = properties.getProperty("redis.password", REDIS_PASSWORD);
@@ -154,6 +157,7 @@ public class ServerApplication {
         log.info("=> server.findNode.interval: {}", FIND_NODE_INTERVAL);
         log.info("=> server.ping.interval: {}", PING_INTERVAL);
         log.info("=> server.removeNode.interval: {}", REMOVE_NODE_INTERVAL);
+        log.info("=> server.fresh: {}", FRESH);
         log.info("=> redis.host: {}", REDIS_HOST);
         log.info("=> redis.port: {}", REDIS_PORT);
         log.info("=> redis.password: {}", REDIS_PASSWORD);
@@ -167,6 +171,7 @@ public class ServerApplication {
         String port = System.getenv("PORT");
         String minNodes = System.getenv("MIN_NODES");
         String maxNodes = System.getenv("MAX_NODES");
+        String fresh = System.getenv("FRESH");
         String redisHost = System.getenv("REDIS_HOST");
         String redisPort = System.getenv("REDIS_PORT");
         String redisPassword = System.getenv("REDIS_PASSWORD");
@@ -186,6 +191,10 @@ public class ServerApplication {
         if (maxNodes != null && !maxNodes.isEmpty()) {
             log.info("=> env MAX_NODES: {}", maxNodes);
             MAX_NODES = Integer.parseInt(maxNodes);
+        }
+        if (fresh != null && !fresh.isEmpty()) {
+            log.info("=> env FRESH: {}", fresh);
+            FRESH = Boolean.parseBoolean(fresh);
         }
         if (redisHost != null && !redisHost.isEmpty()) {
             log.info("=> env REDIS_HOST: {}", redisHost);

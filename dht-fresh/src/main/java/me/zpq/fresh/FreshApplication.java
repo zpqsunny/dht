@@ -1,9 +1,5 @@
 package me.zpq.fresh;
 
-import com.mongodb.ConnectionString;
-import com.mongodb.MongoClientSettings;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.sync.RedisCommands;
@@ -32,7 +28,7 @@ public class FreshApplication {
 
     private static String REDIS_PASSWORD = "";
 
-    private static String MONGODB_URL = "mongodb://localhost";
+    private static int REDIS_DATABASE = 0;
 
     public static void main(String[] args) throws IOException {
 
@@ -42,11 +38,9 @@ public class FreshApplication {
 
         RedisCommands<String, String> redis = redisClient.connect().sync();
 
-        MongoClient mongoClient = mongo(MONGODB_URL);
-
         ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(5);
 
-        scheduledExecutorService.scheduleWithFixedDelay(new Fresh(redis, mongoClient), 5L, 5L, TimeUnit.SECONDS);
+        scheduledExecutorService.scheduleWithFixedDelay(new Fresh(redis), 5L, 5L, TimeUnit.SECONDS);
 
         log.info("fresh started pid: {}", ManagementFactory.getRuntimeMXBean().getName());
 
@@ -57,8 +51,6 @@ public class FreshApplication {
             log.info("closed scheduled...");
             redisClient.shutdown();
             log.info("closed redis...");
-            mongoClient.close();
-            log.info("closed mongodb...");
         }));
     }
 
@@ -75,14 +67,16 @@ public class FreshApplication {
             REDIS_HOST = properties.getProperty("redis.host", REDIS_HOST);
             REDIS_PORT = Integer.parseInt(properties.getProperty("redis.port", Integer.toString(REDIS_PORT)));
             REDIS_PASSWORD = properties.getProperty("redis.password", REDIS_PASSWORD);
-            MONGODB_URL = properties.getProperty("mongodb.url", MONGODB_URL);
+            REDIS_DATABASE = Integer.parseInt(properties.getProperty("redis.database", Integer.toString(REDIS_DATABASE)));
             inputStream.close();
         }
+
+        readEnv();
 
         log.info("=> redis.host: {}", REDIS_HOST);
         log.info("=> redis.port: {}", REDIS_PORT);
         log.info("=> redis.password: {}", REDIS_PASSWORD);
-        log.info("=> mongodb.url: {}", MONGODB_URL);
+        log.info("=> redis.database: {}", REDIS_DATABASE);
     }
 
     private static RedisClient redis() {
@@ -95,11 +89,29 @@ public class FreshApplication {
         return RedisClient.create(resourceBuild.build(), builder.build());
     }
 
-    private static MongoClient mongo(String mongoUri) {
+    private static void readEnv() {
+        // docker
+        String redisHost = System.getenv("REDIS_HOST");
+        String redisPort = System.getenv("REDIS_PORT");
+        String redisPassword = System.getenv("REDIS_PASSWORD");
+        String redisDatabase = System.getenv("REDIS_DATABASE");
+        if (redisHost != null && !redisHost.isEmpty()) {
+            log.info("=> env REDIS_HOST: {}", redisHost);
+            REDIS_HOST = redisHost;
+        }
+        if (redisPort != null && !redisPort.isEmpty()) {
+            log.info("=> env REDIS_PORT: {}", redisPort);
+            REDIS_PORT = Integer.parseInt(redisPort);
+        }
+        if (redisPassword != null && !redisPassword.isEmpty()) {
+            log.info("=> env REDIS_PASSWORD: {}", redisPassword);
+            REDIS_PASSWORD = redisPassword;
+        }
+        if (redisDatabase != null && !redisDatabase.isEmpty()) {
+            log.info("=> env REDIS_DATABASE: {}", redisDatabase);
+            REDIS_DATABASE = Integer.parseInt(redisDatabase);
+        }
 
-        MongoClientSettings.Builder mongoClientSettings = MongoClientSettings.builder();
-        ConnectionString connectionString = new ConnectionString(mongoUri);
-        mongoClientSettings.applyConnectionString(connectionString);
-        return MongoClients.create(mongoClientSettings.build());
     }
+
 }

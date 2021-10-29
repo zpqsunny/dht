@@ -1,12 +1,9 @@
 package me.zpq.peer;
 
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import io.lettuce.core.api.sync.RedisCommands;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.util.AttributeKey;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.DecoderException;
@@ -14,7 +11,6 @@ import org.apache.commons.codec.binary.Hex;
 import org.bson.BsonBinary;
 import org.bson.Document;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.StringTokenizer;
 import java.util.concurrent.ThreadPoolExecutor;

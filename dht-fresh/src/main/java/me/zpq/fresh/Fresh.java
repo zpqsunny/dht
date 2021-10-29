@@ -9,14 +9,14 @@ import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.StringTokenizer;
 
+import static me.zpq.dht.common.RedisModel.FRESH_KEY;
+
 /**
  * @author zpq
  * @date 2020/8/28
  */
 @Slf4j
 public class Fresh implements Runnable {
-
-    private final static String FRESH_KEY = "fresh";
 
     private final RedisCommands<String, String> redis;
 

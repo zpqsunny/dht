@@ -15,16 +15,15 @@ import java.nio.ByteBuffer;
 import java.util.StringTokenizer;
 import java.util.concurrent.ThreadPoolExecutor;
 
+import static me.zpq.dht.common.RedisModel.LIST_KEY;
+import static me.zpq.dht.common.RedisModel.SET_KEY;
+
 /**
  * @author zpq
  * @date 2020/7/23
  */
 @Slf4j
 public class Peer implements Runnable {
-
-    private final static String SET_KEY = "announce";
-
-    private final static String LIST_KEY = "peer";
 
     private static final String DHT = "dht";
 

@@ -20,6 +20,10 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static me.zpq.dht.common.RedisModel.SET_KEY;
+import static me.zpq.dht.common.RedisModel.LIST_KEY;
+import static me.zpq.dht.common.RedisModel.FRESH_KEY;
+
 /**
  * @author zpq
  * @date 2019-08-21
@@ -36,12 +40,6 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DHTRequest> {
     private final boolean fresh;
 
     private final RedisCommands<String, String> redis;
-
-    private final static String SET_KEY = "announce";
-
-    private final static String LIST_KEY = "peer";
-
-    private final static String FRESH_EKY = "fresh";
 
     public DHTServerHandler(IRoutingTable routingTable, byte[] nodeId, int maxNodes, boolean fresh, RedisCommands<String, String> redis) {
 
@@ -193,7 +191,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DHTRequest> {
         log.info("ip {} port {} infoHash {}", ip, peerPort, hash);
         // format hash|timestamp
         if (fresh) {
-            redis.lpush(FRESH_EKY, String.join("|", hash, Long.toString(System.currentTimeMillis())));
+            redis.lpush(FRESH_KEY, String.join("|", hash, Long.toString(System.currentTimeMillis())));
         }
 
         if (!redis.sismember(SET_KEY, hash)) {

@@ -4,7 +4,7 @@ package me.zpq.dht.common;
  * @author zpq
  * @date 2021/10/29 9:53
  */
-public class RedisModel {
+public class RedisKeys {
 
     public final static String SET_KEY = "announce";
 

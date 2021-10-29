@@ -9,7 +9,7 @@ import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.StringTokenizer;
 
-import static me.zpq.dht.common.RedisModel.FRESH_KEY;
+import static me.zpq.dht.common.RedisKeys.FRESH_KEY;
 
 /**
  * @author zpq

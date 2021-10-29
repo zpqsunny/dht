@@ -20,9 +20,9 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static me.zpq.dht.common.RedisModel.SET_KEY;
-import static me.zpq.dht.common.RedisModel.LIST_KEY;
-import static me.zpq.dht.common.RedisModel.FRESH_KEY;
+import static me.zpq.dht.common.RedisKeys.SET_KEY;
+import static me.zpq.dht.common.RedisKeys.LIST_KEY;
+import static me.zpq.dht.common.RedisKeys.FRESH_KEY;
 
 /**
  * @author zpq

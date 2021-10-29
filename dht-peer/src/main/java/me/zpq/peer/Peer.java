@@ -15,8 +15,8 @@ import java.nio.ByteBuffer;
 import java.util.StringTokenizer;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import static me.zpq.dht.common.RedisModel.LIST_KEY;
-import static me.zpq.dht.common.RedisModel.SET_KEY;
+import static me.zpq.dht.common.RedisKeys.LIST_KEY;
+import static me.zpq.dht.common.RedisKeys.SET_KEY;
 
 /**
  * @author zpq

@@ -4,7 +4,16 @@
 
 DHT Server -> Redis
 
-Redis <- Peer -> (Mongodb && local)           
+Redis <- Peer -> (Mongodb && local)        
+
+### 模块解释
+- dht-common        公共变量和方法
+- dht-fresh         hash的7天内统计日活跃数
+- dht-krpc          krpc 协议实现
+- dht-peer          Peer 客户端实现(TCP),实现端与端之间的数据交互,来实现获取对端的metadata数据和存储
+- dht-routing-table 为dht-server 实现的内部路由表
+- dht-server        负责基于UDP传输协议的DHT网络传输Bencode编码的服务器
+
 ## config.properties 配置文件
 
 ### DHT Server

@@ -45,9 +45,11 @@ mongodb.url=                    #mongodb url
 
 ## 实现协议
 
-- [x] [DHT Protocol](http://www.bittorrent.org/beps/bep_0005.html)
-- [x] [Extension for Peers to Send Metadata Files](http://www.bittorrent.org/beps/bep_0009.html)
-- [x] [Extension Protocol](http://www.bittorrent.org/beps/bep_0010.html)
+:heavy_check_mark: [DHT Protocol](http://www.bittorrent.org/beps/bep_0005.html)
+
+:heavy_check_mark: [Extension for Peers to Send Metadata Files](http://www.bittorrent.org/beps/bep_0009.html)
+
+:heavy_check_mark: [Extension Protocol](http://www.bittorrent.org/beps/bep_0010.html)
 
 ## 运行
 

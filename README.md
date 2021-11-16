@@ -1,5 +1,8 @@
 # DHT 网络爬虫
 
+![GitHub](https://img.shields.io/github/license/zpqsunny/dht)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/zpqsunny/dht)
+
 ## 架构设计
 
 DHT Server -> Redis

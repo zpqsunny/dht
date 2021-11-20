@@ -31,7 +31,9 @@ public class FindNode implements Runnable {
     private final List<BootstrapAddress> list = Arrays.asList(
             new BootstrapAddress("router.bittorrent.com", 6881),
             new BootstrapAddress("router.utorrent.com", 6881),
-            new BootstrapAddress("dht.transmissionbt.com", 6881));
+            new BootstrapAddress("dht.transmissionbt.com", 6881),
+            new BootstrapAddress("dht.libtorrent.org", 25401)
+    );
 
     public FindNode(final Channel channel, byte[] transactionId, byte[] nodeId, IRoutingTable routingTable, int minNodes) {
 

@@ -99,6 +99,7 @@ MONGODB_URL = 'mongodb://localhost' #mongodb url
 
 ## 快速运行
 
+**docker**
 ```shell
 docker run -d --name redis --network host redis:5.0.10
 docker run -d --name dht-server --network host -e HOST={HOST} zpqsunny/dht-server:latest
@@ -106,6 +107,49 @@ docker run -d --name mongo --network host -v /docker/mongo/db:/data/db -e MONGO_
 docker run -d --name dht-peer --network host -v /metadata:/metadata -e MONGODB_URL="mongodb://admin:admin@127.0.0.1:27017/?authSource=admin" -e REDIS_HOST=127.0.0.1 -e REDIS_PORT=6379 zpqsunny/dht-peer:latest
 ```
 
+**docker-compose**
+```yaml
+services:
+  redis:
+    container_name: redis
+    image: redis:5.0.10
+    network_mode: host
+  dht-server:
+    container_name: dht-server
+    image: zpqsunny/dht-server:latest
+    network_mode: host
+    environment:
+      HOST: 127.0.0.1
+      PORT: 6881
+      REDIS_HOST: 127.0.0.1
+      REDIS_PORT: 6379
+      REDIS_PASSWORD:
+      REDIS_DATABASE: 0
+  mongo:
+    container_name: mongo
+    image: mongo:4.4.1
+    volumes:
+      - /docker/mongo/db:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+    network_mode: host
+  dht-peer:
+    container_name: dht-peer
+    image: zpqsunny/dht-peer:latest
+    network_mode: host
+    volumes:
+      - /metadata:/metadata
+    environment:
+      MONGODB_URL: mongodb://admin:admin@127.0.0.1:27017/?authSource=admin
+      REDIS_HOST: 127.0.0.1
+      REDIS_PORT: 6379
+      REDIS_PASSWORD:
+      REDIS_DATABASE: 0
+```
+```shell
+docker-compose up
+```
 ## 示例数据
 
 ![example-data](example-data.png)

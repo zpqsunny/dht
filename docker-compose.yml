@@ -5,7 +5,6 @@ services:
     network_mode: host
     restart: unless-stopped
   dht-server:
-    container_name: dht-server
     deploy:
       mode: replicated
       replicas: 3
@@ -30,7 +29,6 @@ services:
     network_mode: host
     restart: unless-stopped
   dht-peer:
-    container_name: dht-peer
     deploy:
       mode: replicated
       replicas: 3

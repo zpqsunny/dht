@@ -114,10 +114,14 @@ services:
     container_name: redis
     image: redis:5.0.10
     network_mode: host
+    restart: unless-stopped
   dht-server:
-    container_name: dht-server
+    deploy:
+      mode: replicated
+      replicas: 3
     image: zpqsunny/dht-server:latest
     network_mode: host
+    restart: unless-stopped
     environment:
       HOST: 127.0.0.1
       PORT: 6881
@@ -134,10 +138,14 @@ services:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: admin
     network_mode: host
+    restart: unless-stopped
   dht-peer:
-    container_name: dht-peer
+    deploy:
+      mode: replicated
+      replicas: 3
     image: zpqsunny/dht-peer:latest
     network_mode: host
+    restart: unless-stopped
     volumes:
       - /metadata:/metadata
     environment:

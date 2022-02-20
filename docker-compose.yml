@@ -4,7 +4,7 @@ services:
     image: redis:5.0.10
     network_mode: host
     restart: unless-stopped
-  dht-server:
+  dht-server-1:
     depends_on:
       - redis
     image: zpqsunny/dht-server:latest
@@ -12,6 +12,30 @@ services:
     restart: unless-stopped
     environment:
       PORT: 6881
+      REDIS_HOST: 127.0.0.1
+      REDIS_PORT: 6379
+      REDIS_PASSWORD:
+      REDIS_DATABASE: 0
+  dht-server-2:
+    depends_on:
+      - redis
+    image: zpqsunny/dht-server:latest
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      PORT: 6882
+      REDIS_HOST: 127.0.0.1
+      REDIS_PORT: 6379
+      REDIS_PASSWORD:
+      REDIS_DATABASE: 0
+  dht-server-3:
+    depends_on:
+      - redis
+    image: zpqsunny/dht-server:latest
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      PORT: 6883
       REDIS_HOST: 127.0.0.1
       REDIS_PORT: 6379
       REDIS_PASSWORD:

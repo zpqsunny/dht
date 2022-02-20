@@ -14,12 +14,10 @@ import io.netty.channel.socket.nio.NioDatagramChannel;
 import lombok.extern.slf4j.Slf4j;
 import me.zpq.dht.common.Utils;
 import me.zpq.route.IRoutingTable;
-import me.zpq.route.NodeTable;
 import me.zpq.route.RoutingTable;
 import me.zpq.server.schedule.FindNode;
 import me.zpq.server.schedule.Ping;
 import me.zpq.server.schedule.RemoveNode;
-import org.apache.commons.codec.binary.Hex;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -36,8 +34,6 @@ import java.util.concurrent.*;
  */
 @Slf4j
 public class ServerApplication {
-
-    private static String HOST = "127.0.0.1";
 
     private static int PORT = 6881;
 
@@ -72,8 +68,6 @@ public class ServerApplication {
         Bootstrap bootstrap = new Bootstrap();
 
         RoutingTable routingTable = new RoutingTable();
-
-        routingTable.put(new NodeTable(Hex.encodeHexString(NODE_ID), HOST, PORT, System.currentTimeMillis()));
 
         RedisCommands<String, String> redis = redis();
 
@@ -132,7 +126,6 @@ public class ServerApplication {
             InputStream inputStream = Files.newInputStream(configFile);
             Properties properties = new Properties();
             properties.load(inputStream);
-            HOST = properties.getProperty("server.ip", HOST);
             PORT = Integer.parseInt(properties.getProperty("server.port", String.valueOf(PORT)));
             MIN_NODES = Integer.parseInt(properties.getProperty("server.nodes.min"));
             MAX_NODES = Integer.parseInt(properties.getProperty("server.nodes.max"));
@@ -150,7 +143,6 @@ public class ServerApplication {
         readEnv();
 
         log.info("==========>");
-        log.info("=> server.ip: {}", HOST);
         log.info("=> server.port: {}", PORT);
         log.info("=> server.nodes.min: {}", MIN_NODES);
         log.info("=> server.nodes.max: {}", MAX_NODES);
@@ -167,7 +159,6 @@ public class ServerApplication {
 
     private static void readEnv() {
         // docker
-        String host = System.getenv("HOST");
         String port = System.getenv("PORT");
         String minNodes = System.getenv("MIN_NODES");
         String maxNodes = System.getenv("MAX_NODES");
@@ -176,10 +167,6 @@ public class ServerApplication {
         String redisPort = System.getenv("REDIS_PORT");
         String redisPassword = System.getenv("REDIS_PASSWORD");
         String redisDatabase = System.getenv("REDIS_DATABASE");
-        if (host != null && !host.isEmpty()) {
-            log.info("=> env HOST: {}", host);
-            HOST = host;
-        }
         if (port != null && !port.isEmpty()) {
             log.info("=> env PORT: {}", port);
             PORT = Integer.parseInt(port);

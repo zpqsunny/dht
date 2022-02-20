@@ -21,7 +21,6 @@ Redis <- Peer -> (Mongodb && local)
 
 ### DHT Server
 ```properties
-server.ip=0.0.0.0               #服务器IP
 server.port=6881                #监听端口
 server.nodes.min=20             #node节点最少数量
 server.nodes.max=3000           #node节点最大数量
@@ -36,8 +35,8 @@ redis.database=0                #redis Database
 ```
 ### Peer
 ```properties
-peers.core.pool.size=           #peer核心线程数
-peers.maximum.pool.size=        #peer最大线程数
+peers.core.pool.size=5          #peer核心线程数
+peers.maximum.pool.size=10      #peer最大线程数
 redis.host=127.0.0.1            #redis地址
 redis.port=6379                 #redis端口
 redis.password=                 #redis密码
@@ -76,7 +75,6 @@ java  -jar dht-peer-1.0-SNAPSHOT-jar-with-dependencies.jar &
 #### DHT Server
 
 ```properties
-HOST = 127.0.0.1            #服务器IP
 PORT = 6881                 #端口
 MIN_NODES = 20              #node节点最少数量
 MAX_NODES = 5000            #node节点最大数量
@@ -116,14 +114,12 @@ services:
     network_mode: host
     restart: unless-stopped
   dht-server:
-    deploy:
-      mode: replicated
-      replicas: 3
+    depends_on:
+      - redis
     image: zpqsunny/dht-server:latest
     network_mode: host
     restart: unless-stopped
     environment:
-      HOST: 127.0.0.1
       PORT: 6881
       REDIS_HOST: 127.0.0.1
       REDIS_PORT: 6379
@@ -140,6 +136,9 @@ services:
     network_mode: host
     restart: unless-stopped
   dht-peer:
+    depends_on:
+      - redis
+      - mongo
     deploy:
       mode: replicated
       replicas: 3

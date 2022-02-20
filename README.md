@@ -100,7 +100,7 @@ MONGODB_URL = 'mongodb://localhost' #mongodb url
 **docker**
 ```shell
 docker run -d --name redis --network host redis:5.0.10
-docker run -d --name dht-server --network host -e HOST={HOST} zpqsunny/dht-server:latest
+docker run -d --name dht-server --network host zpqsunny/dht-server:latest
 docker run -d --name mongo --network host -v /docker/mongo/db:/data/db -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INITDB_ROOT_PASSWORD=admin mongo:4.4.1
 docker run -d --name dht-peer --network host -v /metadata:/metadata -e MONGODB_URL="mongodb://admin:admin@127.0.0.1:27017/?authSource=admin" -e REDIS_HOST=127.0.0.1 -e REDIS_PORT=6379 zpqsunny/dht-peer:latest
 ```

@@ -45,6 +45,7 @@ services:
     image: mongo:4.4.1
     volumes:
       - /docker/mongo/db:/data/db
+      - /docker/mongo/backup:/backup
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: admin

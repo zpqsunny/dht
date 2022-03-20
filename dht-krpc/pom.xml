@@ -22,7 +22,6 @@
         <dependency>
             <groupId>be.adaxisoft</groupId>
             <artifactId>Bencode</artifactId>
-            <version>${be.adaxisoft.version}</version>
         </dependency>
 
     </dependencies>

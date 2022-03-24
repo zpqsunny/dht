@@ -22,8 +22,8 @@ jobs:
           mvn -Dfile.encoding=UTF-8 -DskipTests=true install
           mvn -Dmaven.multiModuleProjectDirectory=./dht-server -Dfile.encoding=UTF-8 -DskipTests=true package
           mvn -Dmaven.multiModuleProjectDirectory=./dht-peer -Dfile.encoding=UTF-8 -DskipTests=true package
-          mv ./dht-server/target/dht-server-1.0-SNAPSHOT-jar-with-dependencies.jar ./dht-server-${{ steps.branch-name.outputs.current_branch }}.jar
-          mv ./dht-peer/target/dht-peer-1.0-SNAPSHOT-jar-with-dependencies.jar ./dht-peer-${{ steps.branch-name.outputs.current_branch }}.jar
+          cp ./dht-server/target/dht-server-1.0-SNAPSHOT-jar-with-dependencies.jar ./dht-server-${{ steps.branch-name.outputs.current_branch }}.jar
+          cp ./dht-peer/target/dht-peer-1.0-SNAPSHOT-jar-with-dependencies.jar ./dht-peer-${{ steps.branch-name.outputs.current_branch }}.jar
           zip -q -r release.zip *.jar
       - name: Create Release
         id: create_release
@@ -45,3 +45,24 @@ jobs:
           asset_path: ./release.zip
           asset_name: release-${{ steps.branch-name.outputs.current_branch }}.zip
           asset_content_type: application/zip
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Build and push dht-server
+        uses: docker/build-push-action@v2
+        with:
+          content: dht-server
+          push: true
+          tags: zpqsunny/dht-server:latest,zpqsunny/dht-server:${{ steps.branch-name.outputs.current_branch }}
+      - name: Build and push dht-peer
+        uses: docker/build-push-action@v2
+        with:
+          content: dht-peer
+          push: true
+          tags: zpqsunny/dht-peer:latest,zpqsunny/dht-peer:${{ steps.branch-name.outputs.current_branch }}

@@ -8,6 +8,9 @@ services:
     depends_on:
       - redis
     image: zpqsunny/dht-server:latest
+    build:
+      context: dht-server
+      dockerfile: Dockerfile
     network_mode: host
     restart: unless-stopped
     environment:
@@ -43,6 +46,9 @@ services:
       mode: replicated
       replicas: 3
     image: zpqsunny/dht-peer:latest
+    build:
+      context: dht-server
+      dockerfile: Dockerfile
     network_mode: host
     restart: unless-stopped
     volumes:

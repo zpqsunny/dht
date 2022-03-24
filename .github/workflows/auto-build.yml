@@ -57,12 +57,12 @@ jobs:
       - name: Build and push dht-server
         uses: docker/build-push-action@v2
         with:
-          content: dht-server
+          context: dht-server
           push: true
           tags: zpqsunny/dht-server:latest,zpqsunny/dht-server:${{ steps.branch-name.outputs.current_branch }}
       - name: Build and push dht-peer
         uses: docker/build-push-action@v2
         with:
-          content: dht-peer
+          context: dht-peer
           push: true
           tags: zpqsunny/dht-peer:latest,zpqsunny/dht-peer:${{ steps.branch-name.outputs.current_branch }}

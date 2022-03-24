@@ -113,10 +113,13 @@ services:
     image: redis:5.0.10
     network_mode: host
     restart: unless-stopped
-  dht-server:
+  dht-server-1: &dht-server
     depends_on:
       - redis
     image: zpqsunny/dht-server:latest
+    build:
+      context: dht-server
+      dockerfile: Dockerfile
     network_mode: host
     restart: unless-stopped
     environment:
@@ -125,11 +128,20 @@ services:
       REDIS_PORT: 6379
       REDIS_PASSWORD:
       REDIS_DATABASE: 0
+  dht-server-2:
+    <<: *dht-server
+    environment:
+      PORT: 6882
+  dht-server-3:
+    <<: *dht-server
+    environment:
+      PORT: 6883
   mongo:
     container_name: mongo
     image: mongo:4.4.1
     volumes:
       - /docker/mongo/db:/data/db
+      - /docker/mongo/backup:/backup
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: admin
@@ -143,6 +155,9 @@ services:
       mode: replicated
       replicas: 3
     image: zpqsunny/dht-peer:latest
+    build:
+      context: dht-server
+      dockerfile: Dockerfile
     network_mode: host
     restart: unless-stopped
     volumes:

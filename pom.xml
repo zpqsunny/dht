@@ -26,7 +26,7 @@
         <ch.qos.logback.version>1.2.0</ch.qos.logback.version>
         <org.projectlombok.version>1.18.12</org.projectlombok.version>
         <io.lettuce.version>5.2.2.RELEASE</io.lettuce.version>
-        <mongodb.version>4.1.1</mongodb.version>
+        <mongodb.version>4.1.2</mongodb.version>
     </properties>
     <packaging>pom</packaging>
 

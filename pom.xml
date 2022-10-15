@@ -19,13 +19,13 @@
         <java.version>1.8</java.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <io.netty.version>4.1.77.Final</io.netty.version>
+        <io.netty.version>4.1.79.Final</io.netty.version>
         <be.adaxisoft.version>2.0.0</be.adaxisoft.version>
         <commons-codec.version>1.13</commons-codec.version>
         <junit.version>4.13.1</junit.version>
         <ch.qos.logback.version>1.2.9</ch.qos.logback.version>
         <org.projectlombok.version>1.18.12</org.projectlombok.version>
-        <io.lettuce.version>5.2.2.RELEASE</io.lettuce.version>
+        <io.lettuce.version>6.1.9.RELEASE</io.lettuce.version>
         <mongodb.version>4.1.2</mongodb.version>
     </properties>
     <packaging>pom</packaging>

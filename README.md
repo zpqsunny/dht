@@ -175,3 +175,8 @@ docker-compose up
 ## 示例数据
 
 ![example-data](example-data.png)
+
+
+## Stargazers over time
+
+[![Stargazers over time](https://starchart.cc/zpqsunny/dht.svg)](https://starchart.cc/zpqsunny/dht)

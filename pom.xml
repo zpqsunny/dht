@@ -6,7 +6,7 @@
 
     <groupId>me.zpq.dht</groupId>
     <artifactId>dht</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.7</version>
     <modules>
         <module>dht-common</module>
         <module>dht-krpc</module>
@@ -27,6 +27,7 @@
         <org.projectlombok.version>1.18.12</org.projectlombok.version>
         <io.lettuce.version>6.1.9.RELEASE</io.lettuce.version>
         <mongodb.version>4.1.2</mongodb.version>
+        <dht.version>1.7</dht.version>
     </properties>
     <packaging>pom</packaging>
 

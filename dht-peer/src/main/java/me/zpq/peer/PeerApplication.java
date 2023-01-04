@@ -157,7 +157,7 @@ public class PeerApplication {
         RedisURI.Builder builder = RedisURI.builder();
         builder.withHost(REDIS_HOST);
         builder.withPort(REDIS_PORT);
-        builder.withPassword(REDIS_PASSWORD);
+        builder.withPassword(REDIS_PASSWORD.toCharArray());
         builder.withDatabase(REDIS_DATABASE);
         return RedisClient.create(resourceBuild.build(), builder.build());
     }

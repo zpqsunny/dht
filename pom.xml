@@ -6,7 +6,7 @@
 
     <groupId>me.zpq.dht</groupId>
     <artifactId>dht</artifactId>
-    <version>1.7</version>
+    <version>1.8</version>
     <modules>
         <module>dht-common</module>
         <module>dht-krpc</module>
@@ -14,6 +14,7 @@
         <module>dht-routing-table</module>
         <module>dht-server</module>
         <module>dht-fresh</module>
+        <module>dht-es</module>
     </modules>
     <properties>
         <java.version>1.8</java.version>
@@ -27,7 +28,8 @@
         <org.projectlombok.version>1.18.12</org.projectlombok.version>
         <io.lettuce.version>6.1.9.RELEASE</io.lettuce.version>
         <mongodb.version>4.1.2</mongodb.version>
-        <dht.version>1.7</dht.version>
+        <dht.version>1.8</dht.version>
+        <jackson.version>2.12.3</jackson.version>
     </properties>
     <packaging>pom</packaging>
 
@@ -56,6 +58,24 @@
                 <groupId>commons-codec</groupId>
                 <artifactId>commons-codec</artifactId>
                 <version>${commons-codec.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-core</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-annotations</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson.version}</version>
             </dependency>
 
             <dependency>

@@ -1,4 +1,14 @@
 services:
+  elasticsearch:
+    container_name: elasticsearch
+    image: elasticsearch:7.14.8
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
   redis:
     container_name: redis
     image: redis:5.0.10
@@ -33,6 +43,7 @@ services:
     volumes:
       - /docker/mongo/db:/data/db
       - /docker/mongo/backup:/backup
+    command: mongod --shardsvr --replSet shareA --bind_ip 0.0.0.0
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: admin
@@ -54,8 +65,21 @@ services:
     volumes:
       - /metadata:/metadata
     environment:
-      MONGODB_URL: mongodb://admin:admin@127.0.0.1:27017/?authSource=admin
+      MONGODB_URL: mongodb://admin:admin@127.0.0.1:27018/?authSource=admin
       REDIS_HOST: 127.0.0.1
       REDIS_PORT: 6379
       REDIS_PASSWORD:
       REDIS_DATABASE: 0
+  dht-es:
+    depends_on:
+      - mongo
+    image: zpqsunny/dht-es:latest
+    build:
+      context: dht-es
+      dockerfile: Dockerfile
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      MONGODB_URL: mongodb://admin:admin@127.0.0.1:27018/?authSource=admin
+      ELASTIC: 127.0.0.1
+      PORT: 9200

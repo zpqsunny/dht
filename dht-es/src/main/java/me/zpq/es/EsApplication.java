@@ -3,16 +3,21 @@ package me.zpq.es;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.*;
-import com.mongodb.client.model.changestream.ChangeStreamDocument;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.*;
+import org.bson.conversions.Bson;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
+
+import static com.mongodb.client.model.Aggregates.match;
+import static com.mongodb.client.model.Filters.eq;
 
 @Slf4j
 public class EsApplication {
@@ -33,25 +38,23 @@ public class EsApplication {
         ElasticsearchService elasticsearchService = new ElasticsearchService(ELASTIC, PORT);
         MongoClient mongoClient = mongo(MONGODB_URL);
         MongoCollection<Document> collection = mongoClient.getDatabase(DATABASE).getCollection(COLLECTION);
-        ChangeStreamIterable<Document> watch = collection.watch();
-        for (ChangeStreamDocument<Document> document : watch) {
-
+        List<Bson> pipeline = Collections.singletonList(match(eq("operationType", "insert")));
+        collection.watch(pipeline).forEach(document -> {
             try {
                 Document fullDocument = document.getFullDocument();
                 if (fullDocument == null) {
-                    continue;
+                    return;
                 }
                 elasticsearchService.push(fullDocument);
             } catch (Exception e) {
 
                 log.error(e.getMessage(), e);
             }
-        }
+        });
     }
 
     private static MongoClient mongo(String mongoUrl) {
 
-        assert mongoUrl != null;
         MongoClientSettings.Builder mongoClientSettings = MongoClientSettings.builder();
         ConnectionString connectionString = new ConnectionString(mongoUrl);
         mongoClientSettings.applyConnectionString(connectionString);

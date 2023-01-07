@@ -37,7 +37,7 @@ public class ElasticsearchService {
         metadata.setCreatedDateTime(document.getDate("createdDateTime").getTime());
         metadata.setLength(document.getLong("length"));
         List<Metadata.File> files = document.get("files", new LinkedList<>());
-        metadata.setFiles(files);
+        metadata.setFiles(files.size() == 0 ? null : files);
         metadata.setSize(document.getLong("size"));
         metadata.setFileNumber(document.getInteger("fileNumber"));
         return metadata;

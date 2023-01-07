@@ -9,11 +9,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.bson.Document;
 import org.bson.types.Binary;
 import org.elasticsearch.client.RestClient;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -22,9 +28,9 @@ public class ElasticsearchService {
 
     private final ElasticsearchClient elasticsearchClient;
 
-    public ElasticsearchService(String elasticsearch, Integer port) {
+    public ElasticsearchService(String elasticsearch, Integer port, String username, String password) {
 
-        this.elasticsearchClient = buildElasticsearchClient(elasticsearch, port);
+        this.elasticsearchClient = buildElasticsearchClient(elasticsearch, port, username, password);
     }
 
     private Metadata transformation(Document document) {
@@ -34,7 +40,7 @@ public class ElasticsearchService {
         metadata.setHash(DigestUtils.sha1Hex(document.get("hash", Binary.class).getData()));
         metadata.setName(document.getString("name"));
         metadata.setPieceLength(document.getInteger("pieceLength"));
-        metadata.setCreatedDateTime(document.getDate("createdDateTime").getTime());
+        metadata.setCreatedDateTime(LocalDateTime.ofEpochSecond(document.getDate("createdDateTime").getTime(), 0, ZoneOffset.of("+8")));
         metadata.setLength(document.getLong("length"));
         List<Metadata.File> files = document.get("files", new LinkedList<>());
         metadata.setFiles(files.size() == 0 ? null : files);
@@ -43,9 +49,16 @@ public class ElasticsearchService {
         return metadata;
     }
 
-    private ElasticsearchClient buildElasticsearchClient(String hostname, int port) {
+    private ElasticsearchClient buildElasticsearchClient(String hostname, int port, String username, String password) {
         // Create the low-level client
-        RestClient restClient = RestClient.builder(new HttpHost(hostname, port)).build();
+        CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
+        RestClient restClient = RestClient.builder(HttpHost.create(String.format("%s:%s", hostname, port)))
+                .setHttpClientConfigCallback(httpAsyncClientBuilder -> {
+                    return httpAsyncClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+                })
+                .build();
+
         // Create the transport with a Jackson mapper
         ElasticsearchTransport transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
         // And create the API client

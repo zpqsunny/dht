@@ -54,11 +54,8 @@ public class ElasticsearchService {
         CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(username, password));
         RestClient restClient = RestClient.builder(HttpHost.create(String.format("%s:%s", hostname, port)))
-                .setHttpClientConfigCallback(httpAsyncClientBuilder -> {
-                    return httpAsyncClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
-                })
+                .setHttpClientConfigCallback(httpAsyncClientBuilder -> httpAsyncClientBuilder.setDefaultCredentialsProvider(credentialsProvider))
                 .build();
-
         // Create the transport with a Jackson mapper
         ElasticsearchTransport transport = new RestClientTransport(restClient, new JacksonJsonpMapper());
         // And create the API client

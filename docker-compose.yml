@@ -1,19 +1,25 @@
+version: "3"
 services:
   elasticsearch:
     container_name: elasticsearch
-    image: elasticsearch:7.14.8
+    image: elasticsearch:7.17.7
     network_mode: host
     restart: unless-stopped
     environment:
       - node.name=es01
       - cluster.name=es-docker-cluster
       - discovery.type=single-node
+      - ELASTIC_PASSWORD=elastic
+      - xpack.security.enabled=true
       - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
   redis:
     container_name: redis
     image: redis:5.0.10
+    volumes:
+      - /docker/redis:/data/
     network_mode: host
     restart: unless-stopped
+    user: root
   dht-server-1: &dht-server
     depends_on:
       - redis
@@ -73,13 +79,15 @@ services:
   dht-es:
     depends_on:
       - mongo
-    image: zpqsunny/dht-es:latest
+    image: registry.cn-hangzhou.aliyuncs.com/sz-face/dht-es:latest
     build:
       context: dht-es
       dockerfile: Dockerfile
     network_mode: host
     restart: unless-stopped
     environment:
-      MONGODB_URL: mongodb://admin:admin@127.0.0.1:27018/?authSource=admin
-      ELASTIC: 127.0.0.1
-      PORT: 9200
+      - MONGODB_URL=mongodb://admin:admin@127.0.0.1:27018/?authSource=admin
+      - ES.HOST=http://127.0.0.1
+      - ES.PORT=9200
+      - ES.USERNAME=elastic
+      - ES.PASSWORD=elastic

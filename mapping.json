@@ -1,0 +1,40 @@
+{
+  "properties": {
+    "createdDateTime": {
+      "type": "date",
+      "format": "yyyy-MM-dd HH:mm:ss || yyyy-MM-dd"
+    },
+    "fileNumber": {
+      "type": "integer"
+    },
+    "files": {
+      "type": "nested",
+      "properties": {
+        "length": {
+          "type": "long"
+        },
+        "path": {
+          "type": "text"
+        }
+      }
+    },
+    "hash": {
+      "type": "text",
+      "index": false
+    },
+    "length": {
+      "type": "long"
+    },
+    "name": {
+      "type": "text",
+      "analyzer": "ik_max_word",
+      "search_analyzer": "ik_smart"
+    },
+    "pieceLength": {
+      "type": "integer"
+    },
+    "size": {
+      "type": "long"
+    }
+  }
+}

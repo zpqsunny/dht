@@ -40,7 +40,7 @@ public class ElasticsearchService {
         metadata.setHash(DigestUtils.sha1Hex(document.get("hash", Binary.class).getData()));
         metadata.setName(document.getString("name"));
         metadata.setPieceLength(document.getInteger("pieceLength"));
-        metadata.setCreatedDateTime(LocalDateTime.ofEpochSecond(document.getDate("createdDateTime").getTime(), 0, ZoneOffset.of("+8")));
+        metadata.setCreatedDateTime(LocalDateTime.ofInstant(document.getDate("createdDateTime").toInstant(), ZoneOffset.of("+8")));
         metadata.setLength(document.getLong("length"));
         List<Metadata.File> files = document.get("files", new LinkedList<>());
         metadata.setFiles(files.size() == 0 ? null : files);

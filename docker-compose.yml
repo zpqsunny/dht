@@ -30,11 +30,11 @@ services:
     network_mode: host
     restart: unless-stopped
     environment:
-      PORT: 6881
-      REDIS_HOST: 127.0.0.1
-      REDIS_PORT: 6379
-      REDIS_PASSWORD:
-      REDIS_DATABASE: 0
+      - PORT=6881
+      - REDIS_HOST=127.0.0.1
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+      - REDIS_DATABASE=0
   dht-server-2:
     <<: *dht-server
     environment:
@@ -51,8 +51,8 @@ services:
       - /docker/mongo/backup:/backup
     command: mongod --shardsvr --replSet shareA --bind_ip 0.0.0.0
     environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: admin
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=admin
     network_mode: host
     restart: unless-stopped
   dht-peer:
@@ -71,15 +71,15 @@ services:
     volumes:
       - /metadata:/metadata
     environment:
-      MONGODB_URL: mongodb://admin:admin@127.0.0.1:27018/?authSource=admin
-      REDIS_HOST: 127.0.0.1
-      REDIS_PORT: 6379
-      REDIS_PASSWORD:
-      REDIS_DATABASE: 0
+      - MONGODB_URL=mongodb://admin:admin@127.0.0.1:27018/?authSource=admin
+      - REDIS_HOST=127.0.0.1
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+      - REDIS_DATABASE=0
   dht-es:
     depends_on:
       - mongo
-    image: registry.cn-hangzhou.aliyuncs.com/sz-face/dht-es:latest
+    image: zpqsunny/dht-es:latest
     build:
       context: dht-es
       dockerfile: Dockerfile
@@ -87,7 +87,7 @@ services:
     restart: unless-stopped
     environment:
       - MONGODB_URL=mongodb://admin:admin@127.0.0.1:27018/?authSource=admin
-      - ES.HOST=http://127.0.0.1
-      - ES.PORT=9200
-      - ES.USERNAME=elastic
-      - ES.PASSWORD=elastic
+      - ES_HOST=http://127.0.0.1
+      - ES_PORT=9200
+      - ES_USERNAME=elastic
+      - ES_PASSWORD=elastic

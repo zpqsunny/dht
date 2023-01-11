@@ -102,27 +102,27 @@ public class EsApplication {
             MONGODB_URL = mongodbUrl;
         }
 
-        String elastic = System.getenv("ES.HOST");
+        String elastic = System.getenv("ES_HOST");
         if (elastic != null && !elastic.isEmpty()) {
-            log.info("=> env ES.HOST: {}", elastic);
+            log.info("=> env ES_HOST: {}", elastic);
             ELASTIC = elastic;
         }
 
-        String elasticPort = System.getenv("ES.PORT");
+        String elasticPort = System.getenv("ES_PORT");
         if (elasticPort != null && !elasticPort.isEmpty()) {
-            log.info("=> env ES.PORT: {}", elasticPort);
+            log.info("=> env ES_PORT: {}", elasticPort);
             PORT = Integer.parseInt(elasticPort);
         }
 
-        String elasticUsername = System.getenv("ES.USERNAME");
+        String elasticUsername = System.getenv("ES_USERNAME");
         if (elasticUsername != null && !elasticUsername.isEmpty()) {
-            log.info("=> env ES.USERNAME: {}", elasticUsername);
+            log.info("=> env ES_USERNAME: {}", elasticUsername);
             ELASTIC_USERNAME = elasticUsername;
         }
 
-        String elasticPassword = System.getenv("ES.PASSWORD");
+        String elasticPassword = System.getenv("ES_PASSWORD");
         if (elasticPassword != null && !elasticPassword.isEmpty()) {
-            log.info("=> env ES.PASSWORD: {}", elasticPassword);
+            log.info("=> env ES_PASSWORD: {}", elasticPassword);
             ELASTIC_PASSWORD = elasticPassword;
         }
     }

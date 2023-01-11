@@ -7,6 +7,7 @@ import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -37,7 +38,7 @@ public class ElasticsearchService {
 
         Metadata metadata = new Metadata();
         metadata.setId(document.getObjectId("_id").toHexString());
-        metadata.setHash(DigestUtils.sha1Hex(document.get("hash", Binary.class).getData()));
+        metadata.setHash(Hex.encodeHexString(document.get("hash", Binary.class).getData()));
         metadata.setName(document.getString("name"));
         metadata.setPieceLength(document.getInteger("pieceLength"));
         metadata.setCreatedDateTime(LocalDateTime.ofInstant(document.getDate("createdDateTime").toInstant(), ZoneOffset.of("+8")));

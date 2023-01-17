@@ -9,6 +9,10 @@ docker-compose up -d mongo elasticsearch
 docker exec -it mongo bash
 mongo --host 127.0.0.1:27018 -u admin -p
 rs.initiate()
+
+# if have mongo backup
+mongorestore --authenticationDatabase=admin -u admin -p admin --port 27018 --nsInclude=dht.metadata /backup/dht/metadata.bson
+
 exit
 exit
 # elasticsearch install plugin analysis
@@ -23,6 +27,9 @@ curl -H "Content-Type: application/json" -X DELETE -d '{}' -u elastic:elastic ht
 curl -H "Content-Type: application/json" -X PUT -d '{}' -u elastic:elastic http://127.0.0.1:9200/metadata
 # update mapping
 curl -H "Content-Type: application/json" -X POST -d @mapping.json -u elastic:elastic http://127.0.0.1:9200/metadata/_mapping
+
+
+
 
 #start other server
 docker-compose up -d

@@ -38,17 +38,17 @@ services:
   dht-server-2:
     <<: *dht-server
     environment:
-      PORT: 6882
+      - PORT=6882
   dht-server-3:
     <<: *dht-server
     environment:
-      PORT: 6883
+      - PORT=6883
   mongo:
     container_name: mongo
     image: mongo:4.4.1
     volumes:
       - /docker/mongo/db:/data/db
-      - /docker/mongo/backup:/backup
+      - /docker/mongo:/backup
     command: mongod --shardsvr --replSet shareA --bind_ip 0.0.0.0
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin

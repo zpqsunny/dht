@@ -1,3 +1,8 @@
+# docker-compose
+curl -SL https://github.com/docker/compose/releases/download/v2.15.1/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
+sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+
+# up mongo and es
 docker-compose up -d mongo elasticsearch
 
 # init mongo

@@ -25,7 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 @Slf4j
-public class ElasticsearchService {
+public class ElasticsearchService implements Runnable {
 
     private final ElasticsearchClient elasticsearchClient;
 
@@ -72,5 +72,23 @@ public class ElasticsearchService {
                 .id(metadata.getId())
                 .document(metadata));
         log.info("Indexed with version " + response.version());
+    }
+
+    @Override
+    public void run() {
+
+        while (true) {
+            try {
+                Document document = EsApplication.QUEUE.poll();
+                if (document == null) {
+                    Thread.sleep(1000L);
+                    continue;
+                }
+                log.info("queue size: {} ", EsApplication.QUEUE.size());
+                push(document);
+            } catch (InterruptedException | IOException e) {
+                log.error(e.getMessage(), e);
+            }
+        }
     }
 }

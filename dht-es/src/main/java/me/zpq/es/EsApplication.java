@@ -12,9 +12,10 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import static com.mongodb.client.model.Aggregates.match;
 import static com.mongodb.client.model.Filters.eq;
@@ -36,6 +37,7 @@ public class EsApplication {
 
     private static String ELASTIC_PASSWORD = "elastic";
 
+    public static volatile Queue<Document> QUEUE = new LinkedBlockingQueue<>();
 
     public static void main(String[] args) throws IOException {
 
@@ -44,13 +46,15 @@ public class EsApplication {
         MongoClient mongoClient = mongo(MONGODB_URL);
         MongoCollection<Document> collection = mongoClient.getDatabase(DATABASE).getCollection(COLLECTION);
         List<Bson> pipeline = Collections.singletonList(match(eq("operationType", "insert")));
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.execute(elasticsearchService);
         collection.watch(pipeline).forEach(document -> {
             try {
                 Document fullDocument = document.getFullDocument();
                 if (fullDocument == null) {
                     return;
                 }
-                elasticsearchService.push(fullDocument);
+                QUEUE.offer(fullDocument);
             } catch (Exception e) {
 
                 log.error(e.getMessage(), e);

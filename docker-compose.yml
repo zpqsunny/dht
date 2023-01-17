@@ -48,8 +48,8 @@ services:
     image: mongo:4.4.1
     volumes:
       - /docker/mongo/db:/data/db
-      - /docker/mongo:/backup
-    command: mongod --shardsvr --replSet shareA --bind_ip 0.0.0.0
+      - /docker/mongo/backup:/backup
+    command: mongod --shardsvr --replSet shareA --bind_ip 0.0.0.0 --port 27018
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=admin

@@ -1,0 +1,9 @@
+{
+  "index": {
+    "mapping": {
+      "nested_objects": {
+        "limit": "100000"
+      }
+    }
+  }
+}

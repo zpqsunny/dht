@@ -24,9 +24,11 @@ docker-compose restart elasticsearch
 # drop index if exits
 curl -H "Content-Type: application/json" -X DELETE -d '{}' -u elastic:elastic http://127.0.0.1:9200/metadata
 # create index
-curl -H "Content-Type: application/json" -X PUT -d '{}' -u elastic:elastic http://127.0.0.1:9200/metadata
+curl -H "Content-Type: application/json" -X PUT    -d '{}' -u elastic:elastic http://127.0.0.1:9200/metadata
 # update mapping
-curl -H "Content-Type: application/json" -X POST -d @mapping.json -u elastic:elastic http://127.0.0.1:9200/metadata/_mapping
+curl -H "Content-Type: application/json" -X POST   -d @mapping.json -u elastic:elastic http://127.0.0.1:9200/metadata/_mapping
+# update setting
+curl -H "Content-Type: application/json" -X PUT    -d @setting.json -u elastic:elastic http://127.0.0.1:9200/metadata/_settings
 
 
 

@@ -12,6 +12,8 @@ services:
       - ELASTIC_PASSWORD=elastic
       - xpack.security.enabled=true
       - "ES_JAVA_OPTS=-Xms1g -Xmx3.5g"
+    volumes:
+      - /docker/elasticsearch/data:/usr/share/elasticsearch/data
   redis:
     container_name: redis
     image: redis:5.0.10

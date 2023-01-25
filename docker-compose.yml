@@ -11,7 +11,7 @@ services:
       - discovery.type=single-node
       - ELASTIC_PASSWORD=elastic
       - xpack.security.enabled=true
-      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - "ES_JAVA_OPTS=-Xms1g -Xmx3.5g"
   redis:
     container_name: redis
     image: redis:5.0.10

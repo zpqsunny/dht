@@ -1,9 +1,11 @@
 # docker-compose
 curl -SL https://github.com/docker/compose/releases/download/v2.15.1/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
-sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 
 # up mongo and es
-docker-compose up -d mongo elasticsearch
+docker-compose up -d elasticsearch
+docker-compose up -d mongo
 
 # init mongo
 docker exec -it mongo bash
@@ -11,7 +13,7 @@ mongo --host 127.0.0.1:27018 -u admin -p
 rs.initiate()
 
 # if have mongo backup
-mongorestore --authenticationDatabase=admin -u admin -p admin --port 27018 --nsInclude=dht.metadata /backup/dht/metadata.bson
+mongorestore --authenticationDatabase=admin -u admin -p admin --port 27018 -d dht -c metadata /backup/dht/metadata.bson
 
 exit
 exit

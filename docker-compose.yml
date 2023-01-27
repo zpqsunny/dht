@@ -17,7 +17,7 @@ services:
       - /docker/elasticsearch/plugins:/usr/share/elasticsearch/plugins
   redis:
     container_name: redis
-    image: redis:5.0.10
+    image: zpqsunny/dht-redis:latest
     volumes:
       - /docker/redis:/data/
     network_mode: host
@@ -42,10 +42,18 @@ services:
     <<: *dht-server
     environment:
       - PORT=6882
+      - REDIS_HOST=127.0.0.1
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+      - REDIS_DATABASE=0
   dht-server-3:
     <<: *dht-server
     environment:
       - PORT=6883
+      - REDIS_HOST=127.0.0.1
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=
+      - REDIS_DATABASE=0
   mongo:
     container_name: mongo
     image: mongo:4.4.1

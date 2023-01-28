@@ -29,26 +29,28 @@ checkSystem() {
   then
      yum install docker -y
   fi
-  echo "Docker ok";
+  echo -e "\033[31m Docker ok \033[0m";
   if [ $(docker-compose -v | grep -c "Docker Compose") -ne 1 ];
   then
     curl -SL https://github.com/docker/compose/releases/download/v2.15.1/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
     chmod +x /usr/local/bin/docker-compose
     ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
   fi
-  echo "Docker Compose ok";
+  echo -e "\033[31m Docker Compose ok \033[0m";
+  if [ $(ls -l | grep -c "docker-compose.yml") -ne 1 ]; then
+    wget https://raw.githubusercontent.com/zpqsunny/dht/main/docker-compose.yml
+  fi
   if [ $(ls -l | grep -c "mapping.json") -ne 1 ];
     then
     wget https://raw.githubusercontent.com/zpqsunny/dht/main/mapping.json
   fi
-  echo "mapping.json ok";
+  echo -e "\033[31m mapping.json ok \033[0m";
   if [ $(ls -l | grep -c "setting.json") -ne 1 ];
   then
     wget https://raw.githubusercontent.com/zpqsunny/dht/main/setting.json
-  echo "setting.json ok";
+  echo -e "\033[31m setting.json ok \033[0m";
   fi
 }
-curl -SL https://raw.githubusercontent.com/zpqsunny/dht/main/docker-compose.yml -o ./docker-compose.yml
 read c
 case $c in
   0) checkSystem

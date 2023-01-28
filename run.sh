@@ -25,19 +25,27 @@ initElasticsearch() {
 }
 checkSystem() {
   # check docker
-  if [ $(docker --version | grep -c "Docker") -eq 1 ];
+  if [ $(docker --version | grep -c "Docker") -ne 1 ];
   then
-     echo "Docker ok";
-  else
-    yum install docker -y
+     yum install docker -y
   fi
-  if [ $(docker-compose -v | grep -c "Docker Compose") -eq 1 ];
+  echo "Docker ok";
+  if [ $(docker-compose -v | grep -c "Docker Compose") -ne 1 ];
   then
-     echo "Docker Compose ok";
-  else
     curl -SL https://github.com/docker/compose/releases/download/v2.15.1/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
     chmod +x /usr/local/bin/docker-compose
     ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+  fi
+  echo "Docker Compose ok";
+  if [ $(ls -l | grep -c "mapping.json") -ne 1 ];
+    then
+    wget https://raw.githubusercontent.com/zpqsunny/dht/main/mapping.json
+  fi
+  echo "mapping.json ok";
+  if [ $(ls -l | grep -c "setting.json") -ne 1 ];
+  then
+    wget https://raw.githubusercontent.com/zpqsunny/dht/main/setting.json
+  echo "setting.json ok";
   fi
 }
 curl -SL https://raw.githubusercontent.com/zpqsunny/dht/main/docker-compose.yml -o ./docker-compose.yml

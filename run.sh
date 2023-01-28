@@ -24,7 +24,7 @@ elasticsearch-plugin install https://github.com/medcl/elasticsearch-analysis-ik/
 exit
 docker-compose restart elasticsearch
 # drop index if exits
-curl -H "Content-Type: application/json" -X DELETE -d '{}' -u elastic:elastic http://127.0.0.1:9200/metadata
+curl -H "Content-Type: application/json" -X DELETE -d '' -u elastic:xmow123mdsps http://127.0.0.1:9200/metadata
 # create index
 curl -H "Content-Type: application/json" -X PUT    -d '{}' -u elastic:elastic http://127.0.0.1:9200/metadata
 # update mapping

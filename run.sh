@@ -59,7 +59,7 @@ checkSystem() {
   fi
 }
 initMongoDB() {
-  if [ $(docker ps -a | grep -c "mongo") -eq 1]; then
+  if [ $(docker ps -a | grep -c "mongo") -eq 1 ]; then
     docker rm -f mongo
     rm -rf /docker/mongo
   fi

@@ -5,13 +5,8 @@ services:
     image: elasticsearch:7.17.7
     network_mode: host
     restart: unless-stopped
-    environment:
-      - node.name=es01
-      - cluster.name=es-docker-cluster
-      - discovery.type=single-node
-      - ELASTIC_PASSWORD=elastic
-      - xpack.security.enabled=true
-      - "ES_JAVA_OPTS=-Xms1g -Xmx4g"
+    env_file:
+      - ./es.env
     volumes:
       - /docker/elasticsearch/data:/usr/share/elasticsearch/data
       - /docker/elasticsearch/plugins:/usr/share/elasticsearch/plugins
@@ -32,28 +27,18 @@ services:
       dockerfile: Dockerfile
     network_mode: host
     restart: unless-stopped
+    env_file:
+      - ./redis.env
     environment:
       - PORT=6881
-      - REDIS_HOST=127.0.0.1
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=
-      - REDIS_DATABASE=0
   dht-server-2:
     <<: *dht-server
     environment:
       - PORT=6882
-      - REDIS_HOST=127.0.0.1
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=
-      - REDIS_DATABASE=0
   dht-server-3:
     <<: *dht-server
     environment:
       - PORT=6883
-      - REDIS_HOST=127.0.0.1
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=
-      - REDIS_DATABASE=0
   mongo:
     container_name: mongo
     image: mongo:4.4.1
@@ -61,9 +46,8 @@ services:
       - /docker/mongo/db:/data/db
       - /docker/mongo/backup:/backup
     command: mongod --shardsvr --replSet shareA --bind_ip 0.0.0.0 --port 27018
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=admin
+    env_file:
+      - ./mongo.env
     network_mode: host
     restart: unless-stopped
   dht-peer:
@@ -81,12 +65,9 @@ services:
     restart: unless-stopped
     volumes:
       - /metadata:/metadata
-    environment:
-      - MONGODB_URL=mongodb://admin:admin@127.0.0.1:27018/?authSource=admin
-      - REDIS_HOST=127.0.0.1
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=
-      - REDIS_DATABASE=0
+    env_file:
+      - ./dht-mongo.env
+      - ./redis.env
   dht-es:
     depends_on:
       - mongo
@@ -96,9 +77,6 @@ services:
       dockerfile: Dockerfile
     network_mode: host
     restart: unless-stopped
-    environment:
-      - MONGODB_URL=mongodb://admin:admin@127.0.0.1:27018/?authSource=admin
-      - ES_HOST=http://127.0.0.1
-      - ES_PORT=9200
-      - ES_USERNAME=elastic
-      - ES_PASSWORD=elastic
+    env_file:
+      - ./dht-mongo.env
+      - ./dht-es.env

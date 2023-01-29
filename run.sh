@@ -1,23 +1,21 @@
 #!/bin/bash
 
-echo '##########################################'
-echo '#### 0: 检查环境 Docker docker-compose  ###'
-echo '#### 1: 初始化   Elasticsearch          ###'
-echo '#### 2: 初始化   mongodb                ###'
 initElasticsearch() {
+  docker-compose stop elasticsearch
+  docker-compose rm -f elasticsearch
+  rm -rf /docker/elasticsearch/data
+  rm -rf /docker/elasticsearch/plugins
+  mkdir -p /docker/elasticsearch/data
+  mkdir -p /docker/elasticsearch/plugins
+  chmod 777 /docker/elasticsearch/data
+  chmod 777 /docker/elasticsearch/plugins
   echo -e "\033[32m start Elasticsearch \033[0m"
   docker-compose up -d elasticsearch
+  sleep 10
   echo -e "\033[32m elasticsearch install plugin analysis \033[0m"
-  /usr/bin/expect <<EOF
-  spawn exec -it elasticsearch bash
-  exec sleep 1
-  send "elasticsearch-plugin install https://github.com/medcl/elasticsearch-analysis-ik/releases/download/v7.17.7/elasticsearch-analysis-ik-7.17.7.zip \n"
-  expect "*n"
-  send "y\n"
-  expect "100%"
-  send "exit\n"
-EOF
-  docker-compose restart elasticsearch
+
+#  docker-compose restart elasticsearch
+#  sleep 15
   echo "drop index if exits"
   curl -H "Content-Type: application/json" -X DELETE -d '' -u elastic:elastic http://127.0.0.1:9200/metadata
   echo "create index"
@@ -34,15 +32,15 @@ checkSystem() {
   if [ $(which expect | grep -c "expect") -ne 1 ]; then
       yum install expect -y
   fi
-  
+
   # check docker
-  if [ $(docker --version | grep -c "Docker") -ne 1 ]; then
+  if [ $(which docker | grep -c "docker") -ne 1 ]; then
      yum install docker -y
      systemctl enable docker
      systemctl start docker
   fi
   echo -e "\033[32m Docker ok \033[0m";
-  if [ $(docker-compose -v | grep -c "Docker Compose") -ne 1 ]; then
+  if [ $(which docker-compose | grep -c "docker-compose") -ne 1 ]; then
     curl -SL https://github.com/docker/compose/releases/download/v2.15.1/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
     chmod +x /usr/local/bin/docker-compose
     ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
@@ -61,8 +59,7 @@ checkSystem() {
   fi
 }
 initMongoDB() {
-  if [ $(docker ps -a | grep -c "mongo") -eq 1];
-   then
+  if [ $(docker ps -a | grep -c "mongo") -eq 1]; then
     docker rm -f mongo
     rm -rf /docker/mongo
   fi
@@ -81,35 +78,54 @@ initMongoDB() {
   send "exit\n"
 EOF
 }
-read c
-case $c in
-  0) checkSystem
-    ;;
-  1) initElasticsearch
-    ;;
-  2) initMongoDB
-    ;;
-  *) echo "fail"
-    ;;
-esac
+
+openFirewalld() {
+
+  firewall-cmd --add-port 6881/udp --permanent
+  echo -e "\033[32m 6881/udp [OK] \033[0m"
+  firewall-cmd --add-port 6882/udp --permanent
+  echo -e "\033[32m 6883/udp [OK] \033[0m"
+  firewall-cmd --add-port 6883/udp --permanent
+  echo -e "\033[32m 6883/udp [OK] \033[0m"
+  firewall-cmd --add-port 9200/tcp --permanent
+  echo -e "\033[32m 9200/tcp [OK] \033[0m"
+  firewall-cmd --add-port 9300/tcp --permanent
+  echo -e "\033[32m 9300/tcp [OK] \033[0m"
+  firewall-cmd --reload
+  echo -e "\033[32m reload [OK] \033[0m"
+}
+
+while [ 1 -eq 1 ]; do
+  echo '##########################################'
+  echo '#### 0: 检查环境 Docker docker-compose  ###'
+  echo '#### 1: 初始化   Elasticsearch          ###'
+  echo '#### 2: 初始化   mongodb                ###'
+  echo '#### 3: 防火墙开放端口                   ###'
+  echo '#### x: 退出                           ###'
+  read c
+  case $c in
+    0) checkSystem
+      ;;
+    1) initElasticsearch
+      ;;
+    2) initMongoDB
+      ;;
+    3) openFirewalld
+      ;;
+    x) break
+      ;;
+    *) continue
+      echo "请正确输入"
+      ;;
+  esac
+done
 
 
 
 
-# docker-compose
-curl -SL https://github.com/docker/compose/releases/download/v2.15.1/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
-chmod +x /usr/local/bin/docker-compose
-ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 
-# up mongo and es
-docker-compose up -d elasticsearch
-docker-compose up -d mongo
 
-# init mongo
-docker exec -it mongo bash
-mongo --host 127.0.0.1:27018 -u admin -p
-rs.initiate()
-
+exit
 # if have mongo backup
 mongorestore --authenticationDatabase=admin -u admin -p admin --port 27018 -d dht -c metadata /backup/dht/metadata.bson
 
@@ -135,13 +151,3 @@ curl -H "Content-Type: application/json" -X PUT    -d @setting.json -u elastic:e
 
 #start other server
 docker-compose up -d
-
-docker-compose logs -f --tail 20 dht-peer dht-es
-
-# firewalld
-firewall-cmd --add-port 6881/udp --permanent
-firewall-cmd --add-port 6882/udp --permanent
-firewall-cmd --add-port 6883/udp --permanent
-firewall-cmd --add-port 721/tcp --permanent
-firewall-cmd --add-port 9300/tcp --permanent
-firewall-cmd --reload

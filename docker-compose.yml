@@ -28,7 +28,7 @@ services:
     network_mode: host
     restart: unless-stopped
     env_file:
-      - ./redis.env
+      - dht-redis.env
     environment:
       - PORT=6881
   dht-server-2:
@@ -47,7 +47,7 @@ services:
       - /docker/mongo/backup:/backup
     command: mongod --shardsvr --replSet shareA --bind_ip 0.0.0.0 --port 27018
     env_file:
-      - ./mongo.env
+      - mongo.env
     network_mode: host
     restart: unless-stopped
   dht-peer:
@@ -66,8 +66,8 @@ services:
     volumes:
       - /metadata:/metadata
     env_file:
-      - ./dht-mongo.env
-      - ./redis.env
+      - dht-mongo.env
+      - dht-redis.env
   dht-es:
     depends_on:
       - mongo
@@ -78,5 +78,5 @@ services:
     network_mode: host
     restart: unless-stopped
     env_file:
-      - ./dht-mongo.env
-      - ./dht-es.env
+      - dht-mongo.env
+      - dht-es.env

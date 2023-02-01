@@ -82,12 +82,12 @@ public class ElasticsearchService implements Runnable {
 
         while (true) {
             try {
-                String document = redis.lpop("es");
+                String document = redis.lpop(EsApplication.REDIS_KEY);
                 if (document == null) {
                     Thread.sleep(2000L);
                     continue;
                 }
-                log.info("queue size: {} ", redis.llen("es"));
+                log.info("queue size: {} ", redis.llen(EsApplication.REDIS_KEY));
                 String[] split = document.split("@@@@!!!!", 2);
                 push(split[0], split[1]);
             } catch (InterruptedException | IOException e) {

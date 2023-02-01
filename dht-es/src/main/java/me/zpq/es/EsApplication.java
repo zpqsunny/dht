@@ -51,6 +51,8 @@ public class EsApplication {
 
     private static int REDIS_DATABASE = 0;
 
+    public static String REDIS_KEY = "metadata";
+
     public static void main(String[] args) throws IOException {
 
         readConfig();
@@ -77,7 +79,7 @@ public class EsApplication {
                     if (next.getFullDocument() != null) {
 
                         Metadata metadata = ElasticsearchService.transformation(next.getFullDocument());
-                        redis.lpush("es", metadata.getId() + "@@@@!!!!" + objectMapper.writeValueAsString(metadata));
+                        redis.lpush(REDIS_KEY, metadata.getId() + "@@@@!!!!" + objectMapper.writeValueAsString(metadata));
                     }
                     resumeToken = next.getResumeToken();
                 }

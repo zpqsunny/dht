@@ -65,9 +65,8 @@ public class ElasticsearchService implements Runnable {
 
     public void push(Document fullDocument) throws IOException {
 
-        ObjectMapper objectMapper = new ObjectMapper();
         Metadata metadata = this.transformation(fullDocument);
-        log.info(objectMapper.writeValueAsString(metadata));
+        log.info("_id: {}, hash: {} ,name: {}",metadata.getId(), metadata.getHash() ,metadata.getName());
         IndexResponse response = elasticsearchClient.index(i -> i.index("metadata")
                 .id(metadata.getId())
                 .document(metadata));

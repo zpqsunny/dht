@@ -28,6 +28,7 @@
         <org.projectlombok.version>1.18.12</org.projectlombok.version>
         <io.lettuce.version>6.1.9.RELEASE</io.lettuce.version>
         <mongodb.version>4.1.2</mongodb.version>
+        <elasticsearch.version>7.17.8</elasticsearch.version>
         <dht.version>1.8</dht.version>
         <jackson.version>2.12.3</jackson.version>
     </properties>
@@ -104,6 +105,11 @@
                 <version>${mongodb.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>co.elastic.clients</groupId>
+                <artifactId>elasticsearch-java</artifactId>
+                <version>${elasticsearch.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

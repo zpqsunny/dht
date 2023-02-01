@@ -1,11 +1,13 @@
 package me.zpq.es;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch.core.IndexRequest;
 import co.elastic.clients.elasticsearch.core.IndexResponse;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.lettuce.core.api.sync.RedisCommands;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -19,6 +21,7 @@ import org.bson.types.Binary;
 import org.elasticsearch.client.RestClient;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.LinkedList;
@@ -29,12 +32,15 @@ public class ElasticsearchService implements Runnable {
 
     private final ElasticsearchClient elasticsearchClient;
 
-    public ElasticsearchService(String elasticsearch, Integer port, String username, String password) {
+    private final RedisCommands<String, String> redis;
+
+    public ElasticsearchService(String elasticsearch, Integer port, String username, String password, RedisCommands<String, String> redis) {
 
         this.elasticsearchClient = buildElasticsearchClient(elasticsearch, port, username, password);
+        this.redis = redis;
     }
 
-    private Metadata transformation(Document document) {
+    public static Metadata transformation(Document document) {
 
         Metadata metadata = new Metadata();
         metadata.setId(document.getObjectId("_id").toHexString());
@@ -63,13 +69,11 @@ public class ElasticsearchService implements Runnable {
         return new ElasticsearchClient(transport);
     }
 
-    public void push(Document fullDocument) throws IOException {
+    public void push(String id, String documentJson) throws IOException {
 
-        Metadata metadata = this.transformation(fullDocument);
-        log.info("_id: {}, hash: {} ,name: {}",metadata.getId(), metadata.getHash() ,metadata.getName());
         IndexResponse response = elasticsearchClient.index(i -> i.index("metadata")
-                .id(metadata.getId())
-                .document(metadata));
+                .id(id)
+                .withJson(new StringReader(documentJson)));
         log.info("Indexed with version " + response.version());
     }
 
@@ -78,13 +82,14 @@ public class ElasticsearchService implements Runnable {
 
         while (true) {
             try {
-                Document document = EsApplication.QUEUE.poll();
+                String document = redis.lpop("es");
                 if (document == null) {
                     Thread.sleep(2000L);
                     continue;
                 }
-                log.info("queue size: {} ", EsApplication.QUEUE.size());
-                push(document);
+                log.info("queue size: {} ", redis.llen("es"));
+                String[] split = document.split("@@@@!!!!", 2);
+                push(split[0], split[1]);
             } catch (InterruptedException | IOException e) {
                 log.error(e.getMessage(), e);
             }

@@ -77,6 +77,7 @@ initMongoDB() {
   exec sleep 1
   send "exit\n"
 EOF
+  echo -e "\033[32m mongodb ok \033[0m";
 }
 
 openFirewalld() {
@@ -102,7 +103,7 @@ while [ 1 -eq 1 ]; do
   echo '#### 2: 初始化   mongodb                ###'
   echo '#### 3: 防火墙开放端口                   ###'
   echo '#### x: 退出                           ###'
-  read c
+  read -r c
   case $c in
     0) checkSystem
       ;;

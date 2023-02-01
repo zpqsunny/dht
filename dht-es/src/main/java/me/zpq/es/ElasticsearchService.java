@@ -81,7 +81,7 @@ public class ElasticsearchService implements Runnable {
             try {
                 Document document = EsApplication.QUEUE.poll();
                 if (document == null) {
-                    Thread.sleep(1000L);
+                    Thread.sleep(2000L);
                     continue;
                 }
                 log.info("queue size: {} ", EsApplication.QUEUE.size());

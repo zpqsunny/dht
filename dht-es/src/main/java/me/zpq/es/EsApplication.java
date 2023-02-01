@@ -3,6 +3,7 @@ package me.zpq.es;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.*;
+import com.mongodb.client.model.changestream.ChangeStreamDocument;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.*;
 import org.bson.conversions.Bson;
@@ -48,18 +49,26 @@ public class EsApplication {
         List<Bson> pipeline = Collections.singletonList(match(eq("operationType", "insert")));
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         executorService.execute(elasticsearchService);
-        collection.watch(pipeline).forEach(document -> {
+        MongoCursor<ChangeStreamDocument<Document>> cursor;
+        BsonDocument resumeToken = null;
+        while (true) {
             try {
-                Document fullDocument = document.getFullDocument();
-                if (fullDocument == null) {
-                    return;
+                if (resumeToken != null) {
+                    cursor = collection.watch(pipeline).batchSize(100).resumeAfter(resumeToken).cursor();
+                } else {
+                    cursor = collection.watch(pipeline).batchSize(100).cursor();
                 }
-                QUEUE.offer(fullDocument);
+                while (cursor.hasNext()) {
+
+                    ChangeStreamDocument<Document> next = cursor.next();
+                    QUEUE.offer(next.getFullDocument());
+                    resumeToken = next.getResumeToken();
+                }
             } catch (Exception e) {
 
-                log.error(e.getMessage(), e);
+                log.error("error: ", e);
             }
-        });
+        }
     }
 
     private static MongoClient mongo(String mongoUrl) {

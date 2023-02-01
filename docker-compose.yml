@@ -78,5 +78,6 @@ services:
     network_mode: host
     restart: unless-stopped
     env_file:
+      - dht-redis.env
       - dht-mongo.env
       - dht-es.env

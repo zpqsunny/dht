@@ -20,11 +20,11 @@ initEsIndexAndMapping() {
   source dht-es.env
   echo -e "\033[32m drop index if exits \033[0m"
   curl -H "Content-Type: application/json" -X DELETE -d '' -u ${ES_USERNAME}:${ES_PASSWORD} ${ES_HOST}:${ES_PORT}/metadata
-  echo "\033[32m create index \033[0m"
+  echo -e "\033[32m create index \033[0m"
   curl -H "Content-Type: application/json" -X PUT    -d '{}' -u ${ES_USERNAME}:${ES_PASSWORD} ${ES_HOST}:${ES_PORT}/metadata
-  echo "\033[32m update mapping \033[0m"
+  echo -e "\033[32m update mapping \033[0m"
   curl -H "Content-Type: application/json" -X POST   -d @mapping.json -u ${ES_USERNAME}:${ES_PASSWORD} ${ES_HOST}:${ES_PORT}/metadata/_mapping
-  echo "\033[32m update setting \033[0m"
+  echo -e "\033[32m update setting \033[0m"
   curl -H "Content-Type: application/json" -X PUT    -d @setting.json -u ${ES_USERNAME}:${ES_PASSWORD} ${ES_HOST}:${ES_PORT}/metadata/_settings
 
 }

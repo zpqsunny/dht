@@ -1,6 +1,6 @@
 #!/bin/bash
 
-initElasticsearch() {
+initElasticsearchService() {
   docker-compose stop elasticsearch
   docker-compose rm -f elasticsearch
   rm -rf /docker/elasticsearch/data
@@ -13,20 +13,22 @@ initElasticsearch() {
   docker-compose up -d elasticsearch
   sleep 10
   echo -e "\033[32m elasticsearch install plugin analysis \033[0m"
-
-#  docker-compose restart elasticsearch
-#  sleep 15
-  echo "drop index if exits"
-  curl -H "Content-Type: application/json" -X DELETE -d '' -u elastic:elastic http://127.0.0.1:9200/metadata
-  echo "create index"
-  curl -H "Content-Type: application/json" -X PUT    -d '{}' -u elastic:elastic http://127.0.0.1:9200/metadata
-  echo "update mapping"
-  curl -H "Content-Type: application/json" -X POST   -d @mapping.json -u elastic:elastic http://127.0.0.1:9200/metadata/_mapping
-  echo "update setting"
-  curl -H "Content-Type: application/json" -X PUT    -d @setting.json -u elastic:elastic http://127.0.0.1:9200/metadata/_settings
-
-  exit
 }
+
+initEsIndexAndMapping() {
+
+  source dht-es.env
+  echo -e "\033[32m drop index if exits \033[0m"
+  curl -H "Content-Type: application/json" -X DELETE -d '' -u ${ES_USERNAME}:${ES_PASSWORD} ${ES_HOST}:${ES_PORT}/metadata
+  echo "\033[32m create index \033[0m"
+  curl -H "Content-Type: application/json" -X PUT    -d '{}' -u ${ES_USERNAME}:${ES_PASSWORD} ${ES_HOST}:${ES_PORT}/metadata
+  echo "\033[32m update mapping \033[0m"
+  curl -H "Content-Type: application/json" -X POST   -d @mapping.json -u ${ES_USERNAME}:${ES_PASSWORD} ${ES_HOST}:${ES_PORT}/metadata/_mapping
+  echo "\033[32m update setting \033[0m"
+  curl -H "Content-Type: application/json" -X PUT    -d @setting.json -u ${ES_USERNAME}:${ES_PASSWORD} ${ES_HOST}:${ES_PORT}/metadata/_settings
+
+}
+
 checkSystem() {
 
   if [ $(which expect | grep -c "expect") -ne 1 ]; then
@@ -92,7 +94,7 @@ checkSystem() {
 initMongoDB() {
   if [ $(docker ps -a | grep -c "mongo") -eq 1 ]; then
     docker rm -f mongo
-    rm -rf /docker/mongo
+    rm -rf /docker/mongo/db
   fi
   docker-compose up -d mongo
   sleep 5
@@ -130,19 +132,22 @@ openFirewalld() {
 while [ 1 -eq 1 ]; do
   echo '##########################################'
   echo '#### 0: 检查环境 Docker docker-compose  ###'
-  echo '#### 1: 初始化   Elasticsearch          ###'
-  echo '#### 2: 初始化   mongodb                ###'
-  echo '#### 3: 防火墙开放端口                   ###'
+  echo '#### 1: 初始化   Elasticsearch Service         ###'
+  echo '#### 2: 初始化   Elasticsearch index mapping          ###'
+  echo '#### 3: 初始化   mongodb                ###'
+  echo '#### 4: 防火墙开放端口                   ###'
   echo '#### x: 退出                           ###'
   read -r c
   case $c in
     0) checkSystem
       ;;
-    1) initElasticsearch
+    1) initElasticsearchService
       ;;
-    2) initMongoDB
+    2) initEsIndexAndMapping
       ;;
-    3) openFirewalld
+    3) initMongoDB
+      ;;
+    4) openFirewalld
       ;;
     x) break
       ;;
@@ -169,17 +174,3 @@ elasticsearch-plugin install https://github.com/medcl/elasticsearch-analysis-ik/
 
 exit
 docker-compose restart elasticsearch
-# drop index if exits
-curl -H "Content-Type: application/json" -X DELETE -d '' -u elastic:elastic http://127.0.0.1:9200/metadata
-# create index
-curl -H "Content-Type: application/json" -X PUT    -d '{}' -u elastic:elastic http://127.0.0.1:9200/metadata
-# update mapping
-curl -H "Content-Type: application/json" -X POST   -d @mapping.json -u elastic:elastic http://127.0.0.1:9200/metadata/_mapping
-# update setting
-curl -H "Content-Type: application/json" -X PUT    -d @setting.json -u elastic:elastic http://127.0.0.1:9200/metadata/_settings
-
-
-
-
-#start other server
-docker-compose up -d

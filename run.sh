@@ -174,9 +174,9 @@ curl -H "Content-Type: application/json" -X DELETE -d '' -u elastic:elastic http
 # create index
 curl -H "Content-Type: application/json" -X PUT    -d '{}' -u elastic:elastic http://127.0.0.1:9200/metadata
 # update mapping
-curl -H "Content-Type: application/json" -X POST   -d @mapping.json -u elastic:elastic http://80.66.196.105:9200/metadata/_mapping
+curl -H "Content-Type: application/json" -X POST   -d @mapping.json -u elastic:elastic http://127.0.0.1:9200/metadata/_mapping
 # update setting
-curl -H "Content-Type: application/json" -X PUT    -d @setting.json -u elastic:elastic http://80.66.196.105:9200/metadata/_settings
+curl -H "Content-Type: application/json" -X PUT    -d @setting.json -u elastic:elastic http://127.0.0.1:9200/metadata/_settings
 
 
 

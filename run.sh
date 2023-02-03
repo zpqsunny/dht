@@ -159,7 +159,7 @@ done
 
 exit
 # if have mongo backup
-mongorestore --authenticationDatabase=admin -u admin -p xsad1sadsaa1 --port 27018 -d dht -c metadata /backup/dht/metadata.bson
+mongorestore --authenticationDatabase=admin -u $MONGO_INITDB_ROOT_USERNAME -p $MONGO_INITDB_ROOT_PASSWORD --port 27018 -d dht -c metadata /backup/dht/metadata.bson
 
 exit
 exit
@@ -174,9 +174,9 @@ curl -H "Content-Type: application/json" -X DELETE -d '' -u elastic:elastic http
 # create index
 curl -H "Content-Type: application/json" -X PUT    -d '{}' -u elastic:elastic http://127.0.0.1:9200/metadata
 # update mapping
-curl -H "Content-Type: application/json" -X POST   -d @mapping.json -u elastic:xmow123mdsps http://80.66.196.105:9200/metadata/_mapping
+curl -H "Content-Type: application/json" -X POST   -d @mapping.json -u elastic:elastic http://80.66.196.105:9200/metadata/_mapping
 # update setting
-curl -H "Content-Type: application/json" -X PUT    -d @setting.json -u elastic:xmow123mdsps http://80.66.196.105:9200/metadata/_settings
+curl -H "Content-Type: application/json" -X PUT    -d @setting.json -u elastic:elastic http://80.66.196.105:9200/metadata/_settings
 
 
 

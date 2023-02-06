@@ -172,7 +172,7 @@ public class PeerApplication {
                     .readTimeout(1, TimeUnit.MINUTES)
         );
         mongoClientSettings.applyToConnectionPoolSettings(builder ->
-            builder.minSize(5).maxSize(10)
+            builder.minSize(2).maxSize(5)
         );
         return MongoClients.create(mongoClientSettings.build());
     }

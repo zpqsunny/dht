@@ -1,43 +1,52 @@
 package me.zpq.es;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch.core.IndexRequest;
 import co.elastic.clients.elasticsearch.core.IndexResponse;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.lettuce.core.api.sync.RedisCommands;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.changestream.ChangeStreamDocument;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.bson.BsonDocument;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.bson.types.Binary;
 import org.elasticsearch.client.RestClient;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+
+import static com.mongodb.client.model.Aggregates.match;
+import static com.mongodb.client.model.Filters.eq;
 
 @Slf4j
 public class ElasticsearchService implements Runnable {
 
     private final ElasticsearchClient elasticsearchClient;
 
-    private final RedisCommands<String, String> redis;
+    private final MongoCollection<Document> collection;
 
-    public ElasticsearchService(String elasticsearch, Integer port, String username, String password, RedisCommands<String, String> redis) {
+    private final List<Bson> pipeline = Collections.singletonList(match(eq("operationType", "insert")));
+
+    private BsonDocument resumeToken = null;
+
+    public ElasticsearchService(String elasticsearch, Integer port, String username, String password,
+                                MongoCollection<Document> collection) {
 
         this.elasticsearchClient = buildElasticsearchClient(elasticsearch, port, username, password);
-        this.redis = redis;
+        this.collection = collection;
     }
 
     public static Metadata transformation(Document document) {
@@ -69,12 +78,12 @@ public class ElasticsearchService implements Runnable {
         return new ElasticsearchClient(transport);
     }
 
-    public void push(String id, String documentJson) throws IOException {
+    public void push(Metadata metadata) throws IOException {
 
         IndexResponse response = elasticsearchClient.index(i -> i.index("metadata")
-                .id(id)
-                .withJson(new StringReader(documentJson)));
-        log.info("Indexed with version " + response.version());
+                .id(metadata.getId())
+                .document(metadata));
+        log.info("Metadata hash: {} Indexed with version {}", metadata.getHash(), response.version());
     }
 
     @Override
@@ -82,16 +91,25 @@ public class ElasticsearchService implements Runnable {
 
         while (true) {
             try {
-                String document = redis.lpop(EsApplication.REDIS_KEY);
-                if (document == null) {
-                    Thread.sleep(2000L);
-                    continue;
+                MongoCursor<ChangeStreamDocument<Document>> cursor;
+                if (resumeToken != null) {
+                    cursor = collection.watch(pipeline).resumeAfter(resumeToken).cursor();
+                } else {
+                    cursor = collection.watch(pipeline).cursor();
                 }
-                log.info("queue size: {} ", redis.llen(EsApplication.REDIS_KEY));
-                String[] split = document.split("@@@@!!!!", 2);
-                push(split[0], split[1]);
-            } catch (InterruptedException | IOException e) {
-                log.error(e.getMessage(), e);
+                while (cursor.hasNext()) {
+
+                    ChangeStreamDocument<Document> next = cursor.next();
+                    if (next.getFullDocument() != null) {
+
+                        Metadata metadata = ElasticsearchService.transformation(next.getFullDocument());
+                        this.push(metadata);
+                    }
+                    resumeToken = next.getResumeToken();
+                }
+            } catch (Exception e) {
+
+                log.error("error: ", e);
             }
         }
     }

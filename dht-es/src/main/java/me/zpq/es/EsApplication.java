@@ -14,6 +14,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class EsApplication {
@@ -47,6 +48,13 @@ public class EsApplication {
         MongoClientSettings.Builder mongoClientSettings = MongoClientSettings.builder();
         ConnectionString connectionString = new ConnectionString(mongoUrl);
         mongoClientSettings.applyConnectionString(connectionString);
+        mongoClientSettings.applyToSocketSettings(builder ->
+                builder.connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(1, TimeUnit.MINUTES));
+        mongoClientSettings.applyToClusterSettings(builder ->
+                builder.serverSelectionTimeout(1, TimeUnit.MINUTES));
+        mongoClientSettings.applyToConnectionPoolSettings(builder ->
+                builder.minSize(5).maxSize(10));
         return MongoClients.create(mongoClientSettings.build());
     }
 

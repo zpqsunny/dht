@@ -167,6 +167,13 @@ public class PeerApplication {
         MongoClientSettings.Builder mongoClientSettings = MongoClientSettings.builder();
         ConnectionString connectionString = new ConnectionString(mongoUri);
         mongoClientSettings.applyConnectionString(connectionString);
+        mongoClientSettings.applyToSocketSettings(builder ->
+            builder.connectTimeout(30, TimeUnit.SECONDS)
+                    .readTimeout(1, TimeUnit.MINUTES)
+        );
+        mongoClientSettings.applyToConnectionPoolSettings(builder ->
+            builder.minSize(5).maxSize(10)
+        );
         return MongoClients.create(mongoClientSettings.build());
     }
 }

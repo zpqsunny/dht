@@ -2,7 +2,7 @@
   "index": {
     "mapping": {
       "nested_objects": {
-        "limit": "100000"
+        "limit": "500000"
       }
     }
   }

@@ -50,7 +50,6 @@ public class EsApplication {
         return MongoClients.create(mongoClientSettings.build());
     }
 
-
     private static void readConfig() throws IOException {
 
         String dir = System.getProperty("user.dir");

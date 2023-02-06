@@ -49,7 +49,7 @@ public class ElasticsearchService implements Runnable {
         this.collection = collection;
     }
 
-    public static Metadata transformation(Document document) {
+    public Metadata transformation(Document document) {
 
         Metadata metadata = new Metadata();
         metadata.setId(document.getObjectId("_id").toHexString());
@@ -80,10 +80,11 @@ public class ElasticsearchService implements Runnable {
 
     public void push(Metadata metadata) throws IOException {
 
+        log.info("Metadata hash: {}", metadata.getHash());
         IndexResponse response = elasticsearchClient.index(i -> i.index("metadata")
                 .id(metadata.getId())
                 .document(metadata));
-        log.info("Metadata hash: {} Indexed with version {}", metadata.getHash(), response.version());
+        log.info("Indexed with version {}", response.version());
     }
 
     @Override
@@ -100,11 +101,11 @@ public class ElasticsearchService implements Runnable {
                 while (cursor.hasNext()) {
 
                     ChangeStreamDocument<Document> next = cursor.next();
-                    if (next.getFullDocument() != null) {
-
-                        Metadata metadata = ElasticsearchService.transformation(next.getFullDocument());
-                        this.push(metadata);
+                    if (next.getFullDocument() == null) {
+                        continue;
                     }
+                    Metadata metadata = this.transformation(next.getFullDocument());
+                    this.push(metadata);
                     resumeToken = next.getResumeToken();
                 }
             } catch (Exception e) {

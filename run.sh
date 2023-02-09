@@ -4,9 +4,7 @@ initElasticsearchService() {
   docker-compose stop elasticsearch
   docker-compose rm -f elasticsearch
   rm -rf /docker/elasticsearch/data
-  rm -rf /docker/elasticsearch/plugins
   mkdir -p /docker/elasticsearch/data
-  mkdir -p /docker/elasticsearch/plugins
   chmod 777 /docker/elasticsearch/data
   chmod 777 /docker/elasticsearch/plugins
   echo -e "\033[32m start Elasticsearch \033[0m"
@@ -21,74 +19,74 @@ initEsIndexAndMapping() {
   echo -e "\033[32m drop index if exits \033[0m"
   curl -H "Content-Type: application/json" -X DELETE -d '' -u ${ES_USERNAME}:${ES_PASSWORD} ${ES_HOST}:${ES_PORT}/metadata
   echo -e "\033[32m create index \033[0m"
-  curl -H "Content-Type: application/json" -X PUT    -d '{}' -u ${ES_USERNAME}:${ES_PASSWORD} ${ES_HOST}:${ES_PORT}/metadata
+  curl -H "Content-Type: application/json" -X PUT -d '{}' -u ${ES_USERNAME}:${ES_PASSWORD} ${ES_HOST}:${ES_PORT}/metadata
   echo -e "\033[32m update mapping \033[0m"
-  curl -H "Content-Type: application/json" -X POST   -d @mapping.json -u ${ES_USERNAME}:${ES_PASSWORD} ${ES_HOST}:${ES_PORT}/metadata/_mapping
+  curl -H "Content-Type: application/json" -X POST -d @mapping.json -u ${ES_USERNAME}:${ES_PASSWORD} ${ES_HOST}:${ES_PORT}/metadata/_mapping
   echo -e "\033[32m update setting \033[0m"
-  curl -H "Content-Type: application/json" -X PUT    -d @setting.json -u ${ES_USERNAME}:${ES_PASSWORD} ${ES_HOST}:${ES_PORT}/metadata/_settings
+  curl -H "Content-Type: application/json" -X PUT -d @setting.json -u ${ES_USERNAME}:${ES_PASSWORD} ${ES_HOST}:${ES_PORT}/metadata/_settings
 
 }
 
 checkSystem() {
 
   if [ $(which expect | grep -c "expect") -ne 1 ]; then
-      yum install expect -y
+    yum install expect -y
   fi
 
   # check docker
   if [ $(which docker | grep -c "docker") -ne 1 ]; then
-     yum install docker -y
-     systemctl enable docker
-     systemctl start docker
+    yum install docker -y
+    systemctl enable docker
+    systemctl start docker
   fi
-  echo -e "\033[32m Docker ok \033[0m";
+  echo -e "\033[32m Docker ok \033[0m"
 
   if [ $(which docker-compose | grep -c "docker-compose") -ne 1 ]; then
     curl -SL https://github.com/docker/compose/releases/download/v2.15.1/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
     chmod +x /usr/local/bin/docker-compose
     ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
   fi
-  echo -e "\033[32m Docker Compose ok \033[0m";
+  echo -e "\033[32m Docker Compose ok \033[0m"
 
   if [ $(ls | grep -c "docker-compose.yml") -ne 1 ]; then
     wget https://raw.githubusercontent.com/zpqsunny/dht/main/docker-compose.yml
   fi
-  echo -e "\033[32m docker-compose.yml ok \033[0m";
+  echo -e "\033[32m docker-compose.yml ok \033[0m"
 
   if [ $(ls | grep -c "^es.env$") -ne 1 ]; then
     wget https://raw.githubusercontent.com/zpqsunny/dht/main/es.env
   fi
-  echo -e "\033[32m es.env ok \033[0m";
+  echo -e "\033[32m es.env ok \033[0m"
 
   if [ $(ls | grep -c "^mongo.env$") -ne 1 ]; then
     wget https://raw.githubusercontent.com/zpqsunny/dht/main/mongo.env
   fi
-  echo -e "\033[32m mongo.env ok \033[0m";
+  echo -e "\033[32m mongo.env ok \033[0m"
 
   if [ $(ls | grep -c "^dht-es.env$") -ne 1 ]; then
     wget https://raw.githubusercontent.com/zpqsunny/dht/main/dht-es.env
   fi
-  echo -e "\033[32m dht-es.env ok \033[0m";
+  echo -e "\033[32m dht-es.env ok \033[0m"
 
   if [ $(ls | grep -c "^dht-mongo.env$") -ne 1 ]; then
     wget https://raw.githubusercontent.com/zpqsunny/dht/main/dht-mongo.env
   fi
-  echo -e "\033[32m dht-mongo.env ok \033[0m";
+  echo -e "\033[32m dht-mongo.env ok \033[0m"
 
   if [ $(ls | grep -c "^dht-redis.env$") -ne 1 ]; then
     wget https://raw.githubusercontent.com/zpqsunny/dht/main/dht-redis.env
   fi
-  echo -e "\033[32m dht-redis.env ok \033[0m";
+  echo -e "\033[32m dht-redis.env ok \033[0m"
 
   if [ $(ls | grep -c "^mapping.json$") -ne 1 ]; then
     wget https://raw.githubusercontent.com/zpqsunny/dht/main/mapping.json
   fi
-  echo -e "\033[32m mapping.json ok \033[0m";
+  echo -e "\033[32m mapping.json ok \033[0m"
 
   if [ $(ls | grep -c "^setting.json$") -ne 1 ]; then
     wget https://raw.githubusercontent.com/zpqsunny/dht/main/setting.json
   fi
-  echo -e "\033[32m setting.json ok \033[0m";
+  echo -e "\033[32m setting.json ok \033[0m"
 
 }
 initMongoDB() {
@@ -110,7 +108,7 @@ initMongoDB() {
   exec sleep 1
   send "exit\n"
 EOF
-  echo -e "\033[32m mongodb ok \033[0m";
+  echo -e "\033[32m mongodb ok \033[0m"
 }
 
 openFirewalld() {
@@ -139,28 +137,30 @@ while [ 1 -eq 1 ]; do
   echo '#### x: 退出                           ###'
   read -r c
   case $c in
-    0) checkSystem
-      ;;
-    1) initElasticsearchService
-      ;;
-    2) initEsIndexAndMapping
-      ;;
-    3) initMongoDB
-      ;;
-    4) openFirewalld
-      ;;
-    x) break
-      ;;
-    *) continue
-      echo "请正确输入"
-      ;;
+  0)
+    checkSystem
+    ;;
+  1)
+    initElasticsearchService
+    ;;
+  2)
+    initEsIndexAndMapping
+    ;;
+  3)
+    initMongoDB
+    ;;
+  4)
+    openFirewalld
+    ;;
+  x)
+    break
+    ;;
+  *)
+    continue
+    echo "请正确输入"
+    ;;
   esac
 done
-
-
-
-
-
 
 exit
 # if have mongo backup

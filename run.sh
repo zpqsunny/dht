@@ -128,13 +128,13 @@ openFirewalld() {
 }
 
 while [ 1 -eq 1 ]; do
-  echo '##########################################'
-  echo '#### 0: 检查环境 Docker docker-compose  ###'
-  echo '#### 1: 初始化   Elasticsearch Service         ###'
-  echo '#### 2: 初始化   Elasticsearch index mapping          ###'
-  echo '#### 3: 初始化   mongodb                ###'
-  echo '#### 4: 防火墙开放端口                   ###'
-  echo '#### x: 退出                           ###'
+  echo -e "----------------------------------------------------------"
+  echo -e " \033[32m 0: 检查环境 Docker docker-compose         \033[0m"
+  echo -e " \033[32m 1: 初始化   Elasticsearch Service         \033[0m"
+  echo -e " \033[32m 2: 初始化   Elasticsearch index mapping   \033[0m"
+  echo -e " \033[32m 3: 初始化   mongodb                       \033[0m"
+  echo -e " \033[32m 4: 防火墙开放端口 firewalld                 \033[0m"
+  echo -e " \033[32m x: 退出                                   \033[0m"
   read -r c
   case $c in
   0)

@@ -3,6 +3,14 @@
 ![GitHub](https://img.shields.io/github/license/zpqsunny/dht)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/zpqsunny/dht)
 
+[![](https://img.shields.io/chrome-web-store/v/jekflgekjidcpibhnnpiimekgckgnkop)](https://chrome.google.com/webstore/detail/transmission-web-ui/jekflgekjidcpibhnnpiimekgckgnkop)
+[![](https://img.shields.io/chrome-web-store/rating/jekflgekjidcpibhnnpiimekgckgnkop)](https://chrome.google.com/webstore/detail/transmission-web-ui/jekflgekjidcpibhnnpiimekgckgnkop)
+[![](https://img.shields.io/chrome-web-store/users/jekflgekjidcpibhnnpiimekgckgnkop)](https://chrome.google.com/webstore/detail/transmission-web-ui/jekflgekjidcpibhnnpiimekgckgnkop)
+
+[![](https://img.shields.io/badge/dynamic/json?label=edge%20web%20store&prefix=v&query=%24.version&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fgplhiomfemapanllhkkigblmhkbmjgfc)](https://microsoftedge.microsoft.com/addons/detail/transmission-web-ui/gplhiomfemapanllhkkigblmhkbmjgfc)
+[![](https://img.shields.io/badge/dynamic/json?label=rating&suffix=/5&query=%24.averageRating&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fgplhiomfemapanllhkkigblmhkbmjgfc)](https://microsoftedge.microsoft.com/addons/detail/transmission-web-ui/gplhiomfemapanllhkkigblmhkbmjgfc)
+[![](https://img.shields.io/badge/dynamic/json?label=users&query=%24.activeInstallCount&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fgplhiomfemapanllhkkigblmhkbmjgfc)](https://microsoftedge.microsoft.com/addons/detail/transmission-web-ui/gplhiomfemapanllhkkigblmhkbmjgfc)
+
 ## 架构设计
 
 DHT Server -> Redis

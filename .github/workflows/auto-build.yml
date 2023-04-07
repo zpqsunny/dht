@@ -20,10 +20,9 @@ jobs:
       - name: Build with Maven
         run: |
           mvn -Dfile.encoding=UTF-8 -DskipTests=true install
-          mvn -Dmaven.multiModuleProjectDirectory=./dht-server -Dfile.encoding=UTF-8 -DskipTests=true package
-          mvn -Dmaven.multiModuleProjectDirectory=./dht-peer -Dfile.encoding=UTF-8 -DskipTests=true package
           cp ./dht-server/target/*-with-dependencies.jar ./dht-server-${{ steps.branch-name.outputs.current_branch }}.jar
           cp ./dht-peer/target/*-with-dependencies.jar ./dht-peer-${{ steps.branch-name.outputs.current_branch }}.jar
+          cp ./dht-es/target/*-with-dependencies.jar ./dht-es-${{ steps.branch-name.outputs.current_branch }}.jar
           zip -q -r release.zip *.jar
       - name: Create Release
         id: create_release
@@ -66,3 +65,9 @@ jobs:
           context: dht-peer
           push: true
           tags: zpqsunny/dht-peer:latest,zpqsunny/dht-peer:${{ steps.branch-name.outputs.current_branch }}
+      - name: Build and push dht-es
+        uses: docker/build-push-action@v2
+        with:
+          context: dht-es
+          push: true
+          tags: zpqsunny/dht-es:latest,zpqsunny/dht-es:${{ steps.branch-name.outputs.current_branch }}

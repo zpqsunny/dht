@@ -22,8 +22,8 @@ jobs:
           mvn -Dfile.encoding=UTF-8 -DskipTests=true install
           mvn -Dmaven.multiModuleProjectDirectory=./dht-server -Dfile.encoding=UTF-8 -DskipTests=true package
           mvn -Dmaven.multiModuleProjectDirectory=./dht-peer -Dfile.encoding=UTF-8 -DskipTests=true package
-          cp ./dht-server/target/dht-server-1.0-SNAPSHOT-jar-with-dependencies.jar ./dht-server-${{ steps.branch-name.outputs.current_branch }}.jar
-          cp ./dht-peer/target/dht-peer-1.0-SNAPSHOT-jar-with-dependencies.jar ./dht-peer-${{ steps.branch-name.outputs.current_branch }}.jar
+          cp ./dht-server/target/*-with-dependencies.jar ./dht-server-${{ steps.branch-name.outputs.current_branch }}.jar
+          cp ./dht-peer/target/*-with-dependencies.jar ./dht-peer-${{ steps.branch-name.outputs.current_branch }}.jar
           zip -q -r release.zip *.jar
       - name: Create Release
         id: create_release

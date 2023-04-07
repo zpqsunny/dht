@@ -29,8 +29,8 @@
         <io.lettuce.version>6.1.9.RELEASE</io.lettuce.version>
         <mongodb.version>4.1.2</mongodb.version>
         <elasticsearch.version>7.17.8</elasticsearch.version>
-        <dht.version>1.8</dht.version>
-        <jackson.version>2.12.7</jackson.version>
+        <dht.version>1.9</dht.version>
+        <jackson.version>2.13.5</jackson.version>
     </properties>
     <packaging>pom</packaging>
 

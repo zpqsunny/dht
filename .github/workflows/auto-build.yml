@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Set up JDK 8
         uses: actions/setup-java@v2
         with:
@@ -45,28 +45,28 @@ jobs:
           asset_name: release-${{ steps.branch-name.outputs.current_branch }}.zip
           asset_content_type: application/zip
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
       - name: Login to DockerHub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Build and push dht-server
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v4
         with:
           context: dht-server
           push: true
           tags: zpqsunny/dht-server:latest,zpqsunny/dht-server:${{ steps.branch-name.outputs.current_branch }}
       - name: Build and push dht-peer
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v4
         with:
           context: dht-peer
           push: true
           tags: zpqsunny/dht-peer:latest,zpqsunny/dht-peer:${{ steps.branch-name.outputs.current_branch }}
       - name: Build and push dht-es
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v4
         with:
           context: dht-es
           push: true

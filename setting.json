@@ -4,6 +4,7 @@
       "nested_objects": {
         "limit": "500000"
       }
-    }
+    },
+    "max_result_window": "100000"
   }
 }

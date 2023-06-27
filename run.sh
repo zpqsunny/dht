@@ -5,6 +5,7 @@ initElasticsearchService() {
   docker-compose rm -f elasticsearch
   rm -rf /docker/elasticsearch/data
   mkdir -p /docker/elasticsearch/data
+  mkdir -p /docker/elasticsearch/plugins
   chmod 777 /docker/elasticsearch/data
   chmod 777 /docker/elasticsearch/plugins
   echo -e "\033[32m start Elasticsearch \033[0m"

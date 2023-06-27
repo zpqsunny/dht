@@ -9,7 +9,6 @@ services:
       - es.env
     volumes:
       - /docker/elasticsearch/data:/usr/share/elasticsearch/data
-      - /docker/elasticsearch/analysis-ik/IKAnalyzer.cfg.xml:/usr/share/elasticsearch/config/analysis-ik/IKAnalyzer.cfg.xml
       - /docker/elasticsearch/plugins:/usr/share/elasticsearch/plugins
   redis:
     container_name: redis

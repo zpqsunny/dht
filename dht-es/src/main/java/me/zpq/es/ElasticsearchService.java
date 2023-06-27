@@ -80,11 +80,10 @@ public class ElasticsearchService implements Runnable {
 
     public void push(Metadata metadata) throws IOException {
 
-        log.info("Metadata id: {} hash: {}", metadata.getId(), metadata.getHash());
         IndexResponse response = elasticsearchClient.index(i -> i.index("metadata")
                 .id(metadata.getId())
                 .document(metadata));
-        log.info("Indexed with version {}", response.version());
+        log.info("Metadata id: {} hash: {} version {}", metadata.getId(), metadata.getHash(), response.version());
     }
 
     @Override

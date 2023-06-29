@@ -4,14 +4,18 @@ initElasticsearchService() {
   docker-compose stop elasticsearch
   docker-compose rm -f elasticsearch
   rm -rf /docker/elasticsearch/data
+  rm -rf /docker/elasticsearch/plugins
   mkdir -p /docker/elasticsearch/data
   mkdir -p /docker/elasticsearch/plugins
+  mkdir -p /docker/elasticsearch/plugins/elasticsearch-analysis-ik-7.17.7
   chmod 777 /docker/elasticsearch/data
   chmod 777 /docker/elasticsearch/plugins
-  echo -e "\033[32m start Elasticsearch \033[0m"
-  docker-compose up -d elasticsearch
-  sleep 10
   echo -e "\033[32m elasticsearch install plugin analysis \033[0m"
+  wget https://github.com/medcl/elasticsearch-analysis-ik/releases/download/v7.17.7/elasticsearch-analysis-ik-7.17.7.zip
+  unzip -x elasticsearch-analysis-ik-7.17.7.zip -d /docker/elasticsearch/plugins/elasticsearch-analysis-ik-7.17.7
+  docker-compose up -d elasticsearch
+  echo -e "\033[32m start Elasticsearch \033[0m"
+
 }
 
 initEsIndexAndMapping() {

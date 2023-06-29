@@ -135,7 +135,7 @@ openFirewalld() {
 }
 
 while [ 1 -eq 1 ]; do
-  echo -e "----------------------------------------------------------"
+  echo -e "\r\n----------------------------------------------------------"
   echo -e " \033[32m 0: 检查环境 Docker docker-compose         \033[0m"
   echo -e " \033[32m 1: 初始化   Elasticsearch Service         \033[0m"
   echo -e " \033[32m 2: 初始化   Elasticsearch index mapping   \033[0m"
@@ -172,12 +172,3 @@ done
 exit
 # if have mongo backup
 mongorestore --authenticationDatabase=admin -u $MONGO_INITDB_ROOT_USERNAME -p $MONGO_INITDB_ROOT_PASSWORD --port 27018 -d dht -c metadata /backup/dht/metadata.bson
-
-exit
-exit
-# elasticsearch install plugin analysis
-docker exec -it elasticsearch bash
-elasticsearch-plugin install https://github.com/medcl/elasticsearch-analysis-ik/releases/download/v7.17.7/elasticsearch-analysis-ik-7.17.7.zip
-
-exit
-docker-compose restart elasticsearch

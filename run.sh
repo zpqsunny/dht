@@ -40,14 +40,16 @@ checkSystem() {
 
   # check docker
   if [ $(which docker | grep -c "docker") -ne 1 ]; then
-    yum install docker -y
+    yum install -y yum-utils
+    yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+    yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
     systemctl enable docker
     systemctl start docker
   fi
   echo -e "\033[32m Docker ok \033[0m"
 
   if [ $(which docker-compose | grep -c "docker-compose") -ne 1 ]; then
-    curl -SL https://github.com/docker/compose/releases/download/v2.15.1/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
+    curl -SL https://github.com/docker/compose/releases/download/v2.19.0/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
     chmod +x /usr/local/bin/docker-compose
     ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
   fi

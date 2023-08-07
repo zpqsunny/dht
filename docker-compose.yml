@@ -4,7 +4,7 @@ services:
     container_name: elasticsearch
     image: elasticsearch:7.17.7
     network_mode: host
-    restart: unless-stopped
+    restart: always
     env_file:
       - es.env
     volumes:
@@ -17,7 +17,7 @@ services:
       - /docker/redis/data/:/data
       - /docker/redis/redis.conf:/usr/local/etc/redis/redis.conf
     network_mode: host
-    restart: unless-stopped
+    restart: always
     user: root
     entrypoint: redis-server /usr/local/etc/redis/redis.conf
     logging:
@@ -33,7 +33,7 @@ services:
       context: dht-server
       dockerfile: Dockerfile
     network_mode: host
-    restart: unless-stopped
+    restart: always
     logging:
       driver: "json-file"
       options:
@@ -61,7 +61,7 @@ services:
     env_file:
       - mongo.env
     network_mode: host
-    restart: unless-stopped
+    restart: always
     logging:
       driver: "json-file"
       options:
@@ -98,7 +98,7 @@ services:
       context: dht-es
       dockerfile: Dockerfile
     network_mode: host
-    restart: unless-stopped
+    restart: always
     logging:
       driver: "json-file"
       options:

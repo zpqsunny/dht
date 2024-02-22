@@ -16,13 +16,15 @@ jobs:
           distribution: 'zulu'
       - name: Get branch names
         id: branch-name
-        uses: tj-actions/branch-names@v5
+        uses: tj-actions/branch-names@v8
+        with:
+          strip_tag_prefix: 'v'
       - name: Build with Maven
         run: |
           mvn -Dfile.encoding=UTF-8 -DskipTests=true install
-          cp ./dht-server/target/*-with-dependencies.jar ./dht-server-${{ steps.branch-name.outputs.current_branch }}.jar
-          cp ./dht-peer/target/*-with-dependencies.jar ./dht-peer-${{ steps.branch-name.outputs.current_branch }}.jar
-          cp ./dht-es/target/*-with-dependencies.jar ./dht-es-${{ steps.branch-name.outputs.current_branch }}.jar
+          cp ./dht-server/target/*-with-dependencies.jar ./dht-server-${{ steps.branch-names.outputs.tag }}.jar
+          cp ./dht-peer/target/*-with-dependencies.jar ./dht-peer-${{ steps.branch-names.outputs.tag }}.jar
+          cp ./dht-es/target/*-with-dependencies.jar ./dht-es-${{ steps.branch-names.outputs.tag }}.jar
           zip -q -r release.zip *.jar
       - name: Create Release
         id: create_release
@@ -31,7 +33,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: Release ${{ steps.branch-name.outputs.current_branch }}
+          release_name: Release ${{ steps.branch-names.outputs.tag }}
           draft: false
           prerelease: false
       - name: Upload Release Asset
@@ -42,7 +44,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
           asset_path: ./release.zip
-          asset_name: release-${{ steps.branch-name.outputs.current_branch }}.zip
+          asset_name: release-${{ steps.branch-names.outputs.tag }}.zip
           asset_content_type: application/zip
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
@@ -59,16 +61,16 @@ jobs:
         with:
           context: dht-server
           push: true
-          tags: docker.io/zpqsunny/dht-server:latest,docker.io/zpqsunny/dht-server:${{ steps.branch-name.outputs.current_branch }}
+          tags: docker.io/zpqsunny/dht-server:latest,docker.io/zpqsunny/dht-server:${{ steps.branch-names.outputs.tag }}
       - name: Build and push dht-peer
         uses: docker/build-push-action@v4
         with:
           context: dht-peer
           push: true
-          tags: docker.io/zpqsunny/dht-peer:latest,docker.io/zpqsunny/dht-peer:${{ steps.branch-name.outputs.current_branch }}
+          tags: docker.io/zpqsunny/dht-peer:latest,docker.io/zpqsunny/dht-peer:${{ steps.branch-names.outputs.tag }}
       - name: Build and push dht-es
         uses: docker/build-push-action@v4
         with:
           context: dht-es
           push: true
-          tags: docker.io/zpqsunny/dht-es:latest,docker.io/zpqsunny/dht-es:${{ steps.branch-name.outputs.current_branch }}
+          tags: docker.io/zpqsunny/dht-es:latest,docker.io/zpqsunny/dht-es:${{ steps.branch-names.outputs.tag }}

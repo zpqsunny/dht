@@ -6,7 +6,7 @@
 
     <groupId>me.zpq.dht</groupId>
     <artifactId>dht</artifactId>
-    <version>1.9</version>
+    <version>2.0.0</version>
     <modules>
         <module>dht-common</module>
         <module>dht-krpc</module>
@@ -29,7 +29,7 @@
         <io.lettuce.version>6.1.9.RELEASE</io.lettuce.version>
         <mongodb.version>4.1.2</mongodb.version>
         <elasticsearch.version>7.17.8</elasticsearch.version>
-        <dht.version>1.9</dht.version>
+        <dht.version>2.0.0</dht.version>
         <jackson.version>2.13.5</jackson.version>
     </properties>
     <packaging>pom</packaging>

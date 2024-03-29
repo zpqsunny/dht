@@ -1,8 +1,8 @@
 #!/bin/bash
 
 initElasticsearchService() {
-  docker-compose stop elasticsearch
-  docker-compose rm -f elasticsearch
+  docker compose stop elasticsearch
+  docker compose rm -f elasticsearch
   rm -rf /docker/elasticsearch/data
   rm -rf /docker/elasticsearch/plugins
   mkdir -p /docker/elasticsearch/data
@@ -13,7 +13,7 @@ initElasticsearchService() {
   echo -e "\033[32m elasticsearch install plugin analysis \033[0m"
   wget https://github.com/medcl/elasticsearch-analysis-ik/releases/download/v7.17.7/elasticsearch-analysis-ik-7.17.7.zip
   unzip -x elasticsearch-analysis-ik-7.17.7.zip -d /docker/elasticsearch/plugins/elasticsearch-analysis-ik-7.17.7
-  docker-compose up -d elasticsearch
+  docker compose up -d elasticsearch
   echo -e "\033[32m start Elasticsearch \033[0m"
 
 }
@@ -47,13 +47,6 @@ checkSystem() {
     systemctl start docker
   fi
   echo -e "\033[32m Docker ok \033[0m"
-
-  if [ $(which docker-compose | grep -c "docker-compose") -ne 1 ]; then
-    curl -SL https://github.com/docker/compose/releases/download/v2.19.0/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose
-    chmod +x /usr/local/bin/docker-compose
-    ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
-  fi
-  echo -e "\033[32m Docker Compose ok \033[0m"
 
   if [ $(ls | grep -c "docker-compose.yml") -ne 1 ]; then
     wget https://raw.githubusercontent.com/zpqsunny/dht/main/docker-compose.yml
@@ -101,7 +94,7 @@ initMongoDB() {
     docker rm -f mongo
     rm -rf /docker/mongo/db
   fi
-  docker-compose up -d mongo
+  docker compose up -d mongo
   sleep 5
   # init mongo
   /usr/bin/expect <<EOF

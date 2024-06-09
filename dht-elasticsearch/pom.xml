@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <packaging>jar</packaging>
-    <artifactId>dht-es</artifactId>
+    <artifactId>dht-elasticsearch</artifactId>
     <version>${dht.version}</version>
 
     <properties>
@@ -68,7 +68,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>me.zpq.es.EsApplication</mainClass>
+                            <mainClass>me.zpq.elasticsearch.ElasticSearchApplication</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

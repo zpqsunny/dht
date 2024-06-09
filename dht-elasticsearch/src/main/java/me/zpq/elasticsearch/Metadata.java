@@ -1,4 +1,4 @@
-package me.zpq.es;
+package me.zpq.elasticsearch;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;

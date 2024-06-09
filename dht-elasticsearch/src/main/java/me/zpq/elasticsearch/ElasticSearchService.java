@@ -1,4 +1,4 @@
-package me.zpq.es;
+package me.zpq.elasticsearch;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.IndexResponse;
@@ -32,7 +32,7 @@ import static com.mongodb.client.model.Aggregates.match;
 import static com.mongodb.client.model.Filters.eq;
 
 @Slf4j
-public class ElasticsearchService implements Runnable {
+public class ElasticSearchService implements Runnable {
 
     private final ElasticsearchClient elasticsearchClient;
 
@@ -42,7 +42,7 @@ public class ElasticsearchService implements Runnable {
 
     private BsonDocument resumeToken = null;
 
-    public ElasticsearchService(String elasticsearch, Integer port, String username, String password,
+    public ElasticSearchService(String elasticsearch, Integer port, String username, String password,
                                 MongoCollection<Document> collection) {
 
         this.elasticsearchClient = buildElasticsearchClient(elasticsearch, port, username, password);

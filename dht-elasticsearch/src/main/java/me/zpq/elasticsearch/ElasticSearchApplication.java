@@ -1,4 +1,4 @@
-package me.zpq.es;
+package me.zpq.elasticsearch;
 
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
@@ -17,7 +17,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class EsApplication {
+public class ElasticSearchApplication {
 
     private static final String DATABASE = "dht";
 
@@ -38,7 +38,7 @@ public class EsApplication {
         readConfig();
         MongoClient mongoClient = mongo(MONGODB_URL);
         MongoCollection<Document> collection = mongoClient.getDatabase(DATABASE).getCollection(COLLECTION);
-        ElasticsearchService elasticsearchService = new ElasticsearchService(ELASTIC, PORT, ELASTIC_USERNAME, ELASTIC_PASSWORD, collection);
+        ElasticSearchService elasticsearchService = new ElasticSearchService(ELASTIC, PORT, ELASTIC_USERNAME, ELASTIC_PASSWORD, collection);
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         executorService.submit(elasticsearchService);
     }

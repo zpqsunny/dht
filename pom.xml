@@ -14,7 +14,7 @@
         <module>dht-routing-table</module>
         <module>dht-server</module>
         <module>dht-fresh</module>
-        <module>dht-es</module>
+        <module>dht-elasticsearch</module>
     </modules>
     <properties>
         <java.version>1.8</java.version>

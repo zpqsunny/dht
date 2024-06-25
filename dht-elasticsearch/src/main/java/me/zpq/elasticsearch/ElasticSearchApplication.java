@@ -69,10 +69,10 @@ public class ElasticSearchApplication {
             Properties properties = new Properties();
             properties.load(inputStream);
             MONGODB_URL = properties.getProperty("mongodb.url", MONGODB_URL);
-            ELASTIC = properties.getProperty("es.host", ELASTIC);
-            PORT = Integer.parseInt(properties.getProperty("es.port", PORT.toString()));
-            ELASTIC_USERNAME = properties.getProperty("es.username", ELASTIC_USERNAME);
-            ELASTIC_PASSWORD = properties.getProperty("es.password", ELASTIC_PASSWORD);
+            ELASTIC = properties.getProperty("elasticsearch.host", ELASTIC);
+            PORT = Integer.parseInt(properties.getProperty("elasticsearch.port", PORT.toString()));
+            ELASTIC_USERNAME = properties.getProperty("elasticsearch.username", ELASTIC_USERNAME);
+            ELASTIC_PASSWORD = properties.getProperty("elasticsearch.password", ELASTIC_PASSWORD);
             inputStream.close();
         }
 
@@ -80,10 +80,10 @@ public class ElasticSearchApplication {
 
         log.info("==========>");
         log.info("=> mongodb.url: {}", MONGODB_URL);
-        log.info("=> es.host: {}", ELASTIC);
-        log.info("=> es.port: {}", PORT);
-        log.info("=> es.username: {}", ELASTIC_USERNAME);
-        log.info("=> es.password: {}", ELASTIC_PASSWORD);
+        log.info("=> elasticsearch.host: {}", ELASTIC);
+        log.info("=> elasticsearch.port: {}", PORT);
+        log.info("=> elasticsearch.username: {}", ELASTIC_USERNAME);
+        log.info("=> elasticsearch.password: {}", ELASTIC_PASSWORD);
     }
 
     private static void readEnv() {
@@ -94,27 +94,27 @@ public class ElasticSearchApplication {
             MONGODB_URL = mongodbUrl;
         }
 
-        String elastic = System.getenv("ES_HOST");
+        String elastic = System.getenv("ELASTICSEARCH_HOST");
         if (elastic != null && !elastic.isEmpty()) {
-            log.info("=> env ES_HOST: {}", elastic);
+            log.info("=> env ELASTICSEARCH_HOST: {}", elastic);
             ELASTIC = elastic;
         }
 
-        String elasticPort = System.getenv("ES_PORT");
+        String elasticPort = System.getenv("ELASTICSEARCH_PORT");
         if (elasticPort != null && !elasticPort.isEmpty()) {
-            log.info("=> env ES_PORT: {}", elasticPort);
+            log.info("=> env ELASTICSEARCH_PORT: {}", elasticPort);
             PORT = Integer.parseInt(elasticPort);
         }
 
-        String elasticUsername = System.getenv("ES_USERNAME");
+        String elasticUsername = System.getenv("ELASTICSEARCH_USERNAME");
         if (elasticUsername != null && !elasticUsername.isEmpty()) {
-            log.info("=> env ES_USERNAME: {}", elasticUsername);
+            log.info("=> env ELASTICSEARCH_USERNAME: {}", elasticUsername);
             ELASTIC_USERNAME = elasticUsername;
         }
 
-        String elasticPassword = System.getenv("ES_PASSWORD");
+        String elasticPassword = System.getenv("ELASTICSEARCH_PASSWORD");
         if (elasticPassword != null && !elasticPassword.isEmpty()) {
-            log.info("=> env ES_PASSWORD: {}", elasticPassword);
+            log.info("=> env ELASTICSEARCH_PASSWORD: {}", elasticPassword);
             ELASTIC_PASSWORD = elasticPassword;
         }
 

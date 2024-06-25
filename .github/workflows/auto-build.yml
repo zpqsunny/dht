@@ -71,6 +71,6 @@ jobs:
       - name: Build and push dht-es
         uses: docker/build-push-action@v4
         with:
-          context: dht-es
+          context: dht-elasticsearch
           push: true
           tags: docker.io/zpqsunny/dht-es:latest,docker.io/zpqsunny/dht-es:${{ steps.branch-name.outputs.tag }}

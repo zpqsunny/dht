@@ -24,7 +24,7 @@ jobs:
           mvn -Dfile.encoding=UTF-8 -DskipTests=true install
           cp ./dht-server/target/*-with-dependencies.jar ./dht-server-${{ steps.branch-name.outputs.tag }}.jar
           cp ./dht-peer/target/*-with-dependencies.jar ./dht-peer-${{ steps.branch-name.outputs.tag }}.jar
-          cp ./dht-es/target/*-with-dependencies.jar ./dht-es-${{ steps.branch-name.outputs.tag }}.jar
+          cp ./dht-elasticsearch/target/*-with-dependencies.jar ./dht-elasticsearch-${{ steps.branch-name.outputs.tag }}.jar
           zip -q -r release.zip *.jar
       - name: Create Release
         id: create_release

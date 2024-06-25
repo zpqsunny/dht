@@ -6,7 +6,7 @@ services:
     network_mode: host
     restart: always
     env_file:
-      - es.env
+      - elasticsearch.env
     volumes:
       - /docker/elasticsearch/data:/usr/share/elasticsearch/data
       - /docker/elasticsearch/plugins:/usr/share/elasticsearch/plugins
@@ -107,4 +107,4 @@ services:
     env_file:
       - dht-redis.env
       - dht-mongo.env
-      - dht-es.env
+      - dht-elasticsearch.env

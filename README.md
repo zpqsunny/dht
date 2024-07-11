@@ -188,3 +188,10 @@ docker-compose up
 ## Stargazers over time
 
 [![Stargazers over time](https://starchart.cc/zpqsunny/dht.svg)](https://starchart.cc/zpqsunny/dht)
+
+## 鸣谢
+
+> [IntelliJ IDEA](https://zh.wikipedia.org/zh-hans/IntelliJ_IDEA) 是一个在各个方面都最大程度地提高开发人员的生产力的 IDE，适用于 JVM 平台语言。
+
+特别感谢 JetBrains 为开源项目(Open Source Projects)提供免费的 [IntelliJ IDEA](https://www.jetbrains.com/idea/?from=zpqsunny) 等 IDE 的授权  
+[<img src="https://resources.jetbrains.com/storage/products/company/brand/logos/IntelliJ_IDEA.svg" alt="IntelliJ IDEA logo.">](https://www.jetbrains.com/?from=zpqsunny)

@@ -59,7 +59,7 @@ public class ElasticSearchService implements Runnable {
         metadata.setCreatedDateTime(LocalDateTime.ofInstant(document.getDate("createdDateTime").toInstant(), ZoneOffset.of("+8")));
         metadata.setLength(document.getLong("length"));
         List<Metadata.File> files = document.get("files", new LinkedList<>());
-        metadata.setFiles(files.size() == 0 ? null : files);
+        metadata.setFiles(files.isEmpty() ? null : files);
         metadata.setSize(document.getLong("size"));
         metadata.setFileNumber(document.getInteger("fileNumber"));
         return metadata;

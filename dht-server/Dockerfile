@@ -1,4 +1,4 @@
-FROM openjdk:8-jre-alpine
+FROM openjdk:17
 LABEL auther=zpq
 WORKDIR /app
 ENV TZ=Asia/Shanghai

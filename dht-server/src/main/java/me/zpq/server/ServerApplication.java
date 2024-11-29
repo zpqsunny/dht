@@ -17,6 +17,9 @@ import me.zpq.dht.common.MemoryQueue;
 import me.zpq.dht.common.Utils;
 import me.zpq.route.IRoutingTable;
 import me.zpq.route.RoutingTable;
+import me.zpq.server.peer.BaseMetaInfo;
+import me.zpq.server.peer.JsonMetaInfoImpl;
+import me.zpq.server.peer.MongoMetaInfoImpl;
 import me.zpq.server.peer.Peer;
 import me.zpq.server.schedule.FindNode;
 import me.zpq.server.schedule.Ping;
@@ -53,6 +56,8 @@ public class ServerApplication {
     private static int PING_INTERVAL = 300;
 
     private static int REMOVE_NODE_INTERVAL = 300;
+
+    private static String TYPE = "json";
 
     // peer
     private static int CORE_POOL_SIZE = 5;
@@ -198,7 +203,12 @@ public class ServerApplication {
 
     private static void startPeer(MemoryQueue memoryQueue) {
 
-        MongoClient mongoClient = mongo(MONGODB_URL);
+        BaseMetaInfo baseMetaInfo;
+        if ("json".equals(TYPE)) {
+            baseMetaInfo = new JsonMetaInfoImpl();
+        } else {
+            baseMetaInfo = new MongoMetaInfoImpl(mongo(MONGODB_URL));
+        }
 
         ThreadFactory threadFactory = Executors.defaultThreadFactory();
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(CORE_POOL_SIZE, MAX_POOL_SIZE,
@@ -214,7 +224,7 @@ public class ServerApplication {
                 .option(ChannelOption.SO_KEEPALIVE, true)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
         ;
-        scheduledExecutorService.scheduleWithFixedDelay(new Peer(memoryQueue, mongoClient, threadPoolExecutor, b), 1L, 1L, TimeUnit.SECONDS);
+        scheduledExecutorService.scheduleWithFixedDelay(new Peer(memoryQueue, baseMetaInfo, threadPoolExecutor, b), 1L, 1L, TimeUnit.SECONDS);
 
     }
 }

@@ -19,11 +19,7 @@
             <artifactId>dht-common</artifactId>
             <version>${dht.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>okhttp</artifactId>
-            <version>4.10.0</version>
-        </dependency>
+
         <dependency>
             <groupId>me.zpq.dht</groupId>
             <artifactId>dht-krpc</artifactId>
@@ -44,6 +40,12 @@
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongodb-driver-sync</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20190722</version>
         </dependency>
 
     </dependencies>

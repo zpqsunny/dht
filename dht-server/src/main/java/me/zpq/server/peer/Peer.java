@@ -22,23 +22,17 @@ import java.util.concurrent.ThreadPoolExecutor;
 @Slf4j
 public class Peer implements Runnable {
 
-    private static final String DHT = "dht";
-
-    private static final String METADATA = "metadata";
-
-    private static final String HASH = "hash";
-
     private final MemoryQueue memoryQueue;
 
-    private final MongoCollection<Document> collection;
+    private final BaseMetaInfo baseMetaInfo;
 
     private final ThreadPoolExecutor threadPoolExecutor;
 
     private final Bootstrap b;
 
-    public Peer(MemoryQueue memoryQueue, MongoClient mongoClient, ThreadPoolExecutor threadPoolExecutor, Bootstrap b) {
+    public Peer(MemoryQueue memoryQueue, BaseMetaInfo baseMetaInfo, ThreadPoolExecutor threadPoolExecutor, Bootstrap b) {
         this.memoryQueue = memoryQueue;
-        this.collection = mongoClient.getDatabase(DHT).getCollection(METADATA);
+        this.baseMetaInfo = baseMetaInfo;
         this.threadPoolExecutor = threadPoolExecutor;
         this.b = b;
     }
@@ -51,7 +45,7 @@ public class Peer implements Runnable {
 
             return;
         }
-        log.info("redis peer len: {} threadPoolExecutor queue size: {}", memoryQueue.size(), threadPoolExecutor.getQueue().size());
+        log.info("queue peer len: {} threadPoolExecutor queue size: {}", memoryQueue.size(), threadPoolExecutor.getQueue().size());
         byte[] hash;
         try {
             hash = Hex.decodeHex(peerNode.hash());
@@ -64,26 +58,14 @@ public class Peer implements Runnable {
         int port = peerNode.port();
         threadPoolExecutor.execute(() -> {
 
-            Document has = new Document();
-            has.put(HASH, new BsonBinary(hash));
-            if (collection.find(has).first() != null) {
-                log.info("hash is exist, ignore");
+            if (!baseMetaInfo.checkContinue(hash)) {
                 return;
             }
-
             b.handler(new Initializer(hash));
             try {
                 Object metadata = b.connect(ip, port).channel().closeFuture().sync().channel().attr(AttributeKey.valueOf("metadata")).get();
                 if (metadata instanceof ByteBuffer) {
-
-                    if (collection.find(has).first() != null) {
-
-                        log.info("hash is exist, ignore too");
-                        return;
-                    }
-                    Document doc = MongoMetaInfo.saveLocalFile(((ByteBuffer) metadata).array());
-                    collection.insertOne(doc);
-                    log.info("metadata save success");
+                    baseMetaInfo.run(((ByteBuffer) metadata).array());
                 }
             } catch (Exception e) {
                 log.error("get remote metadata fail ", e);

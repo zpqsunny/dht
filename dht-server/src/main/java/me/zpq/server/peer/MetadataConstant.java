@@ -1,4 +1,4 @@
-package me.zpq.peer;
+package me.zpq.server.peer;
 
 /**
  * @author zpq

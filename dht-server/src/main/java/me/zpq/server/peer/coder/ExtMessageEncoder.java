@@ -1,9 +1,9 @@
-package me.zpq.peer.coder;
+package me.zpq.server.peer.coder;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
-import me.zpq.peer.message.ExtendedMessage;
+import me.zpq.server.peer.message.ExtendedMessage;
 
 import java.nio.ByteBuffer;
 

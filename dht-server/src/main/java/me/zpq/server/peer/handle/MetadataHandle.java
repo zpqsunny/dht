@@ -1,12 +1,13 @@
-package me.zpq.peer.handle;
+package me.zpq.server.peer.handle;
 
 import be.adaxisoft.bencode.BEncodedValue;
 import be.adaxisoft.bencode.BEncoder;
-import io.netty.channel.*;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.AttributeKey;
 import lombok.extern.slf4j.Slf4j;
-import me.zpq.peer.MetadataConstant;
-import me.zpq.peer.message.ExtendedMessage;
+import me.zpq.server.peer.MetadataConstant;
+import me.zpq.server.peer.message.ExtendedMessage;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.nio.ByteBuffer;

@@ -1,11 +1,11 @@
-package me.zpq.peer;
+package me.zpq.server.peer;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.timeout.ReadTimeoutHandler;
-import me.zpq.peer.coder.HandshakeDecoder;
-import me.zpq.peer.coder.HandshakeEncoder;
-import me.zpq.peer.handle.HandshakeHandle;
+import me.zpq.server.peer.coder.HandshakeDecoder;
+import me.zpq.server.peer.coder.HandshakeEncoder;
+import me.zpq.server.peer.handle.HandshakeHandle;
 
 import java.util.concurrent.TimeUnit;
 

@@ -42,8 +42,8 @@
         </dependency>
 
         <dependency>
-            <groupId>io.lettuce</groupId>
-            <artifactId>lettuce-core</artifactId>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-driver-sync</artifactId>
         </dependency>
 
     </dependencies>

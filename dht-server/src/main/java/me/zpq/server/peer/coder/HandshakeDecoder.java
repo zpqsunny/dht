@@ -1,10 +1,10 @@
-package me.zpq.peer.coder;
+package me.zpq.server.peer.coder;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import lombok.extern.slf4j.Slf4j;
-import me.zpq.peer.message.HandshakeMessage;
+import me.zpq.server.peer.message.HandshakeMessage;
 
 import java.nio.ByteBuffer;
 import java.util.List;

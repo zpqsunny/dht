@@ -1,4 +1,4 @@
-package me.zpq.peer.message;
+package me.zpq.server.peer.message;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

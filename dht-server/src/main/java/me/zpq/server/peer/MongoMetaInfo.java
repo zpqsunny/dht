@@ -1,4 +1,4 @@
-package me.zpq.peer;
+package me.zpq.server.peer;
 
 import be.adaxisoft.bencode.BDecoder;
 import be.adaxisoft.bencode.BEncodedValue;

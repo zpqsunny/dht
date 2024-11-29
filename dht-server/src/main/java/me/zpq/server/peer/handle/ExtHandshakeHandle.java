@@ -1,4 +1,4 @@
-package me.zpq.peer.handle;
+package me.zpq.server.peer.handle;
 
 import be.adaxisoft.bencode.BDecoder;
 import be.adaxisoft.bencode.BEncodedValue;
@@ -6,13 +6,13 @@ import be.adaxisoft.bencode.BEncoder;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
-import me.zpq.peer.message.ExtendedMessage;
+import me.zpq.server.peer.message.ExtendedMessage;
 
 import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import static me.zpq.peer.MetadataConstant.*;
+import static me.zpq.server.peer.MetadataConstant.*;
 
 /**
  * @author zpq

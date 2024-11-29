@@ -10,7 +10,6 @@
     <modules>
         <module>dht-common</module>
         <module>dht-krpc</module>
-        <module>dht-peer</module>
         <module>dht-routing-table</module>
         <module>dht-server</module>
         <module>dht-fresh</module>

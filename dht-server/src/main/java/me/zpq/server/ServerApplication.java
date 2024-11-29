@@ -1,10 +1,5 @@
 package me.zpq.server;
 
-import io.lettuce.core.RedisClient;
-import io.lettuce.core.RedisURI;
-import io.lettuce.core.api.StatefulRedisConnection;
-import io.lettuce.core.api.sync.RedisCommands;
-import io.lettuce.core.resource.DefaultClientResources;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -12,6 +7,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import lombok.extern.slf4j.Slf4j;
+import me.zpq.dht.common.MemoryQueue;
 import me.zpq.dht.common.Utils;
 import me.zpq.route.IRoutingTable;
 import me.zpq.route.RoutingTable;
@@ -51,16 +47,6 @@ public class ServerApplication {
 
     private static int REMOVE_NODE_INTERVAL = 300;
 
-    private static boolean FRESH = false;
-
-    private static String REDIS_HOST = "127.0.0.1";
-
-    private static int REDIS_PORT = 6379;
-
-    private static String REDIS_PASSWORD = "";
-
-    private static int REDIS_DATABASE = 0;
-
     public static void main(String[] args) throws InterruptedException, IOException {
 
         readConfig();
@@ -69,7 +55,7 @@ public class ServerApplication {
 
         RoutingTable routingTable = new RoutingTable();
 
-        RedisCommands<String, String> redis = redis();
+        MemoryQueue memoryQueue = new MemoryQueueImpl();
 
         NioEventLoopGroup group = new NioEventLoopGroup();
 
@@ -84,7 +70,7 @@ public class ServerApplication {
                             ch.pipeline()
                                     .addLast(new DHTRequestDecoder())
                                     .addLast(new DHTResponseEncoder())
-                                    .addLast(new DHTServerHandler(routingTable, NODE_ID, MAX_NODES, FRESH, redis))
+                                    .addLast(new DHTServerHandler(routingTable, NODE_ID, MAX_NODES, memoryQueue))
                             ;
                         }
 
@@ -103,19 +89,6 @@ public class ServerApplication {
 
     }
 
-    private static RedisCommands<String, String> redis() {
-
-        DefaultClientResources.Builder resourceBuild = DefaultClientResources.builder();
-        RedisURI.Builder builder = RedisURI.builder();
-        builder.withHost(REDIS_HOST);
-        builder.withPort(REDIS_PORT);
-        builder.withPassword(REDIS_PASSWORD.toCharArray());
-        builder.withDatabase(REDIS_DATABASE);
-        RedisClient redisClient = RedisClient.create(resourceBuild.build(), builder.build());
-        StatefulRedisConnection<String, String> connection = redisClient.connect();
-        return connection.sync();
-    }
-
     private static void readConfig() throws IOException {
 
         String dir = System.getProperty("user.dir");
@@ -132,11 +105,6 @@ public class ServerApplication {
             FIND_NODE_INTERVAL = Integer.parseInt(properties.getProperty("server.findNode.interval"));
             PING_INTERVAL = Integer.parseInt(properties.getProperty("server.ping.interval"));
             REMOVE_NODE_INTERVAL = Integer.parseInt(properties.getProperty("server.removeNode.interval"));
-            FRESH = Boolean.parseBoolean(properties.getProperty("server.fresh"));
-            REDIS_HOST = properties.getProperty("redis.host", REDIS_HOST);
-            REDIS_PORT = Integer.parseInt(properties.getProperty("redis.port", String.valueOf(REDIS_PORT)));
-            REDIS_PASSWORD = properties.getProperty("redis.password", REDIS_PASSWORD);
-            REDIS_DATABASE = Integer.parseInt(properties.getProperty("redis.database", String.valueOf(REDIS_DATABASE)));
             inputStream.close();
         }
 
@@ -149,11 +117,6 @@ public class ServerApplication {
         log.info("=> server.findNode.interval: {}", FIND_NODE_INTERVAL);
         log.info("=> server.ping.interval: {}", PING_INTERVAL);
         log.info("=> server.removeNode.interval: {}", REMOVE_NODE_INTERVAL);
-        log.info("=> server.fresh: {}", FRESH);
-        log.info("=> redis.host: {}", REDIS_HOST);
-        log.info("=> redis.port: {}", REDIS_PORT);
-        log.info("=> redis.password: {}", REDIS_PASSWORD);
-        log.info("=> redis.database: {}", REDIS_DATABASE);
 
     }
 
@@ -162,11 +125,6 @@ public class ServerApplication {
         String port = System.getenv("PORT");
         String minNodes = System.getenv("MIN_NODES");
         String maxNodes = System.getenv("MAX_NODES");
-        String fresh = System.getenv("FRESH");
-        String redisHost = System.getenv("REDIS_HOST");
-        String redisPort = System.getenv("REDIS_PORT");
-        String redisPassword = System.getenv("REDIS_PASSWORD");
-        String redisDatabase = System.getenv("REDIS_DATABASE");
         if (port != null && !port.isEmpty()) {
             log.info("=> env PORT: {}", port);
             PORT = Integer.parseInt(port);
@@ -178,26 +136,6 @@ public class ServerApplication {
         if (maxNodes != null && !maxNodes.isEmpty()) {
             log.info("=> env MAX_NODES: {}", maxNodes);
             MAX_NODES = Integer.parseInt(maxNodes);
-        }
-        if (fresh != null && !fresh.isEmpty()) {
-            log.info("=> env FRESH: {}", fresh);
-            FRESH = Boolean.parseBoolean(fresh);
-        }
-        if (redisHost != null && !redisHost.isEmpty()) {
-            log.info("=> env REDIS_HOST: {}", redisHost);
-            REDIS_HOST = redisHost;
-        }
-        if (redisPort != null && !redisPort.isEmpty()) {
-            log.info("=> env REDIS_PORT: {}", redisPort);
-            REDIS_PORT = Integer.parseInt(redisPort);
-        }
-        if (redisPassword != null && !redisPassword.isEmpty()) {
-            log.info("=> env REDIS_PASSWORD: {}", redisPassword);
-            REDIS_PASSWORD = redisPassword;
-        }
-        if (redisDatabase != null && !redisDatabase.isEmpty()) {
-            log.info("=> env REDIS_DATABASE: {}", redisDatabase);
-            REDIS_DATABASE = Integer.parseInt(redisDatabase);
         }
 
     }

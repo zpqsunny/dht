@@ -2,10 +2,11 @@ package me.zpq.server;
 
 import be.adaxisoft.bencode.BEncodedValue;
 import be.adaxisoft.bencode.InvalidBEncodingException;
-import io.lettuce.core.api.sync.RedisCommands;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
+import me.zpq.dht.common.MemoryQueue;
+import me.zpq.dht.common.PeerNode;
 import me.zpq.dht.common.Utils;
 import me.zpq.krpc.KrpcConstant;
 import me.zpq.krpc.KrpcProtocol;
@@ -20,10 +21,6 @@ import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static me.zpq.dht.common.RedisKeys.SET_KEY;
-import static me.zpq.dht.common.RedisKeys.LIST_KEY;
-import static me.zpq.dht.common.RedisKeys.FRESH_KEY;
-
 /**
  * @author zpq
  * @date 2019-08-21
@@ -37,17 +34,14 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DHTRequest> {
 
     private final int maxNodes;
 
-    private final boolean fresh;
+    private final MemoryQueue memoryQueue;
 
-    private final RedisCommands<String, String> redis;
-
-    public DHTServerHandler(IRoutingTable routingTable, byte[] nodeId, int maxNodes, boolean fresh, RedisCommands<String, String> redis) {
+    public DHTServerHandler(IRoutingTable routingTable, byte[] nodeId, int maxNodes, MemoryQueue memoryQueue) {
 
         this.nodeId = nodeId;
         this.routingTable = routingTable;
         this.maxNodes = maxNodes;
-        this.fresh = fresh;
-        this.redis = redis;
+        this.memoryQueue = memoryQueue;
     }
 
     @Override
@@ -189,18 +183,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DHTRequest> {
         String hash = Hex.encodeHexString(infoHash);
 
         log.info("ip {} port {} infoHash {}", ip, peerPort, hash);
-        // format hash|timestamp
-        if (fresh) {
-            redis.lpush(FRESH_KEY, String.join("|", hash, Long.toString(System.currentTimeMillis())));
-        }
-
-        if (!redis.sismember(SET_KEY, hash)) {
-
-            redis.sadd(SET_KEY, hash);
-            // format hash|ip|port
-            redis.lpush(LIST_KEY, String.join("|", hash, ip, Integer.toString(peerPort)));
-        }
-
+        memoryQueue.leftPush(new PeerNode(hash, ip, peerPort, System.currentTimeMillis()));
     }
 
     private void queryMethodUnknown(ChannelHandlerContext ctx, DHTRequest value, byte[] transactionId) throws IOException {

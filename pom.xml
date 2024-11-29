@@ -12,7 +12,6 @@
         <module>dht-krpc</module>
         <module>dht-routing-table</module>
         <module>dht-server</module>
-        <module>dht-fresh</module>
         <module>dht-elasticsearch</module>
     </modules>
     <properties>
@@ -84,13 +83,6 @@
                 <version>${junit.version}</version>
             </dependency>
 
-            <!-- https://mvnrepository.com/artifact/io.lettuce/lettuce-core -->
-            <dependency>
-                <groupId>io.lettuce</groupId>
-                <artifactId>lettuce-core</artifactId>
-                <version>${io.lettuce.version}</version>
-            </dependency>
-
             <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-classic</artifactId>
@@ -102,6 +94,13 @@
                 <groupId>org.mongodb</groupId>
                 <artifactId>mongodb-driver-sync</artifactId>
                 <version>${mongodb.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/org.json/json -->
+            <dependency>
+                <groupId>org.json</groupId>
+                <artifactId>json</artifactId>
+                <version>20231013</version>
             </dependency>
 
             <dependency>

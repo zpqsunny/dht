@@ -10,25 +10,8 @@ services:
     volumes:
       - /docker/elasticsearch/data:/usr/share/elasticsearch/data
       - /docker/elasticsearch/plugins:/usr/share/elasticsearch/plugins
-  redis:
-    container_name: redis
-    image: redis:5.0.14
-    volumes:
-      - /docker/redis/data/:/data
-      - /docker/redis/redis.conf:/usr/local/etc/redis/redis.conf
-    network_mode: host
-    restart: always
-    user: root
-    entrypoint: redis-server /usr/local/etc/redis/redis.conf
-    logging:
-      driver: "json-file"
-      options:
-        max-file: "2"
-        max-size: "20m"
-  dht-server-1: &dht-server
-    depends_on:
-      - redis
-    image: zpqsunny/dht-server:latest
+  dht-server-full-1: &dht-server
+    image: zpqsunny/dht-server-full:latest
     build:
       context: dht-server
       dockerfile: Dockerfile
@@ -39,21 +22,19 @@ services:
       options:
         max-file: "2"
         max-size: "20m"
-    env_file:
-      - dht-redis.env
     environment:
       - PORT=6881
-  dht-server-2:
+  dht-server-full-2:
     <<: *dht-server
     environment:
       - PORT=6882
-  dht-server-3:
+  dht-server-full-3:
     <<: *dht-server
     environment:
       - PORT=6883
   mongo:
     container_name: mongo
-    image: mongo:4.4.1
+    image: mongo:7
     volumes:
       - /docker/mongo/db:/data/db
       - /docker/mongo/backup:/backup
@@ -67,29 +48,6 @@ services:
       options:
         max-file: "2"
         max-size: "20m"
-  dht-peer:
-    depends_on:
-      - redis
-      - mongo
-    deploy:
-      mode: replicated
-      replicas: 3
-    image: zpqsunny/dht-peer:latest
-    build:
-      context: dht-server
-      dockerfile: Dockerfile
-    network_mode: host
-    restart: unless-stopped
-    logging:
-      driver: "json-file"
-      options:
-        max-file: "2"
-        max-size: "20m"
-    volumes:
-      - /metadata:/metadata
-    env_file:
-      - dht-mongo.env
-      - dht-redis.env
   dht-es:
     depends_on:
       - mongo
@@ -105,6 +63,5 @@ services:
         max-file: "2"
         max-size: "20m"
     env_file:
-      - dht-redis.env
       - dht-mongo.env
       - dht-elasticsearch.env

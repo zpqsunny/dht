@@ -2,7 +2,7 @@ version: "3"
 services:
   elasticsearch:
     container_name: elasticsearch
-    image: elasticsearch:7.17.7
+    image: elasticsearch:8.11.4
     network_mode: host
     restart: always
     env_file:

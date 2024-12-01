@@ -128,6 +128,7 @@ public class ServerApplication {
             PING_INTERVAL = Integer.parseInt(properties.getProperty("server.ping.interval"));
             REMOVE_NODE_INTERVAL = Integer.parseInt(properties.getProperty("server.removeNode.interval"));
 
+            TYPE = properties.getProperty("peers.metadata", TYPE);
             CORE_POOL_SIZE = Integer.parseInt(properties.getProperty("peers.core.pool.size", String.valueOf(CORE_POOL_SIZE)));
             MAX_POOL_SIZE = Integer.parseInt(properties.getProperty("peers.maximum.pool.size", String.valueOf(MAX_POOL_SIZE)));
             MONGODB_URL = properties.getProperty("mongodb.url", MONGODB_URL);
@@ -143,6 +144,7 @@ public class ServerApplication {
         log.info("=> server.findNode.interval: {}", FIND_NODE_INTERVAL);
         log.info("=> server.ping.interval: {}", PING_INTERVAL);
         log.info("=> server.removeNode.interval: {}", REMOVE_NODE_INTERVAL);
+        log.info("=> peers.metadata: {}", TYPE);
         log.info("=> peers.core.pool.size: {}", CORE_POOL_SIZE);
         log.info("=> peers.maximum.pool.size: {}", MAX_POOL_SIZE);
         log.info("=> mongodb.url: {}", MONGODB_URL);
@@ -154,6 +156,7 @@ public class ServerApplication {
         String port = System.getenv("PORT");
         String minNodes = System.getenv("MIN_NODES");
         String maxNodes = System.getenv("MAX_NODES");
+        String type = System.getenv("METADATA");
         String mongodbUrl = System.getenv("MONGODB_URL");
         if (port != null && !port.isEmpty()) {
             log.info("=> env PORT: {}", port);
@@ -166,6 +169,10 @@ public class ServerApplication {
         if (maxNodes != null && !maxNodes.isEmpty()) {
             log.info("=> env MAX_NODES: {}", maxNodes);
             MAX_NODES = Integer.parseInt(maxNodes);
+        }
+        if (type != null && !type.isEmpty()) {
+            log.info("=> env TYPE: {}", type);
+            TYPE = type;
         }
         if (mongodbUrl != null && !mongodbUrl.isEmpty()) {
             log.info("=> env MONGODB_URL: {}", mongodbUrl);
@@ -204,7 +211,7 @@ public class ServerApplication {
     private static void startPeer(MemoryQueue memoryQueue) {
 
         BaseMetaInfo baseMetaInfo;
-        if ("json".equals(TYPE)) {
+        if ("json".equalsIgnoreCase(TYPE)) {
             baseMetaInfo = new JsonMetaInfoImpl();
         } else {
             baseMetaInfo = new MongoMetaInfoImpl(mongo(MONGODB_URL));

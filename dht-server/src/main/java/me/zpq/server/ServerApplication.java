@@ -77,7 +77,7 @@ public class ServerApplication {
 
         MemoryQueue memoryQueue = new MemoryQueueImpl();
 
-        NioEventLoopGroup group = new NioEventLoopGroup();
+        NioEventLoopGroup group = new NioEventLoopGroup(20);
 
         try {
 

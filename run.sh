@@ -73,11 +73,6 @@ checkSystem() {
   fi
   echo -e "\033[32m dht-mongo.env ok \033[0m"
 
-  if [ $(ls | grep -c "^dht-redis.env$") -ne 1 ]; then
-    wget https://raw.githubusercontent.com/zpqsunny/dht/main/dht-redis.env
-  fi
-  echo -e "\033[32m dht-redis.env ok \033[0m"
-
   if [ $(ls | grep -c "^mapping.json$") -ne 1 ]; then
     wget https://raw.githubusercontent.com/zpqsunny/dht/main/mapping.json
   fi
@@ -116,7 +111,7 @@ openFirewalld() {
   firewall-cmd --add-port 6881/udp --permanent
   echo -e "\033[32m 6881/udp [OK] \033[0m"
   firewall-cmd --add-port 6882/udp --permanent
-  echo -e "\033[32m 6883/udp [OK] \033[0m"
+  echo -e "\033[32m 6882/udp [OK] \033[0m"
   firewall-cmd --add-port 6883/udp --permanent
   echo -e "\033[32m 6883/udp [OK] \033[0m"
   firewall-cmd --add-port 9200/tcp --permanent

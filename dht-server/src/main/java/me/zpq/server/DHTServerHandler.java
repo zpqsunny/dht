@@ -2,16 +2,17 @@ package me.zpq.server;
 
 import be.adaxisoft.bencode.BEncodedValue;
 import be.adaxisoft.bencode.InvalidBEncodingException;
+import io.lettuce.core.api.sync.RedisCommands;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
-import me.zpq.dht.common.MemoryQueue;
 import me.zpq.dht.common.PeerNode;
 import me.zpq.dht.common.Utils;
 import me.zpq.krpc.KrpcConstant;
 import me.zpq.krpc.KrpcProtocol;
 import me.zpq.route.IRoutingTable;
 import me.zpq.route.NodeTable;
+import me.zpq.server.peer.PeerThread;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 
@@ -19,6 +20,7 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 /**
@@ -34,14 +36,17 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DHTRequest> {
 
     private final int maxNodes;
 
-    private final MemoryQueue memoryQueue;
+    private final ThreadPoolExecutor threadPoolExecutor;
 
-    public DHTServerHandler(IRoutingTable routingTable, byte[] nodeId, int maxNodes, MemoryQueue memoryQueue) {
+    private final RedisCommands<String,String> redisCommands;
+
+    public DHTServerHandler(IRoutingTable routingTable, byte[] nodeId, int maxNodes, ThreadPoolExecutor threadPoolExecutor, RedisCommands<String,String> redisCommands) {
 
         this.nodeId = nodeId;
         this.routingTable = routingTable;
         this.maxNodes = maxNodes;
-        this.memoryQueue = memoryQueue;
+        this.threadPoolExecutor = threadPoolExecutor;
+        this.redisCommands = redisCommands;
     }
 
     @Override
@@ -183,7 +188,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DHTRequest> {
         String hash = Hex.encodeHexString(infoHash);
 
         log.info("ip {} port {} infoHash {}", ip, peerPort, hash);
-        memoryQueue.leftPush(new PeerNode(hash, ip, peerPort, System.currentTimeMillis()));
+        threadPoolExecutor.submit(new PeerThread(new PeerNode(hash, ip, port), redisCommands));
     }
 
     private void queryMethodUnknown(ChannelHandlerContext ctx, DHTRequest value, byte[] transactionId) throws IOException {

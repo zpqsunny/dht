@@ -15,12 +15,12 @@ public class ServerTest {
     @Test
     public void test() {
         MemoryQueueImpl memoryQueue = new MemoryQueueImpl();
-        memoryQueue.leftPush(new PeerNode("a","1",1,System.currentTimeMillis()));
-        memoryQueue.leftPush(new PeerNode("b","2",2,System.currentTimeMillis()));
-        memoryQueue.leftPush(new PeerNode("c","3",3,System.currentTimeMillis()));
-        memoryQueue.leftPush(new PeerNode("c","3",3,System.currentTimeMillis()));
-        memoryQueue.leftPush(new PeerNode("d","4",4,System.currentTimeMillis()));
-        memoryQueue.leftPush(new PeerNode("e","5",5,System.currentTimeMillis()));
+//        memoryQueue.leftPush(new PeerNode("a","1",1,System.currentTimeMillis()));
+//        memoryQueue.leftPush(new PeerNode("b","2",2,System.currentTimeMillis()));
+//        memoryQueue.leftPush(new PeerNode("c","3",3,System.currentTimeMillis()));
+//        memoryQueue.leftPush(new PeerNode("c","3",3,System.currentTimeMillis()));
+//        memoryQueue.leftPush(new PeerNode("d","4",4,System.currentTimeMillis()));
+//        memoryQueue.leftPush(new PeerNode("e","5",5,System.currentTimeMillis()));
         System.out.println(memoryQueue.size());
         System.out.println(memoryQueue.rightPop());
         System.out.println(memoryQueue.rightPop());

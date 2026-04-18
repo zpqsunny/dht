@@ -28,6 +28,7 @@
         <mongodb.version>5.2.1</mongodb.version>
         <elasticsearch.version>8.11.4</elasticsearch.version>
         <jackson.version>2.13.5</jackson.version>
+        <io.lettuce.version>5.2.2.RELEASE</io.lettuce.version>
     </properties>
     <packaging>pom</packaging>
 
@@ -93,6 +94,12 @@
                 <groupId>org.mongodb</groupId>
                 <artifactId>mongodb-driver-sync</artifactId>
                 <version>${mongodb.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.lettuce</groupId>
+                <artifactId>lettuce-core</artifactId>
+                <version>${io.lettuce.version}</version>
             </dependency>
 
             <!-- https://mvnrepository.com/artifact/org.json/json -->

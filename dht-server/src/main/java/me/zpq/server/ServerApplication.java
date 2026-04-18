@@ -1,26 +1,20 @@
 package me.zpq.server;
 
-import com.mongodb.ConnectionString;
-import com.mongodb.MongoClientSettings;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
+import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisURI;
+import io.lettuce.core.api.StatefulRedisConnection;
+import io.lettuce.core.api.sync.RedisCommands;
+import io.lettuce.core.resource.DefaultClientResources;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.extern.slf4j.Slf4j;
-import me.zpq.dht.common.MemoryQueue;
 import me.zpq.dht.common.Utils;
 import me.zpq.route.IRoutingTable;
 import me.zpq.route.RoutingTable;
-import me.zpq.server.peer.BaseMetaInfo;
-import me.zpq.server.peer.JsonMetaInfoImpl;
-import me.zpq.server.peer.MongoMetaInfoImpl;
-import me.zpq.server.peer.Peer;
 import me.zpq.server.schedule.FindNode;
 import me.zpq.server.schedule.Ping;
 import me.zpq.server.schedule.RemoveNode;
@@ -57,28 +51,30 @@ public class ServerApplication {
 
     private static int REMOVE_NODE_INTERVAL = 300;
 
-    private static String TYPE = "json";
-
     // peer
     private static int CORE_POOL_SIZE = 5;
 
     private static int MAX_POOL_SIZE = 10;
 
-    private static String MONGODB_URL = "mongodb://localhost";
+    //redis
+    private static String REDIS_HOST = "127.0.0.1";
 
+    private static int REDIS_PORT = 6379;
+
+    private static String REDIS_PASSWORD = "";
+
+    private static int REDIS_DATABASE = 0;
 
     public static void main(String[] args) throws InterruptedException, IOException {
 
         readConfig();
-
         Bootstrap bootstrap = new Bootstrap();
-
         RoutingTable routingTable = new RoutingTable();
-
-        MemoryQueue memoryQueue = new MemoryQueueImpl();
-
-        NioEventLoopGroup group = new NioEventLoopGroup(20);
-
+        NioEventLoopGroup group = new NioEventLoopGroup(CORE_POOL_SIZE * 10);
+        RedisCommands<String, String> redis = redis();
+        ThreadFactory threadFactory = Executors.defaultThreadFactory();
+        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(CORE_POOL_SIZE, MAX_POOL_SIZE,
+                0L, TimeUnit.MINUTES, new LinkedBlockingQueue<>(), threadFactory);
         try {
 
             bootstrap.group(group)
@@ -90,7 +86,7 @@ public class ServerApplication {
                             ch.pipeline()
                                     .addLast(new DHTRequestDecoder())
                                     .addLast(new DHTResponseEncoder())
-                                    .addLast(new DHTServerHandler(routingTable, NODE_ID, MAX_NODES, memoryQueue))
+                                    .addLast(new DHTServerHandler(routingTable, NODE_ID, MAX_NODES, threadPoolExecutor, redis))
                             ;
                         }
 
@@ -98,8 +94,6 @@ public class ServerApplication {
             final Channel channel = bootstrap.bind(PORT).sync().channel();
 
             scheduled(channel, routingTable);
-
-            startPeer(memoryQueue);
 
             log.info("server ok pid: {}", ManagementFactory.getRuntimeMXBean().getName());
 
@@ -128,10 +122,13 @@ public class ServerApplication {
             PING_INTERVAL = Integer.parseInt(properties.getProperty("server.ping.interval"));
             REMOVE_NODE_INTERVAL = Integer.parseInt(properties.getProperty("server.removeNode.interval"));
 
-            TYPE = properties.getProperty("peers.metadata", TYPE);
             CORE_POOL_SIZE = Integer.parseInt(properties.getProperty("peers.core.pool.size", String.valueOf(CORE_POOL_SIZE)));
             MAX_POOL_SIZE = Integer.parseInt(properties.getProperty("peers.maximum.pool.size", String.valueOf(MAX_POOL_SIZE)));
-            MONGODB_URL = properties.getProperty("mongodb.url", MONGODB_URL);
+
+            REDIS_HOST = properties.getProperty("redis.host", REDIS_HOST);
+            REDIS_PORT = Integer.parseInt(properties.getProperty("redis.port", String.valueOf(REDIS_PORT)));
+            REDIS_PASSWORD = properties.getProperty("redis.password", REDIS_PASSWORD);
+            REDIS_DATABASE = Integer.parseInt(properties.getProperty("redis.database", String.valueOf(REDIS_DATABASE)));
             inputStream.close();
         }
 
@@ -144,11 +141,12 @@ public class ServerApplication {
         log.info("=> server.findNode.interval: {}", FIND_NODE_INTERVAL);
         log.info("=> server.ping.interval: {}", PING_INTERVAL);
         log.info("=> server.removeNode.interval: {}", REMOVE_NODE_INTERVAL);
-        log.info("=> peers.metadata: {}", TYPE);
         log.info("=> peers.core.pool.size: {}", CORE_POOL_SIZE);
         log.info("=> peers.maximum.pool.size: {}", MAX_POOL_SIZE);
-        log.info("=> mongodb.url: {}", MONGODB_URL);
-
+        log.info("=> redis.host: {}", REDIS_HOST);
+        log.info("=> redis.port: {}", REDIS_PORT);
+        log.info("=> redis.password: {}", REDIS_PASSWORD);
+        log.info("=> redis.database: {}", REDIS_DATABASE);
     }
 
     private static void readEnv() {
@@ -156,8 +154,10 @@ public class ServerApplication {
         String port = System.getenv("PORT");
         String minNodes = System.getenv("MIN_NODES");
         String maxNodes = System.getenv("MAX_NODES");
-        String type = System.getenv("METADATA");
-        String mongodbUrl = System.getenv("MONGODB_URL");
+        String redisHost = System.getenv("REDIS_HOST");
+        String redisPort = System.getenv("REDIS_PORT");
+        String redisPassword = System.getenv("REDIS_PASSWORD");
+        String redisDatabase = System.getenv("REDIS_DATABASE");
         if (port != null && !port.isEmpty()) {
             log.info("=> env PORT: {}", port);
             PORT = Integer.parseInt(port);
@@ -170,13 +170,21 @@ public class ServerApplication {
             log.info("=> env MAX_NODES: {}", maxNodes);
             MAX_NODES = Integer.parseInt(maxNodes);
         }
-        if (type != null && !type.isEmpty()) {
-            log.info("=> env TYPE: {}", type);
-            TYPE = type;
+        if (redisHost != null && !redisHost.isEmpty()) {
+            log.info("=> env REDIS_HOST: {}", redisHost);
+            REDIS_HOST = redisHost;
         }
-        if (mongodbUrl != null && !mongodbUrl.isEmpty()) {
-            log.info("=> env MONGODB_URL: {}", mongodbUrl);
-            MONGODB_URL = mongodbUrl;
+        if (redisPort != null && !redisPort.isEmpty()) {
+            log.info("=> env REDIS_PORT: {}", redisPort);
+            REDIS_PORT = Integer.parseInt(redisPort);
+        }
+        if (redisPassword != null && !redisPassword.isEmpty()) {
+            log.info("=> env REDIS_PASSWORD: {}", redisPassword);
+            REDIS_PASSWORD = redisPassword;
+        }
+        if (redisDatabase != null && !redisDatabase.isEmpty()) {
+            log.info("=> env REDIS_DATABASE: {}", redisDatabase);
+            REDIS_DATABASE = Integer.parseInt(redisDatabase);
         }
     }
 
@@ -193,45 +201,18 @@ public class ServerApplication {
         log.info("start ok RemoveNode");
     }
 
-    private static MongoClient mongo(String mongoUri) {
+    private static RedisCommands<String, String> redis() {
 
-        MongoClientSettings.Builder mongoClientSettings = MongoClientSettings.builder();
-        ConnectionString connectionString = new ConnectionString(mongoUri);
-        mongoClientSettings.applyConnectionString(connectionString);
-        mongoClientSettings.applyToSocketSettings(builder ->
-                builder.connectTimeout(30, TimeUnit.SECONDS)
-                        .readTimeout(1, TimeUnit.MINUTES)
-        );
-        mongoClientSettings.applyToConnectionPoolSettings(builder ->
-                builder.minSize(2).maxSize(5)
-        );
-        return MongoClients.create(mongoClientSettings.build());
+        DefaultClientResources.Builder resourceBuild = DefaultClientResources.builder();
+        RedisURI.Builder builder = RedisURI.builder();
+        builder.withHost(REDIS_HOST);
+        builder.withPort(REDIS_PORT);
+        builder.withPassword(REDIS_PASSWORD);
+        builder.withPassword(REDIS_PASSWORD.toCharArray());
+        builder.withDatabase(REDIS_DATABASE);
+        RedisClient redisClient = RedisClient.create(resourceBuild.build(), builder.build());
+        StatefulRedisConnection<String, String> connection = redisClient.connect();
+        return connection.sync();
     }
 
-    private static void startPeer(MemoryQueue memoryQueue) {
-
-        BaseMetaInfo baseMetaInfo;
-        if ("json".equalsIgnoreCase(TYPE)) {
-            baseMetaInfo = new JsonMetaInfoImpl();
-        } else {
-            baseMetaInfo = new MongoMetaInfoImpl(mongo(MONGODB_URL));
-        }
-
-        ThreadFactory threadFactory = Executors.defaultThreadFactory();
-        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(CORE_POOL_SIZE, MAX_POOL_SIZE,
-                0L, TimeUnit.MINUTES, new LinkedBlockingQueue<>(), threadFactory);
-
-        ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(2);
-        EventLoopGroup group = new NioEventLoopGroup(MAX_POOL_SIZE);
-        Bootstrap b = new Bootstrap();
-        b.group(group)
-                .channel(NioSocketChannel.class)
-                .option(ChannelOption.AUTO_READ, true)
-                .option(ChannelOption.TCP_NODELAY, true)
-                .option(ChannelOption.SO_KEEPALIVE, true)
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
-        ;
-        scheduledExecutorService.scheduleWithFixedDelay(new Peer(memoryQueue, baseMetaInfo, threadPoolExecutor, b), 1L, 1L, TimeUnit.SECONDS);
-
-    }
 }

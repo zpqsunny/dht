@@ -36,6 +36,5 @@ public class DHTRequestDecoder extends MessageToMessageDecoder<DatagramPacket> {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 
-        log.error("BDecoder fail ...");
     }
 }

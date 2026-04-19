@@ -190,13 +190,10 @@ public class ServerApplication {
 
     private static void scheduled(final Channel channel, IRoutingTable routingTable) {
 
-        log.info("start autoFindNode");
         channel.eventLoop().scheduleWithFixedDelay(new FindNode(channel, TRANSACTION_ID, NODE_ID, routingTable, MIN_NODES), FIND_NODE_INTERVAL, FIND_NODE_INTERVAL, TimeUnit.SECONDS);
         log.info("start ok autoFindNode");
-        log.info("start Ping");
         channel.eventLoop().scheduleWithFixedDelay(new Ping(channel, TRANSACTION_ID, NODE_ID, routingTable), PING_INTERVAL, PING_INTERVAL, TimeUnit.SECONDS);
         log.info("start ok Ping");
-        log.info("start RemoveNode");
         channel.eventLoop().scheduleWithFixedDelay(new RemoveNode(routingTable), REMOVE_NODE_INTERVAL, REMOVE_NODE_INTERVAL, TimeUnit.SECONDS);
         log.info("start ok RemoveNode");
     }

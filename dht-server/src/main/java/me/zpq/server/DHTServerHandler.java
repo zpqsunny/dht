@@ -189,6 +189,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DHTRequest> {
 
         log.info("ip {} port {} infoHash {}", ip, peerPort, hash);
         threadPoolExecutor.submit(new PeerThread(new PeerNode(hash, ip, port), redisCommands));
+        log.info("pool size: {}, active count {}", threadPoolExecutor.getPoolSize(), threadPoolExecutor.getActiveCount());
     }
 
     private void queryMethodUnknown(ChannelHandlerContext ctx, DHTRequest value, byte[] transactionId) throws IOException {

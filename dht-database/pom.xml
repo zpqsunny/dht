@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <packaging>jar</packaging>
-    <artifactId>dht-elasticsearch</artifactId>
+    <artifactId>dht-database</artifactId>
     <version>${dht.version}</version>
 
     <dependencies>
@@ -42,6 +42,12 @@
         </dependency>
 
         <dependency>
+            <groupId>io.lettuce</groupId>
+            <artifactId>lettuce-core</artifactId>
+            <version>${io.lettuce.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>co.elastic.clients</groupId>
             <artifactId>elasticsearch-java</artifactId>
         </dependency>
@@ -60,9 +66,11 @@
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>3.3.0</version>
                 <configuration>
+                    <finalName>dht-database-${dht.version}</finalName>
+                    <appendAssemblyId>false</appendAssemblyId>
                     <archive>
                         <manifest>
-                            <mainClass>me.zpq.elasticsearch.ElasticSearchApplication</mainClass>
+                            <mainClass>me.zpq.database.DatabaseApplication</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

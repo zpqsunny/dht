@@ -1,4 +1,4 @@
-package me.zpq.elasticsearch;
+package me.zpq.database;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.IndexResponse;

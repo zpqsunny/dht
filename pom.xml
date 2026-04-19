@@ -12,7 +12,7 @@
         <module>dht-krpc</module>
         <module>dht-routing-table</module>
         <module>dht-server</module>
-        <module>dht-elasticsearch</module>
+        <module>dht-database</module>
     </modules>
     <properties>
         <dht.version>2.0.1</dht.version>
@@ -89,7 +89,6 @@
                 <version>${ch.qos.logback.version}</version>
             </dependency>
 
-            <!-- https://mvnrepository.com/artifact/org.mongodb/mongodb-driver-sync -->
             <dependency>
                 <groupId>org.mongodb</groupId>
                 <artifactId>mongodb-driver-sync</artifactId>

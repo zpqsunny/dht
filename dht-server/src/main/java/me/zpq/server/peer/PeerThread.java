@@ -171,7 +171,7 @@ public class PeerThread implements Runnable {
             metaInfo.put(FILE_NUMBER, fileNumber);
             JSONObject jsonObject = new JSONObject(metaInfo);
             redisHashMap.put("document", jsonObject.toString());
-            redisCommands.hmset(hex, redisHashMap);
+            redisCommands.hmset("hash:" + hex, redisHashMap);
             redisCommands.sadd("metadata", hex);
             log.info("metadata save success");
         } catch (Exception e) {

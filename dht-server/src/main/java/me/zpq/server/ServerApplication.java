@@ -71,12 +71,12 @@ public class ServerApplication {
         Bootstrap bootstrap = new Bootstrap();
         RoutingTable routingTable = new RoutingTable();
         NioEventLoopGroup group = new NioEventLoopGroup(CORE_POOL_SIZE * 10);
-        RedisCommands<String, String> redis = redis();
         ThreadFactory threadFactory = Executors.defaultThreadFactory();
         ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(CORE_POOL_SIZE, MAX_POOL_SIZE,
                 0L, TimeUnit.MINUTES, new LinkedBlockingQueue<>(), threadFactory);
+        RedisClient redisClient = redis();
         try {
-
+            RedisCommands<String, String> redisCommands = redisClient.connect().sync();
             bootstrap.group(group)
                     .channel(NioDatagramChannel.class)
                     .option(ChannelOption.SO_BROADCAST, true)
@@ -86,7 +86,7 @@ public class ServerApplication {
                             ch.pipeline()
                                     .addLast(new DHTRequestDecoder())
                                     .addLast(new DHTResponseEncoder())
-                                    .addLast(new DHTServerHandler(routingTable, NODE_ID, MAX_NODES, threadPoolExecutor, redis))
+                                    .addLast(new DHTServerHandler(routingTable, NODE_ID, MAX_NODES, threadPoolExecutor, redisCommands))
                             ;
                         }
 
@@ -201,18 +201,15 @@ public class ServerApplication {
         log.info("start ok RemoveNode");
     }
 
-    private static RedisCommands<String, String> redis() {
+    private static RedisClient redis() {
 
         DefaultClientResources.Builder resourceBuild = DefaultClientResources.builder();
         RedisURI.Builder builder = RedisURI.builder();
         builder.withHost(REDIS_HOST);
         builder.withPort(REDIS_PORT);
-        builder.withPassword(REDIS_PASSWORD);
         builder.withPassword(REDIS_PASSWORD.toCharArray());
         builder.withDatabase(REDIS_DATABASE);
-        RedisClient redisClient = RedisClient.create(resourceBuild.build(), builder.build());
-        StatefulRedisConnection<String, String> connection = redisClient.connect();
-        return connection.sync();
+        return RedisClient.create(resourceBuild.build(), builder.build());
     }
 
 }

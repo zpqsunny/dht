@@ -12,6 +12,9 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Map;
 import java.util.Set;
 
@@ -46,6 +49,7 @@ public class MongoDBTask implements Runnable {
                 continue;
             }
             String date = hashInfo.get("date");
+            String timestamp = hashInfo.get("timestamp");
             String path = hashInfo.get("path");
             String source = hashInfo.get("source");
             String document = hashInfo.get("document");
@@ -70,6 +74,8 @@ public class MongoDBTask implements Runnable {
             ObjectMapper objectMapper = new ObjectMapper();
             try {
                 Metadata metadata = objectMapper.readValue(document, Metadata.class);
+                metadata.setCreatedDateTime(LocalDateTime.ofInstant(Instant.ofEpochSecond(Long.getLong(timestamp)),
+                        ZoneId.of("Asia/Shanghai")));
                 log.info(objectMapper.writeValueAsString(metadata));
                 collection.insertOne(Document.parse(document));
             } catch (JsonProcessingException e) {

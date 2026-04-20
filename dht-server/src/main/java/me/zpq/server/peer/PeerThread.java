@@ -117,6 +117,7 @@ public class PeerThread implements Runnable {
             Map<String, String> redisHashMap = new HashMap<>();
             redisHashMap.put(HASH, hex);
             redisHashMap.put("date", date);
+            redisHashMap.put("timestamp", Long.toString(System.currentTimeMillis() / 1000));
             redisHashMap.put(PATH, "/" + METADATA + "/" + date + "/" + fileName);
             redisHashMap.put("source", new String(info));
 

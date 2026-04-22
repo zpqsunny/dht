@@ -1,4 +1,3 @@
-version: "3"
 services:
   elasticsearch:
     container_name: elasticsearch
@@ -22,8 +21,8 @@ services:
       options:
         max-file: "2"
         max-size: "20m"
-    environment:
-      - PORT=6881
+    env_file:
+      - dht-server.env
   dht-server-full-2:
     <<: *dht-server
     environment:

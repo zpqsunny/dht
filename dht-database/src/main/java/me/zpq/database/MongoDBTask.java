@@ -32,55 +32,44 @@ public class MongoDBTask implements Runnable {
 
     @Override
     public void run() {
-        Set<String> hashSet = redisCommands.smembers("metadata");
-        for (String hash : hashSet) {
-
-            Document has = new Document();
-            has.put("hash", new BsonString(hash));
-            if (collection.find(has).first() != null) {
-                log.info("hash is exist, ignore");
-                redisCommands.del("hash:" + hash);
-                redisCommands.srem("metadata", hash);
-                continue;
-            }
-            Map<String, String> hashInfo = redisCommands.hgetall("hash:" + hash);
-            if (hashInfo == null) {
-                redisCommands.del("hash:" + hash);
-                continue;
-            }
-            String date = hashInfo.get("date");
-            String timestamp = hashInfo.get("timestamp");
-            String path = hashInfo.get("path");
-            String source = hashInfo.get("source");
-            String document = hashInfo.get("document");
-            Path dir = Path.of("/metadata/" + date);
-            Path paths = Path.of(path);
-            if (!Files.exists(dir)) {
-                try {
-                    Files.createDirectories(dir);
-                } catch (IOException e) {
-                    log.error("create dir fail ", e);
-                    return;
+        try {
+            Set<String> hashSet = redisCommands.smembers("metadata");
+            for (String hash : hashSet) {
+                Document has = new Document();
+                has.put("hash", new BsonString(hash));
+                if (collection.find(has).first() != null) {
+                    log.info("hash is exist, ignore");
+                    redisCommands.del("hash:" + hash);
+                    redisCommands.srem("metadata", hash);
+                    continue;
                 }
-            }
-            try {
+                Map<String, String> hashInfo = redisCommands.hgetall("hash:" + hash);
+                if (hashInfo == null) {
+                    redisCommands.del("hash:" + hash);
+                    continue;
+                }
+                String date = hashInfo.get("date");
+                String timestamp = hashInfo.get("timestamp");
+                String path = hashInfo.get("path");
+                String source = hashInfo.get("source");
+                String document = hashInfo.get("document");
+                Path dir = Path.of("/metadata/" + date);
+                Path paths = Path.of(path);
+                if (!Files.exists(dir)) {
+                    Files.createDirectories(dir);
+                }
                 BufferedWriter bufferedWriter = Files.newBufferedWriter(paths);
                 bufferedWriter.write(source);
                 bufferedWriter.close();
-            } catch (IOException e) {
-                log.error("write metadata local fail ", e);
-                return;
-            }
-            ObjectMapper objectMapper = new ObjectMapper();
-            try {
+                ObjectMapper objectMapper = new ObjectMapper();
                 Metadata metadata = objectMapper.readValue(document, Metadata.class);
                 metadata.setCreatedDateTime(LocalDateTime.ofInstant(Instant.ofEpochSecond(Long.getLong(timestamp)),
                         ZoneId.of("Asia/Shanghai")));
                 log.info(objectMapper.writeValueAsString(metadata));
                 collection.insertOne(Document.parse(document));
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
             }
+        } catch (Exception e) {
+            log.error("error ", e);
         }
     }
 }

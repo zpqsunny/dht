@@ -16,13 +16,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class DatabaseApplication {
+public class MongoApplication {
 
     //redis
     private static String REDIS_HOST = "127.0.0.1";
@@ -38,14 +37,6 @@ public class DatabaseApplication {
     private static final String COLLECTION = "metadata";
 
     private static String MONGODB_URL = "mongodb://localhost";
-
-    private static String ELASTIC = "http://localhost";
-
-    private static Integer PORT = 9200;
-
-    private static String ELASTIC_USERNAME = "elastic";
-
-    private static String ELASTIC_PASSWORD = "elastic";
 
     public static void main(String[] args) throws IOException {
 
@@ -88,10 +79,6 @@ public class DatabaseApplication {
             REDIS_PASSWORD = properties.getProperty("redis.password", REDIS_PASSWORD);
             REDIS_DATABASE = Integer.parseInt(properties.getProperty("redis.database", String.valueOf(REDIS_DATABASE)));
             MONGODB_URL = properties.getProperty("mongodb.url", MONGODB_URL);
-            ELASTIC = properties.getProperty("elasticsearch.host", ELASTIC);
-            PORT = Integer.parseInt(properties.getProperty("elasticsearch.port", PORT.toString()));
-            ELASTIC_USERNAME = properties.getProperty("elasticsearch.username", ELASTIC_USERNAME);
-            ELASTIC_PASSWORD = properties.getProperty("elasticsearch.password", ELASTIC_PASSWORD);
             inputStream.close();
         }
 
@@ -103,42 +90,34 @@ public class DatabaseApplication {
         log.info("=> redis.password: {}", REDIS_PASSWORD);
         log.info("=> redis.database: {}", REDIS_DATABASE);
         log.info("=> mongodb.url: {}", MONGODB_URL);
-        log.info("=> elasticsearch.host: {}", ELASTIC);
-        log.info("=> elasticsearch.port: {}", PORT);
-        log.info("=> elasticsearch.username: {}", ELASTIC_USERNAME);
-        log.info("=> elasticsearch.password: {}", ELASTIC_PASSWORD);
     }
 
     private static void readEnv() {
         // docker
         String mongodbUrl = System.getenv("MONGODB_URL");
+        String redisHost = System.getenv("REDIS_HOST");
+        String redisPort = System.getenv("REDIS_PORT");
+        String redisPassword = System.getenv("REDIS_PASSWORD");
+        String redisDatabase = System.getenv("REDIS_DATABASE");
         if (mongodbUrl != null && !mongodbUrl.isEmpty()) {
             log.info("=> env MONGODB_URL: {}", mongodbUrl);
             MONGODB_URL = mongodbUrl;
         }
-
-        String elastic = System.getenv("ELASTICSEARCH_HOST");
-        if (elastic != null && !elastic.isEmpty()) {
-            log.info("=> env ELASTICSEARCH_HOST: {}", elastic);
-            ELASTIC = elastic;
+        if (redisHost != null && !redisHost.isEmpty()) {
+            log.info("=> env REDIS_HOST: {}", redisHost);
+            REDIS_HOST = redisHost;
         }
-
-        String elasticPort = System.getenv("ELASTICSEARCH_PORT");
-        if (elasticPort != null && !elasticPort.isEmpty()) {
-            log.info("=> env ELASTICSEARCH_PORT: {}", elasticPort);
-            PORT = Integer.parseInt(elasticPort);
+        if (redisPort != null && !redisPort.isEmpty()) {
+            log.info("=> env REDIS_PORT: {}", redisPort);
+            REDIS_PORT = Integer.parseInt(redisPort);
         }
-
-        String elasticUsername = System.getenv("ELASTICSEARCH_USERNAME");
-        if (elasticUsername != null && !elasticUsername.isEmpty()) {
-            log.info("=> env ELASTICSEARCH_USERNAME: {}", elasticUsername);
-            ELASTIC_USERNAME = elasticUsername;
+        if (redisPassword != null && !redisPassword.isEmpty()) {
+            log.info("=> env REDIS_PASSWORD: {}", redisPassword);
+            REDIS_PASSWORD = redisPassword;
         }
-
-        String elasticPassword = System.getenv("ELASTICSEARCH_PASSWORD");
-        if (elasticPassword != null && !elasticPassword.isEmpty()) {
-            log.info("=> env ELASTICSEARCH_PASSWORD: {}", elasticPassword);
-            ELASTIC_PASSWORD = elasticPassword;
+        if (redisDatabase != null && !redisDatabase.isEmpty()) {
+            log.info("=> env REDIS_DATABASE: {}", redisDatabase);
+            REDIS_DATABASE = Integer.parseInt(redisDatabase);
         }
     }
 

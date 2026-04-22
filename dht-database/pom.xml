@@ -48,11 +48,6 @@
         </dependency>
 
         <dependency>
-            <groupId>co.elastic.clients</groupId>
-            <artifactId>elasticsearch-java</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongodb-driver-sync</artifactId>
         </dependency>
@@ -70,7 +65,7 @@
                     <appendAssemblyId>false</appendAssemblyId>
                     <archive>
                         <manifest>
-                            <mainClass>me.zpq.database.DatabaseApplication</mainClass>
+                            <mainClass>me.zpq.database.MongoApplication</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

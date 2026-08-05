@@ -186,10 +186,8 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DHTRequest> {
                 .build());
 
         String hash = Hex.encodeHexString(infoHash);
-
-        log.info("ip {} port {} infoHash {}", ip, peerPort, hash);
         threadPoolExecutor.submit(new PeerThread(new PeerNode(hash, ip, port), redisCommands));
-        log.info("pool size: {}, active count {}", threadPoolExecutor.getPoolSize(), threadPoolExecutor.getActiveCount());
+        log.info("ip: {} port: {} infoHash: {}, {}⁄{}", ip, peerPort, hash, threadPoolExecutor.getActiveCount(), threadPoolExecutor.getPoolSize());
     }
 
     private void queryMethodUnknown(ChannelHandlerContext ctx, DHTRequest value, byte[] transactionId) throws IOException {

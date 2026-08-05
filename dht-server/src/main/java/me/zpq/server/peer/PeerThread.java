@@ -74,6 +74,10 @@ public class PeerThread implements Runnable {
 
     @Override
     public void run() {
+        if (redisCommands.exists("hash:" + peerNode.hash()) > 0) {
+            log.info("hash: {} exists ignore peer", peerNode.hash());
+            return;
+        }
         EventLoopGroup group = new NioEventLoopGroup(1);
         Bootstrap b = new Bootstrap();
         b.group(group)
@@ -99,7 +103,6 @@ public class PeerThread implements Runnable {
             Object metadata = b.connect(ip, port).channel().closeFuture().sync().channel().attr(AttributeKey.valueOf("metadata")).get();
             if (metadata instanceof ByteBuffer) {
                 saveRedis(((ByteBuffer) metadata).array());
-                log.info("save redis success {}", peerNode.hash());
             }
         } catch (Exception e) {
             log.error("get remote metadata fail ", e);
@@ -174,7 +177,7 @@ public class PeerThread implements Runnable {
             redisHashMap.put("document", jsonObject.toString());
             redisCommands.hmset("hash:" + hex, redisHashMap);
             redisCommands.sadd("metadata", hex);
-            log.info("metadata save success");
+            log.info("save redis success {}", peerNode.hash());
         } catch (Exception e) {
             log.error("save meta (redis) error", e);
         }

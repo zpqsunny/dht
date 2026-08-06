@@ -11,49 +11,42 @@
 [![](https://img.shields.io/badge/dynamic/json?label=rating&suffix=/5&query=%24.averageRating&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fgplhiomfemapanllhkkigblmhkbmjgfc)](https://microsoftedge.microsoft.com/addons/detail/transmission-web-ui/gplhiomfemapanllhkkigblmhkbmjgfc)
 [![](https://img.shields.io/badge/dynamic/json?label=users&query=%24.activeInstallCount&url=https%3A%2F%2Fmicrosoftedge.microsoft.com%2Faddons%2Fgetproductdetailsbycrxid%2Fgplhiomfemapanllhkkigblmhkbmjgfc)](https://microsoftedge.microsoft.com/addons/detail/transmission-web-ui/gplhiomfemapanllhkkigblmhkbmjgfc)
 
-## 架构设计
+## Design
 
-DHT Server -> Redis
+DHT Server -> Peer(Thread) -> Redis
 
-Redis <- Peer -> (Mongodb && local)        
+### Module
+- dht-common `Public variables and methods`
+- dht-database `TODO`
+- dht-krpc `krpc Protocol`
+- dht-routing-table `router table`
+- dht-server `Responsible for the server that transmits Bencode-encoded data over the DHT network based on the UDP transmission protocol, and the Peer client implementation (TCP), facilitating data interaction between peers to obtain the metadata and storage of the peer`
 
-### 模块解释
-- dht-common        公共变量和方法
-- dht-fresh         hash的7天内统计日活跃数
-- dht-krpc          krpc 协议实现
-- dht-peer          Peer 客户端实现(TCP),实现端与端之间的数据交互,来实现获取对端的metadata数据和存储
-- dht-routing-table 为dht-server 实现的内部路由表
-- dht-server        负责基于UDP传输协议的DHT网络传输Bencode编码的服务器
+## config.properties(config file)
 
-## config.properties 配置文件
-
-### DHT Server
+### DHT Server Full
 ```properties
-server.port=6881                #监听端口
-server.nodes.min=20             #node节点最少数量
-server.nodes.max=3000           #node节点最大数量
-server.findNode.interval=60     #执行find_node方法时间间隔（单位秒）
-server.ping.interval=300        #执行ping方法时间间隔（单位秒）
-server.removeNode.interval=300  #执行删除失效节点时间间隔（单位秒）
-server.fresh=false              #是否开启hash统计 需要开启fresh 不然redis list数据会被占满
-redis.host=127.0.0.1            #redis地址
-redis.port=6379                 #redis端口
-redis.password=                 #redis密码
-redis.database=0                #redis Database
-```
-### Peer
-```properties
-peers.core.pool.size=5          #peer核心线程数
-peers.maximum.pool.size=10      #peer最大线程数
-redis.host=127.0.0.1            #redis地址
-redis.port=6379                 #redis端口
-redis.password=                 #redis密码
-redis.database=0                #redis Database
-mongodb.url=                    #mongodb url
+#DHT Server Listen Port
+server.port=6881
+#Min Node number (if nodes size < min node number find node in bootstrap node)
+server.nodes.min=20
+#Max Node number (if node size > max node number not add to routing table)
+server.nodes.max=3000
+#Action(findNode) interval unit(second)
+server.findNode.interval=60
+#Action(ping) interval unit(second)
+server.ping.interval=300
+#Action(removeNode) interval unit(second)
+server.removeNode.interval=300
+#redis information
+redis.host=127.0.0.1
+redis.port=6379
+redis.password=
+redis.database=0
 ```
 
 
-## 实现协议
+## Protocol
 
 :heavy_check_mark: [DHT Protocol](http://www.bittorrent.org/beps/bep_0005.html)
 
@@ -61,57 +54,51 @@ mongodb.url=                    #mongodb url
 
 :heavy_check_mark: [Extension Protocol](http://www.bittorrent.org/beps/bep_0010.html)
 
-## 运行
+## Run
 
-jar包和config.properties配置文件要在同一目录
+The jar package and the config.properties configuration file should be in the same directory
 
 ```shell script
-java  -jar dht-server-1.0-SNAPSHOT-jar-with-dependencies.jar &
-java  -jar dht-peer-1.0-SNAPSHOT-jar-with-dependencies.jar &
+java  -jar dht-server-full.jar &
 ```
 
 ## Docker
 
-运行在Docker
+Run in Docker
 
 [dht-server](https://hub.docker.com/repository/docker/zpqsunny/dht-server)
 
-[dht-peer](https://hub.docker.com/repository/docker/zpqsunny/dht-peer)
-
-### ENV 环境变量配置
+### ENV Config
 
 #### DHT Server
 
 ```properties
-PORT = 6881                 #端口
-MIN_NODES = 20              #node节点最少数量
-MAX_NODES = 5000            #node节点最大数量
-FRESH = false               #是否开启hash统计 需要开启fresh 不然redis list数据会被占满
-REDIS_HOST = 127.0.0.1      #redis地址
-REDIS_PORT = 6379           #redis端口
-REDIS_PASSWORD = ''         #redis密码
-REDIS_DATABASE = 0          #redis Database
+#DHT Server Listen Port
+PORT=6881
+#Min Node number (if nodes size < min node number find node in bootstrap node)
+MIN_NODES=20
+#Max Node number (if node size > max node number not add to routing table)
+MAX_NODES=5000
+#redis information
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+REDIS_PASSWORD=''
+REDIS_DATABASE=0
 ```
 
-#### DHT Peer
-
-```properties
-REDIS_HOST = 127.0.0.1              #redis地址
-REDIS_PORT = 6379                   #redis端口
-REDIS_PASSWORD = ''                 #redis密码
-REDIS_DATABASE = 0                  #redis Database
-MONGODB_URL = 'mongodb://localhost' #mongodb url
-```
-
-## 快速运行
+## Fast running
 
 **docker**
 ```shell
 docker run -d --name redis --network host redis:5.0.10
-docker run -d --name dht-server --network host zpqsunny/dht-server:latest
-docker run -d --name mongo --network host -v /docker/mongo/db:/data/db -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INITDB_ROOT_PASSWORD=admin mongo:4.4.1
-docker run -d --name dht-peer --network host -v /metadata:/metadata -e MONGODB_URL="mongodb://admin:admin@127.0.0.1:27017/?authSource=admin" -e REDIS_HOST=127.0.0.1 -e REDIS_PORT=6379 zpqsunny/dht-peer:latest
+docker run -d --name dht-server-full --network host zpqsunny/dht-server-full:latest
 ```
+
+**Redis Data**
+
+key1: `metadata` DataType: `SET`
+
+key2: `hash:xxxx` DataType: `HASH`
 
 **docker-compose**
 ```yaml
@@ -121,7 +108,7 @@ services:
     image: redis:5.0.10
     network_mode: host
     restart: unless-stopped
-  dht-server-1: &dht-server
+  dht-server-full-1: &dht-server
     depends_on:
       - redis
     image: zpqsunny/dht-server:latest
@@ -136,51 +123,19 @@ services:
       REDIS_PORT: 6379
       REDIS_PASSWORD:
       REDIS_DATABASE: 0
-  dht-server-2:
+  dht-server-full-2:
     <<: *dht-server
     environment:
       PORT: 6882
-  dht-server-3:
+  dht-server-full-3:
     <<: *dht-server
     environment:
       PORT: 6883
-  mongo:
-    container_name: mongo
-    image: mongo:4.4.1
-    volumes:
-      - /docker/mongo/db:/data/db
-      - /docker/mongo/backup:/backup
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: admin
-    network_mode: host
-    restart: unless-stopped
-  dht-peer:
-    depends_on:
-      - redis
-      - mongo
-    deploy:
-      mode: replicated
-      replicas: 3
-    image: zpqsunny/dht-peer:latest
-    build:
-      context: dht-server
-      dockerfile: Dockerfile
-    network_mode: host
-    restart: unless-stopped
-    volumes:
-      - /metadata:/metadata
-    environment:
-      MONGODB_URL: mongodb://admin:admin@127.0.0.1:27017/?authSource=admin
-      REDIS_HOST: 127.0.0.1
-      REDIS_PORT: 6379
-      REDIS_PASSWORD:
-      REDIS_DATABASE: 0
 ```
 ```shell
 docker-compose up
 ```
-## 示例数据
+## Example Data
 
 ![example-data](example-data.png)
 
@@ -189,7 +144,7 @@ docker-compose up
 
 [![Stargazers over time](https://starchart.cc/zpqsunny/dht.svg)](https://starchart.cc/zpqsunny/dht)
 
-## 鸣谢
+## Thanks
 
 > [IntelliJ IDEA](https://zh.wikipedia.org/zh-hans/IntelliJ_IDEA) 是一个在各个方面都最大程度地提高开发人员的生产力的 IDE，适用于 JVM 平台语言。
 

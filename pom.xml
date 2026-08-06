@@ -29,6 +29,7 @@
         <elasticsearch.version>8.11.4</elasticsearch.version>
         <jackson.version>2.13.5</jackson.version>
         <io.lettuce.version>5.2.2.RELEASE</io.lettuce.version>
+        <docker.build.image>zpqsunny/dht-server-full:latest</docker.build.image>
     </properties>
     <packaging>pom</packaging>
 

@@ -102,7 +102,7 @@
                                 <argument>--platform</argument>
                                 <argument>linux/amd64</argument>
                                 <argument>-t</argument>
-                                <argument>registry.cn-hongkong.aliyuncs.com/sz-face/dht-server:latest</argument>
+                                <argument>${docker.build.image}</argument>
                                 <argument>.</argument>
                             </arguments>
                             <workingDirectory>${project.basedir}</workingDirectory>
@@ -118,7 +118,7 @@
                             <executable>docker</executable>
                             <arguments>
                                 <argument>push</argument>
-                                <argument>registry.cn-hongkong.aliyuncs.com/sz-face/dht-server:latest</argument>
+                                <argument>${docker.build.image}</argument>
                             </arguments>
                             <workingDirectory>${project.basedir}</workingDirectory>
                         </configuration>

@@ -231,9 +231,7 @@ public class DHTServerHandler extends SimpleChannelInboundHandler<DHTRequest> {
     private void responseError(DHTRequest value) throws InvalidBEncodingException {
 
         List<BEncodedValue> e = value.getData().getMap().get(KrpcConstant.E).getList();
-
-        log.error("ip: {} r : error Code: {} , Description: {}", value.getSender().getAddress().getHostAddress(), e.get(0).getInt(), e.get(1).getString());
-
+        log.error("{} {} {}", value.getSender().getAddress().getHostAddress(), e.get(0).getInt(), e.get(1).getString());
     }
 
     private void updateRoutingTable(byte[] id, String ip, int port) {

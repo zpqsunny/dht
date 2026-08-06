@@ -59,7 +59,7 @@ public class FindNode implements Runnable {
                 list.forEach(bootstrapAddress -> channel.writeAndFlush(
                         DHTResponse.builder()
                                 .data(findNodeQuery)
-                                .sender(new InetSocketAddress(bootstrapAddress.getHost(), bootstrapAddress.getPort()))
+                                .sender(new InetSocketAddress(bootstrapAddress.host(), bootstrapAddress.port()))
                                 .build())
                 );
             } else {

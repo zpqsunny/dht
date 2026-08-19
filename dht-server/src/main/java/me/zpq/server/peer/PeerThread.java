@@ -4,7 +4,6 @@ import be.adaxisoft.bencode.BDecoder;
 import be.adaxisoft.bencode.BEncodedValue;
 import io.lettuce.core.api.sync.RedisCommands;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;

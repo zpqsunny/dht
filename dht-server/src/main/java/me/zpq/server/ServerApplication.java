@@ -2,7 +2,6 @@ package me.zpq.server;
 
 import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisURI;
-import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.sync.RedisCommands;
 import io.lettuce.core.resource.DefaultClientResources;
 import io.netty.bootstrap.Bootstrap;

@@ -4,6 +4,7 @@ import be.adaxisoft.bencode.BDecoder;
 import be.adaxisoft.bencode.BEncodedValue;
 import io.lettuce.core.api.sync.RedisCommands;
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -78,6 +79,13 @@ public class PeerThread implements Runnable {
             log.info("hash: {} exists ignore peer", peerNode.hash());
             return;
         }
+        byte[] hash;
+        try {
+            hash = Hex.decodeHex(peerNode.hash());
+        } catch (DecoderException e) {
+            // ignore
+            return;
+        }
         EventLoopGroup group = new NioEventLoopGroup(1);
         Bootstrap b = new Bootstrap();
         b.group(group)
@@ -87,14 +95,6 @@ public class PeerThread implements Runnable {
                 .option(ChannelOption.SO_KEEPALIVE, true)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
         ;
-        byte[] hash;
-        try {
-            hash = Hex.decodeHex(peerNode.hash());
-        } catch (DecoderException e) {
-            // ignore
-            log.error(e.getMessage());
-            return;
-        }
         String ip = peerNode.ip();
         int port = peerNode.port();
         b.handler(new Initializer(hash));
@@ -106,6 +106,8 @@ public class PeerThread implements Runnable {
             }
         } catch (Exception e) {
             log.error("get remote metadata fail ", e);
+        } finally {
+            group.shutdownGracefully();
         }
     }
 
